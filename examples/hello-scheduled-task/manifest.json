@@ -1,0 +1,14 @@
+{
+  "plugin_id": "example.hello-task",
+  "version": "0.1.0",
+  "checksum": "__CHECKSUM__",
+  "silo_api_version": "v1",
+  "capabilities": [
+    {
+      "type": "scheduled_task.v1",
+      "id": "hello",
+      "display_name": "Hello Task",
+      "description": "A minimal scheduled task example."
+    }
+  ]
+}
