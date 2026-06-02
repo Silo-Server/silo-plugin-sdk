@@ -9,9 +9,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-// stubRuntime satisfies the required Runtime server by embedding the interface
-// (GRPCServer rejects a nil Runtime). Its methods are never called here.
-type stubRuntime struct{ pluginv1.RuntimeServer }
+// stubRuntime satisfies the required Runtime server (GRPCServer rejects a nil
+// Runtime) via the generated forward-compatible stub, so no method holds a nil
+// embedded interface.
+type stubRuntime struct{ pluginv1.UnimplementedRuntimeServer }
 
 type stubScanSource struct{}
 
