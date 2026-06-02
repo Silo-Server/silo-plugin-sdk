@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package silo.plugin.v1;
+
+option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
+
+// ScanSource lets the host pull changed filesystem paths from a provider
+// (e.g. Sonarr/Radarr, inotify, Ceph). Pull only: the host owns the timer and
+// calls PollChanges; the plugin never initiates.
+service ScanSource {
+  rpc PollChanges(PollChangesRequest) returns (PollChangesResponse);
+}
+
+message PollChangesRequest {
+  // Which configured scan_source capability instance is being polled.
+  string capability_id = 1;
+  // Opaque continuation token from the previous PollChanges. Empty on first
+  // run, which the provider treats as "start from now" (do not replay history).
+  string marker = 2;
+}
+
+message PollChangesResponse {
+  // Absolute paths already translated into Silo's filesystem namespace (the
+  // plugin has applied its own path rewrites). Files or directories.
+  repeated string changed_paths = 1;
+  // Opaque continuation token. The host stores it verbatim and echoes it back
+  // on the next PollChanges; the host never parses it.
+  string next_marker = 2;
+}
