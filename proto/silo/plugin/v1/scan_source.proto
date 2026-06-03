@@ -5,8 +5,9 @@ package silo.plugin.v1;
 option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
 
 // ScanSource lets the host pull changed filesystem paths from a provider
-// (e.g. Sonarr/Radarr, inotify, Ceph). Pull only: the host owns the timer and
-// calls PollChanges; the plugin never initiates.
+// (e.g. Sonarr/Radarr, inotify, Ceph). Pull only: the host owns the timer,
+// marker storage, path rewrites, and scan enqueueing; the plugin never
+// initiates.
 service ScanSource {
   rpc PollChanges(PollChangesRequest) returns (PollChangesResponse);
 }
@@ -21,7 +22,8 @@ message PollChangesRequest {
   // operator's connection config (own credentials, or a reused link) and passes
   // the concrete values here each poll, so the plugin stays credential-source
   // agnostic and never stores secrets at rest. Delivered over the local
-  // host<->plugin gRPC channel only.
+  // host<->plugin gRPC channel only; plugins must avoid logging this request
+  // without redacting secrets.
   ResolvedConnection connection = 3;
 }
 
@@ -33,9 +35,10 @@ message ResolvedConnection {
 }
 
 message PollChangesResponse {
-  // Absolute paths already translated into Silo's filesystem namespace (the
-  // plugin has applied its own path rewrites). Files or directories.
-  repeated string changed_paths = 1;
+  // Absolute changed paths in the provider/source namespace. Files or
+  // directories. The host applies autoscan source rewrite rules and validates
+  // the rewritten paths before enqueueing scans.
+  repeated string source_paths = 1;
   // Opaque continuation token. The host stores it verbatim and echoes it back
   // on the next PollChanges; the host never parses it.
   string next_marker = 2;

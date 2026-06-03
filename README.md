@@ -26,6 +26,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `auth_provider.v1`
 - `http_routes.v1`
 - `request_router.v1`
+- `scan_source.v1`
 - `audiobook_backend.v1`
 - `ebook_backend.v1`
 
@@ -77,6 +78,18 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 ```
 
 The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
+
+## Scan sources
+
+The `scan_source.v1` capability is for Autoscan providers. The host owns the
+poll timer, marker persistence, path rewrites, validation, dedupe, and scan
+enqueueing. The plugin only polls its upstream provider and returns changed
+absolute paths in that provider's source namespace. The host applies autoscan
+source rewrite rules before enqueueing scans.
+
+The host resolves the configured upstream connection and passes it to
+`PollChanges` for each poll. Plugins should treat request values such as API
+keys as transient secrets and avoid logging them without redaction.
 
 ## Self-describing binaries
 

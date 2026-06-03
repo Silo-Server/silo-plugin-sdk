@@ -32,7 +32,8 @@ type PollChangesRequest struct {
 	// operator's connection config (own credentials, or a reused link) and passes
 	// the concrete values here each poll, so the plugin stays credential-source
 	// agnostic and never stores secrets at rest. Delivered over the local
-	// host<->plugin gRPC channel only.
+	// host<->plugin gRPC channel only; plugins must avoid logging this request
+	// without redacting secrets.
 	Connection    *ResolvedConnection `protobuf:"bytes,3,opt,name=connection,proto3" json:"connection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -145,9 +146,10 @@ func (x *ResolvedConnection) GetApiKey() string {
 
 type PollChangesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Absolute paths already translated into Silo's filesystem namespace (the
-	// plugin has applied its own path rewrites). Files or directories.
-	ChangedPaths []string `protobuf:"bytes,1,rep,name=changed_paths,json=changedPaths,proto3" json:"changed_paths,omitempty"`
+	// Absolute changed paths in the provider/source namespace. Files or
+	// directories. The host applies autoscan source rewrite rules and validates
+	// the rewritten paths before enqueueing scans.
+	SourcePaths []string `protobuf:"bytes,1,rep,name=source_paths,json=sourcePaths,proto3" json:"source_paths,omitempty"`
 	// Opaque continuation token. The host stores it verbatim and echoes it back
 	// on the next PollChanges; the host never parses it.
 	NextMarker    string `protobuf:"bytes,2,opt,name=next_marker,json=nextMarker,proto3" json:"next_marker,omitempty"`
@@ -185,9 +187,9 @@ func (*PollChangesResponse) Descriptor() ([]byte, []int) {
 	return file_silo_plugin_v1_scan_source_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *PollChangesResponse) GetChangedPaths() []string {
+func (x *PollChangesResponse) GetSourcePaths() []string {
 	if x != nil {
-		return x.ChangedPaths
+		return x.SourcePaths
 	}
 	return nil
 }
@@ -212,9 +214,9 @@ const file_silo_plugin_v1_scan_source_proto_rawDesc = "" +
 	"connection\"H\n" +
 	"\x12ResolvedConnection\x12\x19\n" +
 	"\bbase_url\x18\x01 \x01(\tR\abaseUrl\x12\x17\n" +
-	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\"[\n" +
-	"\x13PollChangesResponse\x12#\n" +
-	"\rchanged_paths\x18\x01 \x03(\tR\fchangedPaths\x12\x1f\n" +
+	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\"Y\n" +
+	"\x13PollChangesResponse\x12!\n" +
+	"\fsource_paths\x18\x01 \x03(\tR\vsourcePaths\x12\x1f\n" +
 	"\vnext_marker\x18\x02 \x01(\tR\n" +
 	"nextMarker2d\n" +
 	"\n" +

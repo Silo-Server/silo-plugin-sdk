@@ -27,8 +27,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // ScanSource lets the host pull changed filesystem paths from a provider
-// (e.g. Sonarr/Radarr, inotify, Ceph). Pull only: the host owns the timer and
-// calls PollChanges; the plugin never initiates.
+// (e.g. Sonarr/Radarr, inotify, Ceph). Pull only: the host owns the timer,
+// marker storage, path rewrites, and scan enqueueing; the plugin never
+// initiates.
 type ScanSourceClient interface {
 	PollChanges(ctx context.Context, in *PollChangesRequest, opts ...grpc.CallOption) (*PollChangesResponse, error)
 }
@@ -56,8 +57,9 @@ func (c *scanSourceClient) PollChanges(ctx context.Context, in *PollChangesReque
 // for forward compatibility.
 //
 // ScanSource lets the host pull changed filesystem paths from a provider
-// (e.g. Sonarr/Radarr, inotify, Ceph). Pull only: the host owns the timer and
-// calls PollChanges; the plugin never initiates.
+// (e.g. Sonarr/Radarr, inotify, Ceph). Pull only: the host owns the timer,
+// marker storage, path rewrites, and scan enqueueing; the plugin never
+// initiates.
 type ScanSourceServer interface {
 	PollChanges(context.Context, *PollChangesRequest) (*PollChangesResponse, error)
 }
