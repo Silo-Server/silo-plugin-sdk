@@ -27,7 +27,13 @@ type PollChangesRequest struct {
 	CapabilityId string `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
 	// Opaque continuation token from the previous PollChanges. Empty on first
 	// run, which the provider treats as "start from now" (do not replay history).
-	Marker        string `protobuf:"bytes,2,opt,name=marker,proto3" json:"marker,omitempty"`
+	Marker string `protobuf:"bytes,2,opt,name=marker,proto3" json:"marker,omitempty"`
+	// Resolved upstream connection for this source. The host resolves the
+	// operator's connection config (own credentials, or a reused link) and passes
+	// the concrete values here each poll, so the plugin stays credential-source
+	// agnostic and never stores secrets at rest. Delivered over the local
+	// host<->plugin gRPC channel only.
+	Connection    *ResolvedConnection `protobuf:"bytes,3,opt,name=connection,proto3" json:"connection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -76,6 +82,67 @@ func (x *PollChangesRequest) GetMarker() string {
 	return ""
 }
 
+func (x *PollChangesRequest) GetConnection() *ResolvedConnection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
+// ResolvedConnection carries the concrete upstream credentials the plugin needs
+// to reach its source (e.g. a Sonarr/Radarr base URL + API key).
+type ResolvedConnection struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BaseUrl       string                 `protobuf:"bytes,1,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
+	ApiKey        string                 `protobuf:"bytes,2,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolvedConnection) Reset() {
+	*x = ResolvedConnection{}
+	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolvedConnection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolvedConnection) ProtoMessage() {}
+
+func (x *ResolvedConnection) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolvedConnection.ProtoReflect.Descriptor instead.
+func (*ResolvedConnection) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_scan_source_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ResolvedConnection) GetBaseUrl() string {
+	if x != nil {
+		return x.BaseUrl
+	}
+	return ""
+}
+
+func (x *ResolvedConnection) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
 type PollChangesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Absolute paths already translated into Silo's filesystem namespace (the
@@ -90,7 +157,7 @@ type PollChangesResponse struct {
 
 func (x *PollChangesResponse) Reset() {
 	*x = PollChangesResponse{}
-	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[1]
+	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -102,7 +169,7 @@ func (x *PollChangesResponse) String() string {
 func (*PollChangesResponse) ProtoMessage() {}
 
 func (x *PollChangesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[1]
+	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +182,7 @@ func (x *PollChangesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PollChangesResponse.ProtoReflect.Descriptor instead.
 func (*PollChangesResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_scan_source_proto_rawDescGZIP(), []int{1}
+	return file_silo_plugin_v1_scan_source_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PollChangesResponse) GetChangedPaths() []string {
@@ -136,10 +203,16 @@ var File_silo_plugin_v1_scan_source_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_scan_source_proto_rawDesc = "" +
 	"\n" +
-	" silo/plugin/v1/scan_source.proto\x12\x0esilo.plugin.v1\"Q\n" +
+	" silo/plugin/v1/scan_source.proto\x12\x0esilo.plugin.v1\"\x95\x01\n" +
 	"\x12PollChangesRequest\x12#\n" +
 	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12\x16\n" +
-	"\x06marker\x18\x02 \x01(\tR\x06marker\"[\n" +
+	"\x06marker\x18\x02 \x01(\tR\x06marker\x12B\n" +
+	"\n" +
+	"connection\x18\x03 \x01(\v2\".silo.plugin.v1.ResolvedConnectionR\n" +
+	"connection\"H\n" +
+	"\x12ResolvedConnection\x12\x19\n" +
+	"\bbase_url\x18\x01 \x01(\tR\abaseUrl\x12\x17\n" +
+	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\"[\n" +
 	"\x13PollChangesResponse\x12#\n" +
 	"\rchanged_paths\x18\x01 \x03(\tR\fchangedPaths\x12\x1f\n" +
 	"\vnext_marker\x18\x02 \x01(\tR\n" +
@@ -160,19 +233,21 @@ func file_silo_plugin_v1_scan_source_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_scan_source_proto_rawDescData
 }
 
-var file_silo_plugin_v1_scan_source_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_silo_plugin_v1_scan_source_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_silo_plugin_v1_scan_source_proto_goTypes = []any{
 	(*PollChangesRequest)(nil),  // 0: silo.plugin.v1.PollChangesRequest
-	(*PollChangesResponse)(nil), // 1: silo.plugin.v1.PollChangesResponse
+	(*ResolvedConnection)(nil),  // 1: silo.plugin.v1.ResolvedConnection
+	(*PollChangesResponse)(nil), // 2: silo.plugin.v1.PollChangesResponse
 }
 var file_silo_plugin_v1_scan_source_proto_depIdxs = []int32{
-	0, // 0: silo.plugin.v1.ScanSource.PollChanges:input_type -> silo.plugin.v1.PollChangesRequest
-	1, // 1: silo.plugin.v1.ScanSource.PollChanges:output_type -> silo.plugin.v1.PollChangesResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: silo.plugin.v1.PollChangesRequest.connection:type_name -> silo.plugin.v1.ResolvedConnection
+	0, // 1: silo.plugin.v1.ScanSource.PollChanges:input_type -> silo.plugin.v1.PollChangesRequest
+	2, // 2: silo.plugin.v1.ScanSource.PollChanges:output_type -> silo.plugin.v1.PollChangesResponse
+	2, // [2:3] is the sub-list for method output_type
+	1, // [1:2] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_scan_source_proto_init() }
@@ -186,7 +261,7 @@ func file_silo_plugin_v1_scan_source_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_scan_source_proto_rawDesc), len(file_silo_plugin_v1_scan_source_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

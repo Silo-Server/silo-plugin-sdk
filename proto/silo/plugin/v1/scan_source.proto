@@ -17,6 +17,19 @@ message PollChangesRequest {
   // Opaque continuation token from the previous PollChanges. Empty on first
   // run, which the provider treats as "start from now" (do not replay history).
   string marker = 2;
+  // Resolved upstream connection for this source. The host resolves the
+  // operator's connection config (own credentials, or a reused link) and passes
+  // the concrete values here each poll, so the plugin stays credential-source
+  // agnostic and never stores secrets at rest. Delivered over the local
+  // host<->plugin gRPC channel only.
+  ResolvedConnection connection = 3;
+}
+
+// ResolvedConnection carries the concrete upstream credentials the plugin needs
+// to reach its source (e.g. a Sonarr/Radarr base URL + API key).
+message ResolvedConnection {
+  string base_url = 1;
+  string api_key = 2;
 }
 
 message PollChangesResponse {
