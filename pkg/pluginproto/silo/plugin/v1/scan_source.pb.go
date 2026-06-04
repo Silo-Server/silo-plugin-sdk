@@ -21,6 +21,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ScanSourceChangeScope int32
+
+const (
+	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_UNSPECIFIED ScanSourceChangeScope = 0
+	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_AUTO        ScanSourceChangeScope = 1
+	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_FILE        ScanSourceChangeScope = 2
+	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_SUBTREE     ScanSourceChangeScope = 3
+)
+
+// Enum value maps for ScanSourceChangeScope.
+var (
+	ScanSourceChangeScope_name = map[int32]string{
+		0: "SCAN_SOURCE_CHANGE_SCOPE_UNSPECIFIED",
+		1: "SCAN_SOURCE_CHANGE_SCOPE_AUTO",
+		2: "SCAN_SOURCE_CHANGE_SCOPE_FILE",
+		3: "SCAN_SOURCE_CHANGE_SCOPE_SUBTREE",
+	}
+	ScanSourceChangeScope_value = map[string]int32{
+		"SCAN_SOURCE_CHANGE_SCOPE_UNSPECIFIED": 0,
+		"SCAN_SOURCE_CHANGE_SCOPE_AUTO":        1,
+		"SCAN_SOURCE_CHANGE_SCOPE_FILE":        2,
+		"SCAN_SOURCE_CHANGE_SCOPE_SUBTREE":     3,
+	}
+)
+
+func (x ScanSourceChangeScope) Enum() *ScanSourceChangeScope {
+	p := new(ScanSourceChangeScope)
+	*p = x
+	return p
+}
+
+func (x ScanSourceChangeScope) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ScanSourceChangeScope) Descriptor() protoreflect.EnumDescriptor {
+	return file_silo_plugin_v1_scan_source_proto_enumTypes[0].Descriptor()
+}
+
+func (ScanSourceChangeScope) Type() protoreflect.EnumType {
+	return &file_silo_plugin_v1_scan_source_proto_enumTypes[0]
+}
+
+func (x ScanSourceChangeScope) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ScanSourceChangeScope.Descriptor instead.
+func (ScanSourceChangeScope) EnumDescriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_scan_source_proto_rawDescGZIP(), []int{0}
+}
+
 type PollChangesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Which configured scan_source capability instance is being polled.
@@ -34,7 +86,12 @@ type PollChangesRequest struct {
 	// agnostic and never stores secrets at rest. Delivered over the local
 	// host<->plugin gRPC channel only; plugins must avoid logging this request
 	// without redacting secrets.
-	Connection    *ResolvedConnection `protobuf:"bytes,3,opt,name=connection,proto3" json:"connection,omitempty"`
+	Connection *ResolvedConnection `protobuf:"bytes,3,opt,name=connection,proto3" json:"connection,omitempty"`
+	// Host-owned source configuration for this autoscan source. The host stores
+	// and edits this on the autoscan source row, then sends it on every poll so
+	// scan-source plugins do not need to expose source-specific knobs through the
+	// generic plugin settings page.
+	SourceConfig  map[string]string `protobuf:"bytes,4,rep,name=source_config,json=sourceConfig,proto3" json:"source_config,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -86,6 +143,13 @@ func (x *PollChangesRequest) GetMarker() string {
 func (x *PollChangesRequest) GetConnection() *ResolvedConnection {
 	if x != nil {
 		return x.Connection
+	}
+	return nil
+}
+
+func (x *PollChangesRequest) GetSourceConfig() map[string]string {
+	if x != nil {
+		return x.SourceConfig
 	}
 	return nil
 }
@@ -152,7 +216,11 @@ type PollChangesResponse struct {
 	SourcePaths []string `protobuf:"bytes,1,rep,name=source_paths,json=sourcePaths,proto3" json:"source_paths,omitempty"`
 	// Opaque continuation token. The host stores it verbatim and echoes it back
 	// on the next PollChanges; the host never parses it.
-	NextMarker    string `protobuf:"bytes,2,opt,name=next_marker,json=nextMarker,proto3" json:"next_marker,omitempty"`
+	NextMarker string `protobuf:"bytes,2,opt,name=next_marker,json=nextMarker,proto3" json:"next_marker,omitempty"`
+	// Structured changes are preferred over source_paths when present. They let
+	// providers distinguish file-like imports from subtree reconciliation signals,
+	// including delete/rename classes where the path may no longer exist.
+	Changes       []*ScanSourceChange `protobuf:"bytes,3,rep,name=changes,proto3" json:"changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -201,24 +269,100 @@ func (x *PollChangesResponse) GetNextMarker() string {
 	return ""
 }
 
+func (x *PollChangesResponse) GetChanges() []*ScanSourceChange {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
+type ScanSourceChange struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Absolute changed path in the provider/source namespace. The host applies
+	// the autoscan source rewrite rules before resolving this path.
+	SourcePath string `protobuf:"bytes,1,opt,name=source_path,json=sourcePath,proto3" json:"source_path,omitempty"`
+	// Scope controls how the host resolves and enqueues the rewritten path.
+	Scope         ScanSourceChangeScope `protobuf:"varint,2,opt,name=scope,proto3,enum=silo.plugin.v1.ScanSourceChangeScope" json:"scope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScanSourceChange) Reset() {
+	*x = ScanSourceChange{}
+	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScanSourceChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScanSourceChange) ProtoMessage() {}
+
+func (x *ScanSourceChange) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_scan_source_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScanSourceChange.ProtoReflect.Descriptor instead.
+func (*ScanSourceChange) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_scan_source_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ScanSourceChange) GetSourcePath() string {
+	if x != nil {
+		return x.SourcePath
+	}
+	return ""
+}
+
+func (x *ScanSourceChange) GetScope() ScanSourceChangeScope {
+	if x != nil {
+		return x.Scope
+	}
+	return ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_UNSPECIFIED
+}
+
 var File_silo_plugin_v1_scan_source_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_scan_source_proto_rawDesc = "" +
 	"\n" +
-	" silo/plugin/v1/scan_source.proto\x12\x0esilo.plugin.v1\"\x95\x01\n" +
+	" silo/plugin/v1/scan_source.proto\x12\x0esilo.plugin.v1\"\xb1\x02\n" +
 	"\x12PollChangesRequest\x12#\n" +
 	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12\x16\n" +
 	"\x06marker\x18\x02 \x01(\tR\x06marker\x12B\n" +
 	"\n" +
 	"connection\x18\x03 \x01(\v2\".silo.plugin.v1.ResolvedConnectionR\n" +
-	"connection\"H\n" +
+	"connection\x12Y\n" +
+	"\rsource_config\x18\x04 \x03(\v24.silo.plugin.v1.PollChangesRequest.SourceConfigEntryR\fsourceConfig\x1a?\n" +
+	"\x11SourceConfigEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"H\n" +
 	"\x12ResolvedConnection\x12\x19\n" +
 	"\bbase_url\x18\x01 \x01(\tR\abaseUrl\x12\x17\n" +
-	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\"Y\n" +
+	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\"\x95\x01\n" +
 	"\x13PollChangesResponse\x12!\n" +
 	"\fsource_paths\x18\x01 \x03(\tR\vsourcePaths\x12\x1f\n" +
 	"\vnext_marker\x18\x02 \x01(\tR\n" +
-	"nextMarker2d\n" +
+	"nextMarker\x12:\n" +
+	"\achanges\x18\x03 \x03(\v2 .silo.plugin.v1.ScanSourceChangeR\achanges\"p\n" +
+	"\x10ScanSourceChange\x12\x1f\n" +
+	"\vsource_path\x18\x01 \x01(\tR\n" +
+	"sourcePath\x12;\n" +
+	"\x05scope\x18\x02 \x01(\x0e2%.silo.plugin.v1.ScanSourceChangeScopeR\x05scope*\xad\x01\n" +
+	"\x15ScanSourceChangeScope\x12(\n" +
+	"$SCAN_SOURCE_CHANGE_SCOPE_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dSCAN_SOURCE_CHANGE_SCOPE_AUTO\x10\x01\x12!\n" +
+	"\x1dSCAN_SOURCE_CHANGE_SCOPE_FILE\x10\x02\x12$\n" +
+	" SCAN_SOURCE_CHANGE_SCOPE_SUBTREE\x10\x032d\n" +
 	"\n" +
 	"ScanSource\x12V\n" +
 	"\vPollChanges\x12\".silo.plugin.v1.PollChangesRequest\x1a#.silo.plugin.v1.PollChangesResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
@@ -235,21 +379,28 @@ func file_silo_plugin_v1_scan_source_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_scan_source_proto_rawDescData
 }
 
-var file_silo_plugin_v1_scan_source_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_silo_plugin_v1_scan_source_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_silo_plugin_v1_scan_source_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_silo_plugin_v1_scan_source_proto_goTypes = []any{
-	(*PollChangesRequest)(nil),  // 0: silo.plugin.v1.PollChangesRequest
-	(*ResolvedConnection)(nil),  // 1: silo.plugin.v1.ResolvedConnection
-	(*PollChangesResponse)(nil), // 2: silo.plugin.v1.PollChangesResponse
+	(ScanSourceChangeScope)(0),  // 0: silo.plugin.v1.ScanSourceChangeScope
+	(*PollChangesRequest)(nil),  // 1: silo.plugin.v1.PollChangesRequest
+	(*ResolvedConnection)(nil),  // 2: silo.plugin.v1.ResolvedConnection
+	(*PollChangesResponse)(nil), // 3: silo.plugin.v1.PollChangesResponse
+	(*ScanSourceChange)(nil),    // 4: silo.plugin.v1.ScanSourceChange
+	nil,                         // 5: silo.plugin.v1.PollChangesRequest.SourceConfigEntry
 }
 var file_silo_plugin_v1_scan_source_proto_depIdxs = []int32{
-	1, // 0: silo.plugin.v1.PollChangesRequest.connection:type_name -> silo.plugin.v1.ResolvedConnection
-	0, // 1: silo.plugin.v1.ScanSource.PollChanges:input_type -> silo.plugin.v1.PollChangesRequest
-	2, // 2: silo.plugin.v1.ScanSource.PollChanges:output_type -> silo.plugin.v1.PollChangesResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 0: silo.plugin.v1.PollChangesRequest.connection:type_name -> silo.plugin.v1.ResolvedConnection
+	5, // 1: silo.plugin.v1.PollChangesRequest.source_config:type_name -> silo.plugin.v1.PollChangesRequest.SourceConfigEntry
+	4, // 2: silo.plugin.v1.PollChangesResponse.changes:type_name -> silo.plugin.v1.ScanSourceChange
+	0, // 3: silo.plugin.v1.ScanSourceChange.scope:type_name -> silo.plugin.v1.ScanSourceChangeScope
+	1, // 4: silo.plugin.v1.ScanSource.PollChanges:input_type -> silo.plugin.v1.PollChangesRequest
+	3, // 5: silo.plugin.v1.ScanSource.PollChanges:output_type -> silo.plugin.v1.PollChangesResponse
+	5, // [5:6] is the sub-list for method output_type
+	4, // [4:5] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_scan_source_proto_init() }
@@ -262,13 +413,14 @@ func file_silo_plugin_v1_scan_source_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_scan_source_proto_rawDesc), len(file_silo_plugin_v1_scan_source_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   3,
+			NumEnums:      1,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_silo_plugin_v1_scan_source_proto_goTypes,
 		DependencyIndexes: file_silo_plugin_v1_scan_source_proto_depIdxs,
+		EnumInfos:         file_silo_plugin_v1_scan_source_proto_enumTypes,
 		MessageInfos:      file_silo_plugin_v1_scan_source_proto_msgTypes,
 	}.Build()
 	File_silo_plugin_v1_scan_source_proto = out.File
