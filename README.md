@@ -20,6 +20,7 @@ Public Go SDK for building Silo plugins. **Not a runtime plugin** — this is a 
 The SDK ships protobuf contracts for every capability the host understands:
 
 - `metadata_provider.v1`
+- `marker_provider.v1`
 - `media_analyzer.v1`
 - `scheduled_task.v1`
 - `event_consumer.v1`

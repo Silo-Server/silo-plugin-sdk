@@ -25,6 +25,7 @@ const (
 type CapabilityServers struct {
 	Runtime          pluginv1.RuntimeServer
 	MetadataProvider pluginv1.MetadataProviderServer
+	MarkerProvider   pluginv1.MarkerProviderServer
 	MediaAnalyzer    pluginv1.MediaAnalyzerServer
 	ScheduledTask    pluginv1.ScheduledTaskServer
 	ScanSource       pluginv1.ScanSourceServer
@@ -89,6 +90,10 @@ func (c *Client) MetadataProvider() pluginv1.MetadataProviderClient {
 	return pluginv1.NewMetadataProviderClient(c.conn)
 }
 
+func (c *Client) MarkerProvider() pluginv1.MarkerProviderClient {
+	return pluginv1.NewMarkerProviderClient(c.conn)
+}
+
 func (c *Client) MediaAnalyzer() pluginv1.MediaAnalyzerClient {
 	return pluginv1.NewMediaAnalyzerClient(c.conn)
 }
@@ -127,6 +132,9 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	pluginv1.RegisterRuntimeServer(server, p.Servers.Runtime)
 	if p.Servers.MetadataProvider != nil {
 		pluginv1.RegisterMetadataProviderServer(server, p.Servers.MetadataProvider)
+	}
+	if p.Servers.MarkerProvider != nil {
+		pluginv1.RegisterMarkerProviderServer(server, p.Servers.MarkerProvider)
 	}
 	if p.Servers.MediaAnalyzer != nil {
 		pluginv1.RegisterMediaAnalyzerServer(server, p.Servers.MediaAnalyzer)
