@@ -94,6 +94,13 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 			return err
 		}
 	}
+	for _, c := range manifest.GetCapabilities() {
+		for _, cs := range c.GetConfigSchema() {
+			if err := validateConfigSchema(cs); err != nil {
+				return fmt.Errorf("capability %q config schema: %w", c.GetId(), err)
+			}
+		}
+	}
 	return nil
 }
 
@@ -136,8 +143,15 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 		if !ok {
 			return fmt.Errorf("plugin config schema %q admin_form field %q is not declared in json_schema", schema.GetKey(), key)
 		}
-		if field.GetControl() == pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT && len(field.GetOptions()) == 0 {
-			return fmt.Errorf("plugin config schema %q admin_form field %q select control requires options", schema.GetKey(), key)
+		switch field.GetControl() {
+		case pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT,
+			pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_MULTI_SELECT:
+			// A static select must enumerate its options. A field declaring
+			// dynamic_options is exempt: the plugin supplies options at runtime
+			// via ListConfigOptions, so it legitimately carries no static set.
+			if !field.GetDynamicOptions() && len(field.GetOptions()) == 0 {
+				return fmt.Errorf("plugin config schema %q admin_form field %q select control requires options", schema.GetKey(), key)
+			}
 		}
 		if defaultValue := field.GetDefaultValue(); defaultValue != nil {
 			switch property.Type {
