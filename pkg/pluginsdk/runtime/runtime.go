@@ -29,6 +29,7 @@ type CapabilityServers struct {
 	MediaAnalyzer    pluginv1.MediaAnalyzerServer
 	ScheduledTask    pluginv1.ScheduledTaskServer
 	ScanSource       pluginv1.ScanSourceServer
+	RequestRouter    pluginv1.RequestRouterServer
 	EventConsumer    pluginv1.EventConsumerServer
 	AuthProvider     pluginv1.AuthProviderServer
 	HttpRoutes       pluginv1.HttpRoutesServer
@@ -106,6 +107,10 @@ func (c *Client) ScanSource() pluginv1.ScanSourceClient {
 	return pluginv1.NewScanSourceClient(c.conn)
 }
 
+func (c *Client) RequestRouter() pluginv1.RequestRouterClient {
+	return pluginv1.NewRequestRouterClient(c.conn)
+}
+
 func (c *Client) EventConsumer() pluginv1.EventConsumerClient {
 	return pluginv1.NewEventConsumerClient(c.conn)
 }
@@ -144,6 +149,9 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	}
 	if p.Servers.ScanSource != nil {
 		pluginv1.RegisterScanSourceServer(server, p.Servers.ScanSource)
+	}
+	if p.Servers.RequestRouter != nil {
+		pluginv1.RegisterRequestRouterServer(server, p.Servers.RequestRouter)
 	}
 	if p.Servers.EventConsumer != nil {
 		pluginv1.RegisterEventConsumerServer(server, p.Servers.EventConsumer)
