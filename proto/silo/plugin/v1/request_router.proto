@@ -19,7 +19,7 @@ service RequestRouter {
 }
 
 message RequestDescriptor {
-  string media_type = 1;
+  string media_type = 1; // "movie" | "series"
   string title = 2;
   int32 year = 3;
   map<string, string> external_ids = 4;
@@ -32,6 +32,8 @@ message RouterConnection {
   string id = 1;
   string base_url = 2;
   string api_key = 3;
+  // plugin-declared config blob (e.g. service_kind, root_folder,
+  // quality_profile_id)
   google.protobuf.Struct config = 4;
 }
 
@@ -45,14 +47,18 @@ message FulfillRequest {
 message FulfillmentTarget {
   string quality = 1;
   string connection_id = 2;
-  string external_id = 3;
+  string external_id = 3; // upstream id, e.g. arr movie/series id
+  // raw upstream status passed through for display; status is the
+  // host-normalized value
   string external_status = 4;
+  // host-normalized: "queued" | "downloading" | "completed" | "failed"
   string status = 5;
   string message = 6;
 }
 
 message FulfillResponse {
   repeated FulfillmentTarget targets = 1;
+  // set when zero targets, e.g. "no radarr instance configured"
   string message = 2;
 }
 
@@ -72,8 +78,9 @@ message CheckStatusRequest {
 message TargetStatus {
   string quality = 1;
   string connection_id = 2;
+  // host-normalized: "queued" | "downloading" | "completed" | "failed"
   string status = 3;
-  string external_status = 4;
+  string external_status = 4; // raw upstream status passed through for display
   string message = 5;
 }
 
@@ -96,6 +103,7 @@ message ListConfigOptionsRequest {
 }
 
 message ListConfigOptionsResponse {
+  // keyed by config field, e.g. "root_folder"
   map<string, ConfigOptionList> options_by_field = 1;
 }
 

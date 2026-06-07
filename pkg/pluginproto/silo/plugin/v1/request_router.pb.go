@@ -24,7 +24,7 @@ const (
 
 type RequestDescriptor struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
-	MediaType          string                 `protobuf:"bytes,1,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	MediaType          string                 `protobuf:"bytes,1,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"` // "movie" | "series"
 	Title              string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Year               int32                  `protobuf:"varint,3,opt,name=year,proto3" json:"year,omitempty"`
 	ExternalIds        map[string]string      `protobuf:"bytes,4,rep,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -115,11 +115,13 @@ func (x *RequestDescriptor) GetRequesterProfileId() string {
 }
 
 type RouterConnection struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BaseUrl       string                 `protobuf:"bytes,2,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
-	ApiKey        string                 `protobuf:"bytes,3,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
-	Config        *structpb.Struct       `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BaseUrl string                 `protobuf:"bytes,2,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
+	ApiKey  string                 `protobuf:"bytes,3,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	// plugin-declared config blob (e.g. service_kind, root_folder,
+	// quality_profile_id)
+	Config        *structpb.Struct `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -251,15 +253,18 @@ func (x *FulfillRequest) GetConnections() []*RouterConnection {
 }
 
 type FulfillmentTarget struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Quality        string                 `protobuf:"bytes,1,opt,name=quality,proto3" json:"quality,omitempty"`
-	ConnectionId   string                 `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
-	ExternalId     string                 `protobuf:"bytes,3,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
-	ExternalStatus string                 `protobuf:"bytes,4,opt,name=external_status,json=externalStatus,proto3" json:"external_status,omitempty"`
-	Status         string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
-	Message        string                 `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Quality      string                 `protobuf:"bytes,1,opt,name=quality,proto3" json:"quality,omitempty"`
+	ConnectionId string                 `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
+	ExternalId   string                 `protobuf:"bytes,3,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"` // upstream id, e.g. arr movie/series id
+	// raw upstream status passed through for display; status is the
+	// host-normalized value
+	ExternalStatus string `protobuf:"bytes,4,opt,name=external_status,json=externalStatus,proto3" json:"external_status,omitempty"`
+	// host-normalized: "queued" | "downloading" | "completed" | "failed"
+	Status        string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	Message       string `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FulfillmentTarget) Reset() {
@@ -335,9 +340,10 @@ func (x *FulfillmentTarget) GetMessage() string {
 }
 
 type FulfillResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Targets       []*FulfillmentTarget   `protobuf:"bytes,1,rep,name=targets,proto3" json:"targets,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Targets []*FulfillmentTarget   `protobuf:"bytes,1,rep,name=targets,proto3" json:"targets,omitempty"`
+	// set when zero targets, e.g. "no radarr instance configured"
+	Message       string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -515,12 +521,13 @@ func (x *CheckStatusRequest) GetConnections() []*RouterConnection {
 }
 
 type TargetStatus struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Quality        string                 `protobuf:"bytes,1,opt,name=quality,proto3" json:"quality,omitempty"`
-	ConnectionId   string                 `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
-	Status         string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	ExternalStatus string                 `protobuf:"bytes,4,opt,name=external_status,json=externalStatus,proto3" json:"external_status,omitempty"`
-	Message        string                 `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Quality      string                 `protobuf:"bytes,1,opt,name=quality,proto3" json:"quality,omitempty"`
+	ConnectionId string                 `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
+	// host-normalized: "queued" | "downloading" | "completed" | "failed"
+	Status         string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	ExternalStatus string `protobuf:"bytes,4,opt,name=external_status,json=externalStatus,proto3" json:"external_status,omitempty"` // raw upstream status passed through for display
+	Message        string `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -783,7 +790,8 @@ func (x *ListConfigOptionsRequest) GetConnection() *RouterConnection {
 }
 
 type ListConfigOptionsResponse struct {
-	state          protoimpl.MessageState       `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// keyed by config field, e.g. "root_folder"
 	OptionsByField map[string]*ConfigOptionList `protobuf:"bytes,1,rep,name=options_by_field,json=optionsByField,proto3" json:"options_by_field,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
