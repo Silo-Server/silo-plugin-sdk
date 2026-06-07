@@ -25,13 +25,14 @@ const (
 type AdminFormControl int32
 
 const (
-	AdminFormControl_ADMIN_FORM_CONTROL_UNSPECIFIED AdminFormControl = 0
-	AdminFormControl_ADMIN_FORM_CONTROL_TEXT        AdminFormControl = 1
-	AdminFormControl_ADMIN_FORM_CONTROL_TEXTAREA    AdminFormControl = 2
-	AdminFormControl_ADMIN_FORM_CONTROL_PASSWORD    AdminFormControl = 3
-	AdminFormControl_ADMIN_FORM_CONTROL_NUMBER      AdminFormControl = 4
-	AdminFormControl_ADMIN_FORM_CONTROL_SWITCH      AdminFormControl = 5
-	AdminFormControl_ADMIN_FORM_CONTROL_SELECT      AdminFormControl = 6
+	AdminFormControl_ADMIN_FORM_CONTROL_UNSPECIFIED  AdminFormControl = 0
+	AdminFormControl_ADMIN_FORM_CONTROL_TEXT         AdminFormControl = 1
+	AdminFormControl_ADMIN_FORM_CONTROL_TEXTAREA     AdminFormControl = 2
+	AdminFormControl_ADMIN_FORM_CONTROL_PASSWORD     AdminFormControl = 3
+	AdminFormControl_ADMIN_FORM_CONTROL_NUMBER       AdminFormControl = 4
+	AdminFormControl_ADMIN_FORM_CONTROL_SWITCH       AdminFormControl = 5
+	AdminFormControl_ADMIN_FORM_CONTROL_SELECT       AdminFormControl = 6
+	AdminFormControl_ADMIN_FORM_CONTROL_MULTI_SELECT AdminFormControl = 7 // array-of-values (e.g. tags)
 )
 
 // Enum value maps for AdminFormControl.
@@ -44,15 +45,17 @@ var (
 		4: "ADMIN_FORM_CONTROL_NUMBER",
 		5: "ADMIN_FORM_CONTROL_SWITCH",
 		6: "ADMIN_FORM_CONTROL_SELECT",
+		7: "ADMIN_FORM_CONTROL_MULTI_SELECT",
 	}
 	AdminFormControl_value = map[string]int32{
-		"ADMIN_FORM_CONTROL_UNSPECIFIED": 0,
-		"ADMIN_FORM_CONTROL_TEXT":        1,
-		"ADMIN_FORM_CONTROL_TEXTAREA":    2,
-		"ADMIN_FORM_CONTROL_PASSWORD":    3,
-		"ADMIN_FORM_CONTROL_NUMBER":      4,
-		"ADMIN_FORM_CONTROL_SWITCH":      5,
-		"ADMIN_FORM_CONTROL_SELECT":      6,
+		"ADMIN_FORM_CONTROL_UNSPECIFIED":  0,
+		"ADMIN_FORM_CONTROL_TEXT":         1,
+		"ADMIN_FORM_CONTROL_TEXTAREA":     2,
+		"ADMIN_FORM_CONTROL_PASSWORD":     3,
+		"ADMIN_FORM_CONTROL_NUMBER":       4,
+		"ADMIN_FORM_CONTROL_SWITCH":       5,
+		"ADMIN_FORM_CONTROL_SELECT":       6,
+		"ADMIN_FORM_CONTROL_MULTI_SELECT": 7,
 	}
 )
 
@@ -280,20 +283,23 @@ func (x *AdminFormOption) GetDescription() string {
 }
 
 type AdminFormField struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Control       AdminFormControl       `protobuf:"varint,4,opt,name=control,proto3,enum=silo.plugin.v1.AdminFormControl" json:"control,omitempty"`
-	Placeholder   string                 `protobuf:"bytes,5,opt,name=placeholder,proto3" json:"placeholder,omitempty"`
-	Required      bool                   `protobuf:"varint,6,opt,name=required,proto3" json:"required,omitempty"`
-	Secret        bool                   `protobuf:"varint,7,opt,name=secret,proto3" json:"secret,omitempty"`
-	Multiline     bool                   `protobuf:"varint,8,opt,name=multiline,proto3" json:"multiline,omitempty"`
-	DefaultValue  *structpb.Value        `protobuf:"bytes,9,opt,name=default_value,json=defaultValue,proto3" json:"default_value,omitempty"`
-	Options       []*AdminFormOption     `protobuf:"bytes,10,rep,name=options,proto3" json:"options,omitempty"`
-	Rows          int32                  `protobuf:"varint,11,opt,name=rows,proto3" json:"rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Key            string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Label          string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Description    string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Control        AdminFormControl       `protobuf:"varint,4,opt,name=control,proto3,enum=silo.plugin.v1.AdminFormControl" json:"control,omitempty"`
+	Placeholder    string                 `protobuf:"bytes,5,opt,name=placeholder,proto3" json:"placeholder,omitempty"`
+	Required       bool                   `protobuf:"varint,6,opt,name=required,proto3" json:"required,omitempty"`
+	Secret         bool                   `protobuf:"varint,7,opt,name=secret,proto3" json:"secret,omitempty"`
+	Multiline      bool                   `protobuf:"varint,8,opt,name=multiline,proto3" json:"multiline,omitempty"`
+	DefaultValue   *structpb.Value        `protobuf:"bytes,9,opt,name=default_value,json=defaultValue,proto3" json:"default_value,omitempty"`
+	Options        []*AdminFormOption     `protobuf:"bytes,10,rep,name=options,proto3" json:"options,omitempty"`
+	Rows           int32                  `protobuf:"varint,11,opt,name=rows,proto3" json:"rows,omitempty"`
+	DynamicOptions bool                   `protobuf:"varint,12,opt,name=dynamic_options,json=dynamicOptions,proto3" json:"dynamic_options,omitempty"` // populate options from ListConfigOptions[key]
+	ShowWhen       []*AdminFormCondition  `protobuf:"bytes,13,rep,name=show_when,json=showWhen,proto3" json:"show_when,omitempty"`                    // conditional visibility
+	Validation     *AdminFormValidation   `protobuf:"bytes,14,opt,name=validation,proto3" json:"validation,omitempty"`                                // per-field constraints
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *AdminFormField) Reset() {
@@ -403,17 +409,281 @@ func (x *AdminFormField) GetRows() int32 {
 	return 0
 }
 
+func (x *AdminFormField) GetDynamicOptions() bool {
+	if x != nil {
+		return x.DynamicOptions
+	}
+	return false
+}
+
+func (x *AdminFormField) GetShowWhen() []*AdminFormCondition {
+	if x != nil {
+		return x.ShowWhen
+	}
+	return nil
+}
+
+func (x *AdminFormField) GetValidation() *AdminFormValidation {
+	if x != nil {
+		return x.Validation
+	}
+	return nil
+}
+
+// AdminFormCondition: the owning field/section is shown only when, for every
+// listed condition, the named field's stringified value is in `equals`.
+type AdminFormCondition struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Field         string                 `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	Equals        []string               `protobuf:"bytes,2,rep,name=equals,proto3" json:"equals,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AdminFormCondition) Reset() {
+	*x = AdminFormCondition{}
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminFormCondition) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminFormCondition) ProtoMessage() {}
+
+func (x *AdminFormCondition) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminFormCondition.ProtoReflect.Descriptor instead.
+func (*AdminFormCondition) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AdminFormCondition) GetField() string {
+	if x != nil {
+		return x.Field
+	}
+	return ""
+}
+
+func (x *AdminFormCondition) GetEquals() []string {
+	if x != nil {
+		return x.Equals
+	}
+	return nil
+}
+
+// AdminFormValidation: per-field constraints, enforced client-side and
+// re-checked server-side. has_min/has_max distinguish "unset" from a real 0.
+type AdminFormValidation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HasMin        bool                   `protobuf:"varint,1,opt,name=has_min,json=hasMin,proto3" json:"has_min,omitempty"`
+	Min           float64                `protobuf:"fixed64,2,opt,name=min,proto3" json:"min,omitempty"`
+	HasMax        bool                   `protobuf:"varint,3,opt,name=has_max,json=hasMax,proto3" json:"has_max,omitempty"`
+	Max           float64                `protobuf:"fixed64,4,opt,name=max,proto3" json:"max,omitempty"`
+	Pattern       string                 `protobuf:"bytes,5,opt,name=pattern,proto3" json:"pattern,omitempty"` // RE2
+	MinLength     int32                  `protobuf:"varint,6,opt,name=min_length,json=minLength,proto3" json:"min_length,omitempty"`
+	MaxLength     int32                  `protobuf:"varint,7,opt,name=max_length,json=maxLength,proto3" json:"max_length,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AdminFormValidation) Reset() {
+	*x = AdminFormValidation{}
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminFormValidation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminFormValidation) ProtoMessage() {}
+
+func (x *AdminFormValidation) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminFormValidation.ProtoReflect.Descriptor instead.
+func (*AdminFormValidation) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *AdminFormValidation) GetHasMin() bool {
+	if x != nil {
+		return x.HasMin
+	}
+	return false
+}
+
+func (x *AdminFormValidation) GetMin() float64 {
+	if x != nil {
+		return x.Min
+	}
+	return 0
+}
+
+func (x *AdminFormValidation) GetHasMax() bool {
+	if x != nil {
+		return x.HasMax
+	}
+	return false
+}
+
+func (x *AdminFormValidation) GetMax() float64 {
+	if x != nil {
+		return x.Max
+	}
+	return 0
+}
+
+func (x *AdminFormValidation) GetPattern() string {
+	if x != nil {
+		return x.Pattern
+	}
+	return ""
+}
+
+func (x *AdminFormValidation) GetMinLength() int32 {
+	if x != nil {
+		return x.MinLength
+	}
+	return 0
+}
+
+func (x *AdminFormValidation) GetMaxLength() int32 {
+	if x != nil {
+		return x.MaxLength
+	}
+	return 0
+}
+
+// AdminFormSection groups fields (by key) into an ordered, optionally
+// collapsible section with its own visibility.
+type AdminFormSection struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Key              string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Title            string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Description      string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Collapsible      bool                   `protobuf:"varint,4,opt,name=collapsible,proto3" json:"collapsible,omitempty"`
+	CollapsedDefault bool                   `protobuf:"varint,5,opt,name=collapsed_default,json=collapsedDefault,proto3" json:"collapsed_default,omitempty"`
+	FieldKeys        []string               `protobuf:"bytes,6,rep,name=field_keys,json=fieldKeys,proto3" json:"field_keys,omitempty"`
+	ShowWhen         []*AdminFormCondition  `protobuf:"bytes,7,rep,name=show_when,json=showWhen,proto3" json:"show_when,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *AdminFormSection) Reset() {
+	*x = AdminFormSection{}
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminFormSection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminFormSection) ProtoMessage() {}
+
+func (x *AdminFormSection) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminFormSection.ProtoReflect.Descriptor instead.
+func (*AdminFormSection) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *AdminFormSection) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *AdminFormSection) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *AdminFormSection) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *AdminFormSection) GetCollapsible() bool {
+	if x != nil {
+		return x.Collapsible
+	}
+	return false
+}
+
+func (x *AdminFormSection) GetCollapsedDefault() bool {
+	if x != nil {
+		return x.CollapsedDefault
+	}
+	return false
+}
+
+func (x *AdminFormSection) GetFieldKeys() []string {
+	if x != nil {
+		return x.FieldKeys
+	}
+	return nil
+}
+
+func (x *AdminFormSection) GetShowWhen() []*AdminFormCondition {
+	if x != nil {
+		return x.ShowWhen
+	}
+	return nil
+}
+
 type AdminFormDescriptor struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Fields        []*AdminFormField      `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty"`
 	SubmitLabel   string                 `protobuf:"bytes,2,opt,name=submit_label,json=submitLabel,proto3" json:"submit_label,omitempty"`
+	Sections      []*AdminFormSection    `protobuf:"bytes,3,rep,name=sections,proto3" json:"sections,omitempty"` // optional; absent -> flat render of `fields`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AdminFormDescriptor) Reset() {
 	*x = AdminFormDescriptor{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -425,7 +695,7 @@ func (x *AdminFormDescriptor) String() string {
 func (*AdminFormDescriptor) ProtoMessage() {}
 
 func (x *AdminFormDescriptor) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -438,7 +708,7 @@ func (x *AdminFormDescriptor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminFormDescriptor.ProtoReflect.Descriptor instead.
 func (*AdminFormDescriptor) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{4}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AdminFormDescriptor) GetFields() []*AdminFormField {
@@ -455,6 +725,13 @@ func (x *AdminFormDescriptor) GetSubmitLabel() string {
 	return ""
 }
 
+func (x *AdminFormDescriptor) GetSections() []*AdminFormSection {
+	if x != nil {
+		return x.Sections
+	}
+	return nil
+}
+
 type ConfigEntry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -465,7 +742,7 @@ type ConfigEntry struct {
 
 func (x *ConfigEntry) Reset() {
 	*x = ConfigEntry{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -477,7 +754,7 @@ func (x *ConfigEntry) String() string {
 func (*ConfigEntry) ProtoMessage() {}
 
 func (x *ConfigEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -490,7 +767,7 @@ func (x *ConfigEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigEntry.ProtoReflect.Descriptor instead.
 func (*ConfigEntry) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{5}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ConfigEntry) GetKey() string {
@@ -523,7 +800,7 @@ type HttpRouteDescriptor struct {
 
 func (x *HttpRouteDescriptor) Reset() {
 	*x = HttpRouteDescriptor{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -535,7 +812,7 @@ func (x *HttpRouteDescriptor) String() string {
 func (*HttpRouteDescriptor) ProtoMessage() {}
 
 func (x *HttpRouteDescriptor) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -548,7 +825,7 @@ func (x *HttpRouteDescriptor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HttpRouteDescriptor.ProtoReflect.Descriptor instead.
 func (*HttpRouteDescriptor) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{6}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *HttpRouteDescriptor) GetId() string {
@@ -618,7 +895,7 @@ type PackagedAsset struct {
 
 func (x *PackagedAsset) Reset() {
 	*x = PackagedAsset{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -630,7 +907,7 @@ func (x *PackagedAsset) String() string {
 func (*PackagedAsset) ProtoMessage() {}
 
 func (x *PackagedAsset) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -643,7 +920,7 @@ func (x *PackagedAsset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackagedAsset.ProtoReflect.Descriptor instead.
 func (*PackagedAsset) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{7}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *PackagedAsset) GetPath() string {
@@ -691,7 +968,7 @@ type CapabilityDescriptor struct {
 
 func (x *CapabilityDescriptor) Reset() {
 	*x = CapabilityDescriptor{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -703,7 +980,7 @@ func (x *CapabilityDescriptor) String() string {
 func (*CapabilityDescriptor) ProtoMessage() {}
 
 func (x *CapabilityDescriptor) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -716,7 +993,7 @@ func (x *CapabilityDescriptor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CapabilityDescriptor.ProtoReflect.Descriptor instead.
 func (*CapabilityDescriptor) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{8}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CapabilityDescriptor) GetType() string {
@@ -807,7 +1084,7 @@ type PluginManifest struct {
 
 func (x *PluginManifest) Reset() {
 	*x = PluginManifest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -819,7 +1096,7 @@ func (x *PluginManifest) String() string {
 func (*PluginManifest) ProtoMessage() {}
 
 func (x *PluginManifest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -832,7 +1109,7 @@ func (x *PluginManifest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginManifest.ProtoReflect.Descriptor instead.
 func (*PluginManifest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{9}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PluginManifest) GetPluginId() string {
@@ -927,7 +1204,7 @@ type GetManifestRequest struct {
 
 func (x *GetManifestRequest) Reset() {
 	*x = GetManifestRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -939,7 +1216,7 @@ func (x *GetManifestRequest) String() string {
 func (*GetManifestRequest) ProtoMessage() {}
 
 func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -952,7 +1229,7 @@ func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestRequest.ProtoReflect.Descriptor instead.
 func (*GetManifestRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{10}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{13}
 }
 
 type GetManifestResponse struct {
@@ -964,7 +1241,7 @@ type GetManifestResponse struct {
 
 func (x *GetManifestResponse) Reset() {
 	*x = GetManifestResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -976,7 +1253,7 @@ func (x *GetManifestResponse) String() string {
 func (*GetManifestResponse) ProtoMessage() {}
 
 func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -989,7 +1266,7 @@ func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestResponse.ProtoReflect.Descriptor instead.
 func (*GetManifestResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{11}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetManifestResponse) GetManifest() *PluginManifest {
@@ -1008,7 +1285,7 @@ type ConfigureRequest struct {
 
 func (x *ConfigureRequest) Reset() {
 	*x = ConfigureRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1020,7 +1297,7 @@ func (x *ConfigureRequest) String() string {
 func (*ConfigureRequest) ProtoMessage() {}
 
 func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1033,7 +1310,7 @@ func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureRequest.ProtoReflect.Descriptor instead.
 func (*ConfigureRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ConfigureRequest) GetConfig() []*ConfigEntry {
@@ -1051,7 +1328,7 @@ type ConfigureResponse struct {
 
 func (x *ConfigureResponse) Reset() {
 	*x = ConfigureResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1063,7 +1340,7 @@ func (x *ConfigureResponse) String() string {
 func (*ConfigureResponse) ProtoMessage() {}
 
 func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1076,7 +1353,7 @@ func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureResponse.ProtoReflect.Descriptor instead.
 func (*ConfigureResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{13}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{16}
 }
 
 type BindHostBrokerRequest struct {
@@ -1088,7 +1365,7 @@ type BindHostBrokerRequest struct {
 
 func (x *BindHostBrokerRequest) Reset() {
 	*x = BindHostBrokerRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1100,7 +1377,7 @@ func (x *BindHostBrokerRequest) String() string {
 func (*BindHostBrokerRequest) ProtoMessage() {}
 
 func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1113,7 +1390,7 @@ func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerRequest.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{14}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *BindHostBrokerRequest) GetBrokerId() uint32 {
@@ -1131,7 +1408,7 @@ type BindHostBrokerResponse struct {
 
 func (x *BindHostBrokerResponse) Reset() {
 	*x = BindHostBrokerResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1143,7 +1420,7 @@ func (x *BindHostBrokerResponse) String() string {
 func (*BindHostBrokerResponse) ProtoMessage() {}
 
 func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1156,7 +1433,7 @@ func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerResponse.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{15}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{18}
 }
 
 var File_silo_plugin_v1_common_proto protoreflect.FileDescriptor
@@ -1179,7 +1456,7 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x0fAdminFormOption\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"\x96\x03\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\"\xc5\x04\n" +
 	"\x0eAdminFormField\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
@@ -1192,10 +1469,38 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\rdefault_value\x18\t \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\x129\n" +
 	"\aoptions\x18\n" +
 	" \x03(\v2\x1f.silo.plugin.v1.AdminFormOptionR\aoptions\x12\x12\n" +
-	"\x04rows\x18\v \x01(\x05R\x04rows\"p\n" +
+	"\x04rows\x18\v \x01(\x05R\x04rows\x12'\n" +
+	"\x0fdynamic_options\x18\f \x01(\bR\x0edynamicOptions\x12?\n" +
+	"\tshow_when\x18\r \x03(\v2\".silo.plugin.v1.AdminFormConditionR\bshowWhen\x12C\n" +
+	"\n" +
+	"validation\x18\x0e \x01(\v2#.silo.plugin.v1.AdminFormValidationR\n" +
+	"validation\"B\n" +
+	"\x12AdminFormCondition\x12\x14\n" +
+	"\x05field\x18\x01 \x01(\tR\x05field\x12\x16\n" +
+	"\x06equals\x18\x02 \x03(\tR\x06equals\"\xc3\x01\n" +
+	"\x13AdminFormValidation\x12\x17\n" +
+	"\ahas_min\x18\x01 \x01(\bR\x06hasMin\x12\x10\n" +
+	"\x03min\x18\x02 \x01(\x01R\x03min\x12\x17\n" +
+	"\ahas_max\x18\x03 \x01(\bR\x06hasMax\x12\x10\n" +
+	"\x03max\x18\x04 \x01(\x01R\x03max\x12\x18\n" +
+	"\apattern\x18\x05 \x01(\tR\apattern\x12\x1d\n" +
+	"\n" +
+	"min_length\x18\x06 \x01(\x05R\tminLength\x12\x1d\n" +
+	"\n" +
+	"max_length\x18\a \x01(\x05R\tmaxLength\"\x8b\x02\n" +
+	"\x10AdminFormSection\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12 \n" +
+	"\vcollapsible\x18\x04 \x01(\bR\vcollapsible\x12+\n" +
+	"\x11collapsed_default\x18\x05 \x01(\bR\x10collapsedDefault\x12\x1d\n" +
+	"\n" +
+	"field_keys\x18\x06 \x03(\tR\tfieldKeys\x12?\n" +
+	"\tshow_when\x18\a \x03(\v2\".silo.plugin.v1.AdminFormConditionR\bshowWhen\"\xae\x01\n" +
 	"\x13AdminFormDescriptor\x126\n" +
 	"\x06fields\x18\x01 \x03(\v2\x1e.silo.plugin.v1.AdminFormFieldR\x06fields\x12!\n" +
-	"\fsubmit_label\x18\x02 \x01(\tR\vsubmitLabel\"N\n" +
+	"\fsubmit_label\x18\x02 \x01(\tR\vsubmitLabel\x12<\n" +
+	"\bsections\x18\x03 \x03(\v2 .silo.plugin.v1.AdminFormSectionR\bsections\"N\n" +
 	"\vConfigEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
 	"\x05value\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x05value\"\xfe\x01\n" +
@@ -1246,7 +1551,7 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x11ConfigureResponse\"4\n" +
 	"\x15BindHostBrokerRequest\x12\x1b\n" +
 	"\tbroker_id\x18\x01 \x01(\rR\bbrokerId\"\x18\n" +
-	"\x16BindHostBrokerResponse*\xf2\x01\n" +
+	"\x16BindHostBrokerResponse*\x97\x02\n" +
 	"\x10AdminFormControl\x12\"\n" +
 	"\x1eADMIN_FORM_CONTROL_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17ADMIN_FORM_CONTROL_TEXT\x10\x01\x12\x1f\n" +
@@ -1254,7 +1559,8 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x1bADMIN_FORM_CONTROL_PASSWORD\x10\x03\x12\x1d\n" +
 	"\x19ADMIN_FORM_CONTROL_NUMBER\x10\x04\x12\x1d\n" +
 	"\x19ADMIN_FORM_CONTROL_SWITCH\x10\x05\x12\x1d\n" +
-	"\x19ADMIN_FORM_CONTROL_SELECT\x10\x062\x94\x02\n" +
+	"\x19ADMIN_FORM_CONTROL_SELECT\x10\x06\x12#\n" +
+	"\x1fADMIN_FORM_CONTROL_MULTI_SELECT\x10\a2\x94\x02\n" +
 	"\aRuntime\x12V\n" +
 	"\vGetManifest\x12\".silo.plugin.v1.GetManifestRequest\x1a#.silo.plugin.v1.GetManifestResponse\x12P\n" +
 	"\tConfigure\x12 .silo.plugin.v1.ConfigureRequest\x1a!.silo.plugin.v1.ConfigureResponse\x12_\n" +
@@ -1273,57 +1579,64 @@ func file_silo_plugin_v1_common_proto_rawDescGZIP() []byte {
 }
 
 var file_silo_plugin_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_silo_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_silo_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_silo_plugin_v1_common_proto_goTypes = []any{
 	(AdminFormControl)(0),          // 0: silo.plugin.v1.AdminFormControl
 	(*SupportedPlatform)(nil),      // 1: silo.plugin.v1.SupportedPlatform
 	(*ConfigSchema)(nil),           // 2: silo.plugin.v1.ConfigSchema
 	(*AdminFormOption)(nil),        // 3: silo.plugin.v1.AdminFormOption
 	(*AdminFormField)(nil),         // 4: silo.plugin.v1.AdminFormField
-	(*AdminFormDescriptor)(nil),    // 5: silo.plugin.v1.AdminFormDescriptor
-	(*ConfigEntry)(nil),            // 6: silo.plugin.v1.ConfigEntry
-	(*HttpRouteDescriptor)(nil),    // 7: silo.plugin.v1.HttpRouteDescriptor
-	(*PackagedAsset)(nil),          // 8: silo.plugin.v1.PackagedAsset
-	(*CapabilityDescriptor)(nil),   // 9: silo.plugin.v1.CapabilityDescriptor
-	(*PluginManifest)(nil),         // 10: silo.plugin.v1.PluginManifest
-	(*GetManifestRequest)(nil),     // 11: silo.plugin.v1.GetManifestRequest
-	(*GetManifestResponse)(nil),    // 12: silo.plugin.v1.GetManifestResponse
-	(*ConfigureRequest)(nil),       // 13: silo.plugin.v1.ConfigureRequest
-	(*ConfigureResponse)(nil),      // 14: silo.plugin.v1.ConfigureResponse
-	(*BindHostBrokerRequest)(nil),  // 15: silo.plugin.v1.BindHostBrokerRequest
-	(*BindHostBrokerResponse)(nil), // 16: silo.plugin.v1.BindHostBrokerResponse
-	(*structpb.Value)(nil),         // 17: google.protobuf.Value
-	(*structpb.Struct)(nil),        // 18: google.protobuf.Struct
+	(*AdminFormCondition)(nil),     // 5: silo.plugin.v1.AdminFormCondition
+	(*AdminFormValidation)(nil),    // 6: silo.plugin.v1.AdminFormValidation
+	(*AdminFormSection)(nil),       // 7: silo.plugin.v1.AdminFormSection
+	(*AdminFormDescriptor)(nil),    // 8: silo.plugin.v1.AdminFormDescriptor
+	(*ConfigEntry)(nil),            // 9: silo.plugin.v1.ConfigEntry
+	(*HttpRouteDescriptor)(nil),    // 10: silo.plugin.v1.HttpRouteDescriptor
+	(*PackagedAsset)(nil),          // 11: silo.plugin.v1.PackagedAsset
+	(*CapabilityDescriptor)(nil),   // 12: silo.plugin.v1.CapabilityDescriptor
+	(*PluginManifest)(nil),         // 13: silo.plugin.v1.PluginManifest
+	(*GetManifestRequest)(nil),     // 14: silo.plugin.v1.GetManifestRequest
+	(*GetManifestResponse)(nil),    // 15: silo.plugin.v1.GetManifestResponse
+	(*ConfigureRequest)(nil),       // 16: silo.plugin.v1.ConfigureRequest
+	(*ConfigureResponse)(nil),      // 17: silo.plugin.v1.ConfigureResponse
+	(*BindHostBrokerRequest)(nil),  // 18: silo.plugin.v1.BindHostBrokerRequest
+	(*BindHostBrokerResponse)(nil), // 19: silo.plugin.v1.BindHostBrokerResponse
+	(*structpb.Value)(nil),         // 20: google.protobuf.Value
+	(*structpb.Struct)(nil),        // 21: google.protobuf.Struct
 }
 var file_silo_plugin_v1_common_proto_depIdxs = []int32{
-	5,  // 0: silo.plugin.v1.ConfigSchema.admin_form:type_name -> silo.plugin.v1.AdminFormDescriptor
+	8,  // 0: silo.plugin.v1.ConfigSchema.admin_form:type_name -> silo.plugin.v1.AdminFormDescriptor
 	0,  // 1: silo.plugin.v1.AdminFormField.control:type_name -> silo.plugin.v1.AdminFormControl
-	17, // 2: silo.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
+	20, // 2: silo.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
 	3,  // 3: silo.plugin.v1.AdminFormField.options:type_name -> silo.plugin.v1.AdminFormOption
-	4,  // 4: silo.plugin.v1.AdminFormDescriptor.fields:type_name -> silo.plugin.v1.AdminFormField
-	18, // 5: silo.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
-	2,  // 6: silo.plugin.v1.CapabilityDescriptor.config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	18, // 7: silo.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
-	1,  // 8: silo.plugin.v1.PluginManifest.supported_platforms:type_name -> silo.plugin.v1.SupportedPlatform
-	9,  // 9: silo.plugin.v1.PluginManifest.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
-	2,  // 10: silo.plugin.v1.PluginManifest.global_config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	2,  // 11: silo.plugin.v1.PluginManifest.user_config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	7,  // 12: silo.plugin.v1.PluginManifest.http_routes:type_name -> silo.plugin.v1.HttpRouteDescriptor
-	8,  // 13: silo.plugin.v1.PluginManifest.assets:type_name -> silo.plugin.v1.PackagedAsset
-	18, // 14: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
-	10, // 15: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
-	6,  // 16: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
-	11, // 17: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
-	13, // 18: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
-	15, // 19: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
-	12, // 20: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
-	14, // 21: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
-	16, // 22: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
-	20, // [20:23] is the sub-list for method output_type
-	17, // [17:20] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	5,  // 4: silo.plugin.v1.AdminFormField.show_when:type_name -> silo.plugin.v1.AdminFormCondition
+	6,  // 5: silo.plugin.v1.AdminFormField.validation:type_name -> silo.plugin.v1.AdminFormValidation
+	5,  // 6: silo.plugin.v1.AdminFormSection.show_when:type_name -> silo.plugin.v1.AdminFormCondition
+	4,  // 7: silo.plugin.v1.AdminFormDescriptor.fields:type_name -> silo.plugin.v1.AdminFormField
+	7,  // 8: silo.plugin.v1.AdminFormDescriptor.sections:type_name -> silo.plugin.v1.AdminFormSection
+	21, // 9: silo.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
+	2,  // 10: silo.plugin.v1.CapabilityDescriptor.config_schema:type_name -> silo.plugin.v1.ConfigSchema
+	21, // 11: silo.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
+	1,  // 12: silo.plugin.v1.PluginManifest.supported_platforms:type_name -> silo.plugin.v1.SupportedPlatform
+	12, // 13: silo.plugin.v1.PluginManifest.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
+	2,  // 14: silo.plugin.v1.PluginManifest.global_config_schema:type_name -> silo.plugin.v1.ConfigSchema
+	2,  // 15: silo.plugin.v1.PluginManifest.user_config_schema:type_name -> silo.plugin.v1.ConfigSchema
+	10, // 16: silo.plugin.v1.PluginManifest.http_routes:type_name -> silo.plugin.v1.HttpRouteDescriptor
+	11, // 17: silo.plugin.v1.PluginManifest.assets:type_name -> silo.plugin.v1.PackagedAsset
+	21, // 18: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
+	13, // 19: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
+	9,  // 20: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
+	14, // 21: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
+	16, // 22: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
+	18, // 23: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
+	15, // 24: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
+	17, // 25: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
+	19, // 26: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
+	24, // [24:27] is the sub-list for method output_type
+	21, // [21:24] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_common_proto_init() }
@@ -1337,7 +1650,7 @@ func file_silo_plugin_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_common_proto_rawDesc), len(file_silo_plugin_v1_common_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   16,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
