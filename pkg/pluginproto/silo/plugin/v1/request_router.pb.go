@@ -938,6 +938,110 @@ func (x *TestConnectionResponse) GetMessage() string {
 	return ""
 }
 
+type ValidateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CapabilityId  string                 `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
+	Connection    *RouterConnection      `protobuf:"bytes,2,opt,name=connection,proto3" json:"connection,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateRequest) Reset() {
+	*x = ValidateRequest{}
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateRequest) ProtoMessage() {}
+
+func (x *ValidateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateRequest.ProtoReflect.Descriptor instead.
+func (*ValidateRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ValidateRequest) GetCapabilityId() string {
+	if x != nil {
+		return x.CapabilityId
+	}
+	return ""
+}
+
+func (x *ValidateRequest) GetConnection() *RouterConnection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
+type ValidateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FieldErrors   map[string]string      `protobuf:"bytes,1,rep,name=field_errors,json=fieldErrors,proto3" json:"field_errors,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // keyed by config field; empty = no field errors
+	FormError     string                 `protobuf:"bytes,2,opt,name=form_error,json=formError,proto3" json:"form_error,omitempty"`                                                                                 // form-level error; empty = none
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateResponse) Reset() {
+	*x = ValidateResponse{}
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateResponse) ProtoMessage() {}
+
+func (x *ValidateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateResponse.ProtoReflect.Descriptor instead.
+func (*ValidateResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ValidateResponse) GetFieldErrors() map[string]string {
+	if x != nil {
+		return x.FieldErrors
+	}
+	return nil
+}
+
+func (x *ValidateResponse) GetFormError() string {
+	if x != nil {
+		return x.FormError
+	}
+	return ""
+}
+
 var File_silo_plugin_v1_request_router_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
@@ -1016,12 +1120,25 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"connection\"B\n" +
 	"\x16TestConnectionResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\xfe\x02\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"x\n" +
+	"\x0fValidateRequest\x12#\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
+	"\n" +
+	"connection\x18\x02 \x01(\v2 .silo.plugin.v1.RouterConnectionR\n" +
+	"connection\"\xc7\x01\n" +
+	"\x10ValidateResponse\x12T\n" +
+	"\ffield_errors\x18\x01 \x03(\v21.silo.plugin.v1.ValidateResponse.FieldErrorsEntryR\vfieldErrors\x12\x1d\n" +
+	"\n" +
+	"form_error\x18\x02 \x01(\tR\tformError\x1a>\n" +
+	"\x10FieldErrorsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xcd\x03\n" +
 	"\rRequestRouter\x12J\n" +
 	"\aFulfill\x12\x1e.silo.plugin.v1.FulfillRequest\x1a\x1f.silo.plugin.v1.FulfillResponse\x12V\n" +
 	"\vCheckStatus\x12\".silo.plugin.v1.CheckStatusRequest\x1a#.silo.plugin.v1.CheckStatusResponse\x12h\n" +
 	"\x11ListConfigOptions\x12(.silo.plugin.v1.ListConfigOptionsRequest\x1a).silo.plugin.v1.ListConfigOptionsResponse\x12_\n" +
-	"\x0eTestConnection\x12%.silo.plugin.v1.TestConnectionRequest\x1a&.silo.plugin.v1.TestConnectionResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
+	"\x0eTestConnection\x12%.silo.plugin.v1.TestConnectionRequest\x1a&.silo.plugin.v1.TestConnectionResponse\x12M\n" +
+	"\bValidate\x12\x1f.silo.plugin.v1.ValidateRequest\x1a .silo.plugin.v1.ValidateResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_silo_plugin_v1_request_router_proto_rawDescOnce sync.Once
@@ -1035,7 +1152,7 @@ func file_silo_plugin_v1_request_router_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_request_router_proto_rawDescData
 }
 
-var file_silo_plugin_v1_request_router_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_silo_plugin_v1_request_router_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_silo_plugin_v1_request_router_proto_goTypes = []any{
 	(*RequestDescriptor)(nil),         // 0: silo.plugin.v1.RequestDescriptor
 	(*RouterConnection)(nil),          // 1: silo.plugin.v1.RouterConnection
@@ -1052,13 +1169,16 @@ var file_silo_plugin_v1_request_router_proto_goTypes = []any{
 	(*ListConfigOptionsResponse)(nil), // 12: silo.plugin.v1.ListConfigOptionsResponse
 	(*TestConnectionRequest)(nil),     // 13: silo.plugin.v1.TestConnectionRequest
 	(*TestConnectionResponse)(nil),    // 14: silo.plugin.v1.TestConnectionResponse
-	nil,                               // 15: silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
-	nil,                               // 16: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
-	(*structpb.Struct)(nil),           // 17: google.protobuf.Struct
+	(*ValidateRequest)(nil),           // 15: silo.plugin.v1.ValidateRequest
+	(*ValidateResponse)(nil),          // 16: silo.plugin.v1.ValidateResponse
+	nil,                               // 17: silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
+	nil,                               // 18: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
+	nil,                               // 19: silo.plugin.v1.ValidateResponse.FieldErrorsEntry
+	(*structpb.Struct)(nil),           // 20: google.protobuf.Struct
 }
 var file_silo_plugin_v1_request_router_proto_depIdxs = []int32{
-	15, // 0: silo.plugin.v1.RequestDescriptor.external_ids:type_name -> silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
-	17, // 1: silo.plugin.v1.RouterConnection.config:type_name -> google.protobuf.Struct
+	17, // 0: silo.plugin.v1.RequestDescriptor.external_ids:type_name -> silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
+	20, // 1: silo.plugin.v1.RouterConnection.config:type_name -> google.protobuf.Struct
 	0,  // 2: silo.plugin.v1.FulfillRequest.request:type_name -> silo.plugin.v1.RequestDescriptor
 	1,  // 3: silo.plugin.v1.FulfillRequest.connections:type_name -> silo.plugin.v1.RouterConnection
 	3,  // 4: silo.plugin.v1.FulfillResponse.targets:type_name -> silo.plugin.v1.FulfillmentTarget
@@ -1068,22 +1188,26 @@ var file_silo_plugin_v1_request_router_proto_depIdxs = []int32{
 	7,  // 8: silo.plugin.v1.CheckStatusResponse.statuses:type_name -> silo.plugin.v1.TargetStatus
 	9,  // 9: silo.plugin.v1.ConfigOptionList.options:type_name -> silo.plugin.v1.ConfigOption
 	1,  // 10: silo.plugin.v1.ListConfigOptionsRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	16, // 11: silo.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
+	18, // 11: silo.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
 	1,  // 12: silo.plugin.v1.TestConnectionRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	10, // 13: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
-	2,  // 14: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
-	6,  // 15: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
-	11, // 16: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
-	13, // 17: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
-	4,  // 18: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
-	8,  // 19: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
-	12, // 20: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
-	14, // 21: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
-	18, // [18:22] is the sub-list for method output_type
-	14, // [14:18] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	1,  // 13: silo.plugin.v1.ValidateRequest.connection:type_name -> silo.plugin.v1.RouterConnection
+	19, // 14: silo.plugin.v1.ValidateResponse.field_errors:type_name -> silo.plugin.v1.ValidateResponse.FieldErrorsEntry
+	10, // 15: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
+	2,  // 16: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
+	6,  // 17: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
+	11, // 18: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
+	13, // 19: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
+	15, // 20: silo.plugin.v1.RequestRouter.Validate:input_type -> silo.plugin.v1.ValidateRequest
+	4,  // 21: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
+	8,  // 22: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
+	12, // 23: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
+	14, // 24: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
+	16, // 25: silo.plugin.v1.RequestRouter.Validate:output_type -> silo.plugin.v1.ValidateResponse
+	21, // [21:26] is the sub-list for method output_type
+	16, // [16:21] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_request_router_proto_init() }
@@ -1097,7 +1221,7 @@ func file_silo_plugin_v1_request_router_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_request_router_proto_rawDesc), len(file_silo_plugin_v1_request_router_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

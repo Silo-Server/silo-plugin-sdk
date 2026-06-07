@@ -23,6 +23,7 @@ const (
 	RequestRouter_CheckStatus_FullMethodName       = "/silo.plugin.v1.RequestRouter/CheckStatus"
 	RequestRouter_ListConfigOptions_FullMethodName = "/silo.plugin.v1.RequestRouter/ListConfigOptions"
 	RequestRouter_TestConnection_FullMethodName    = "/silo.plugin.v1.RequestRouter/TestConnection"
+	RequestRouter_Validate_FullMethodName          = "/silo.plugin.v1.RequestRouter/Validate"
 )
 
 // RequestRouterClient is the client API for RequestRouter service.
@@ -39,6 +40,7 @@ type RequestRouterClient interface {
 	CheckStatus(ctx context.Context, in *CheckStatusRequest, opts ...grpc.CallOption) (*CheckStatusResponse, error)
 	ListConfigOptions(ctx context.Context, in *ListConfigOptionsRequest, opts ...grpc.CallOption) (*ListConfigOptionsResponse, error)
 	TestConnection(ctx context.Context, in *TestConnectionRequest, opts ...grpc.CallOption) (*TestConnectionResponse, error)
+	Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
 }
 
 type requestRouterClient struct {
@@ -89,6 +91,16 @@ func (c *requestRouterClient) TestConnection(ctx context.Context, in *TestConnec
 	return out, nil
 }
 
+func (c *requestRouterClient) Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateResponse)
+	err := c.cc.Invoke(ctx, RequestRouter_Validate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RequestRouterServer is the server API for RequestRouter service.
 // All implementations should embed UnimplementedRequestRouterServer
 // for forward compatibility.
@@ -103,6 +115,7 @@ type RequestRouterServer interface {
 	CheckStatus(context.Context, *CheckStatusRequest) (*CheckStatusResponse, error)
 	ListConfigOptions(context.Context, *ListConfigOptionsRequest) (*ListConfigOptionsResponse, error)
 	TestConnection(context.Context, *TestConnectionRequest) (*TestConnectionResponse, error)
+	Validate(context.Context, *ValidateRequest) (*ValidateResponse, error)
 }
 
 // UnimplementedRequestRouterServer should be embedded to have
@@ -123,6 +136,9 @@ func (UnimplementedRequestRouterServer) ListConfigOptions(context.Context, *List
 }
 func (UnimplementedRequestRouterServer) TestConnection(context.Context, *TestConnectionRequest) (*TestConnectionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestConnection not implemented")
+}
+func (UnimplementedRequestRouterServer) Validate(context.Context, *ValidateRequest) (*ValidateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Validate not implemented")
 }
 func (UnimplementedRequestRouterServer) testEmbeddedByValue() {}
 
@@ -216,6 +232,24 @@ func _RequestRouter_TestConnection_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RequestRouter_Validate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RequestRouterServer).Validate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RequestRouter_Validate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RequestRouterServer).Validate(ctx, req.(*ValidateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RequestRouter_ServiceDesc is the grpc.ServiceDesc for RequestRouter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +272,10 @@ var RequestRouter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestConnection",
 			Handler:    _RequestRouter_TestConnection_Handler,
+		},
+		{
+			MethodName: "Validate",
+			Handler:    _RequestRouter_Validate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

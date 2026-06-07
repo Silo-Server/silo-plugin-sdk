@@ -16,6 +16,7 @@ service RequestRouter {
   rpc CheckStatus(CheckStatusRequest) returns (CheckStatusResponse);
   rpc ListConfigOptions(ListConfigOptionsRequest) returns (ListConfigOptionsResponse);
   rpc TestConnection(TestConnectionRequest) returns (TestConnectionResponse);
+  rpc Validate(ValidateRequest) returns (ValidateResponse);
 }
 
 message RequestDescriptor {
@@ -115,4 +116,14 @@ message TestConnectionRequest {
 message TestConnectionResponse {
   bool ok = 1;
   string message = 2;
+}
+
+message ValidateRequest {
+  string capability_id = 1;
+  RouterConnection connection = 2;
+}
+
+message ValidateResponse {
+  map<string, string> field_errors = 1; // keyed by config field; empty = no field errors
+  string form_error = 2;                 // form-level error; empty = none
 }
