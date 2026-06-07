@@ -25,7 +25,7 @@ message RequestDescriptor {
   int32 year = 3;
   map<string, string> external_ids = 4;
   bool is_anime = 5;
-  int32 requester_user_id = 6;
+  int64 requester_user_id = 6;
   string requester_profile_id = 7;
 }
 

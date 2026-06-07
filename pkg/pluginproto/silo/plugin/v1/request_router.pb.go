@@ -29,7 +29,7 @@ type RequestDescriptor struct {
 	Year               int32                  `protobuf:"varint,3,opt,name=year,proto3" json:"year,omitempty"`
 	ExternalIds        map[string]string      `protobuf:"bytes,4,rep,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	IsAnime            bool                   `protobuf:"varint,5,opt,name=is_anime,json=isAnime,proto3" json:"is_anime,omitempty"`
-	RequesterUserId    int32                  `protobuf:"varint,6,opt,name=requester_user_id,json=requesterUserId,proto3" json:"requester_user_id,omitempty"`
+	RequesterUserId    int64                  `protobuf:"varint,6,opt,name=requester_user_id,json=requesterUserId,proto3" json:"requester_user_id,omitempty"`
 	RequesterProfileId string                 `protobuf:"bytes,7,opt,name=requester_profile_id,json=requesterProfileId,proto3" json:"requester_profile_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -100,7 +100,7 @@ func (x *RequestDescriptor) GetIsAnime() bool {
 	return false
 }
 
-func (x *RequestDescriptor) GetRequesterUserId() int32 {
+func (x *RequestDescriptor) GetRequesterUserId() int64 {
 	if x != nil {
 		return x.RequesterUserId
 	}
@@ -1054,7 +1054,7 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"\x04year\x18\x03 \x01(\x05R\x04year\x12U\n" +
 	"\fexternal_ids\x18\x04 \x03(\v22.silo.plugin.v1.RequestDescriptor.ExternalIdsEntryR\vexternalIds\x12\x19\n" +
 	"\bis_anime\x18\x05 \x01(\bR\aisAnime\x12*\n" +
-	"\x11requester_user_id\x18\x06 \x01(\x05R\x0frequesterUserId\x120\n" +
+	"\x11requester_user_id\x18\x06 \x01(\x03R\x0frequesterUserId\x120\n" +
 	"\x14requester_profile_id\x18\a \x01(\tR\x12requesterProfileId\x1a>\n" +
 	"\x10ExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
