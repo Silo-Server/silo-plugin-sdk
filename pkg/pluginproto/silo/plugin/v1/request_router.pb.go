@@ -995,9 +995,14 @@ func (x *TestConnectionResponse) GetMessage() string {
 }
 
 type ValidateRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CapabilityId  string                 `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
-	Connection    *RouterConnection      `protobuf:"bytes,2,opt,name=connection,proto3" json:"connection,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	CapabilityId string                 `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
+	Connection   *RouterConnection      `protobuf:"bytes,2,opt,name=connection,proto3" json:"connection,omitempty"`
+	// siblings are the other connections bound to this installation+capability, so
+	// a plugin can enforce cross-connection rules (e.g. one default per service
+	// type). They carry id + config only — no base_url/api_key (validation reads
+	// flags, not credentials).
+	Siblings      []*RouterConnection `protobuf:"bytes,3,rep,name=siblings,proto3" json:"siblings,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1042,6 +1047,13 @@ func (x *ValidateRequest) GetCapabilityId() string {
 func (x *ValidateRequest) GetConnection() *RouterConnection {
 	if x != nil {
 		return x.Connection
+	}
+	return nil
+}
+
+func (x *ValidateRequest) GetSiblings() []*RouterConnection {
+	if x != nil {
+		return x.Siblings
 	}
 	return nil
 }
@@ -1179,12 +1191,13 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"connection\"B\n" +
 	"\x16TestConnectionResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"x\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xb6\x01\n" +
 	"\x0fValidateRequest\x12#\n" +
 	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
 	"\n" +
 	"connection\x18\x02 \x01(\v2 .silo.plugin.v1.RouterConnectionR\n" +
-	"connection\"\xc7\x01\n" +
+	"connection\x12<\n" +
+	"\bsiblings\x18\x03 \x03(\v2 .silo.plugin.v1.RouterConnectionR\bsiblings\"\xc7\x01\n" +
 	"\x10ValidateResponse\x12T\n" +
 	"\ffield_errors\x18\x01 \x03(\v21.silo.plugin.v1.ValidateResponse.FieldErrorsEntryR\vfieldErrors\x12\x1d\n" +
 	"\n" +
@@ -1252,23 +1265,24 @@ var file_silo_plugin_v1_request_router_proto_depIdxs = []int32{
 	19, // 12: silo.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
 	1,  // 13: silo.plugin.v1.TestConnectionRequest.connection:type_name -> silo.plugin.v1.RouterConnection
 	1,  // 14: silo.plugin.v1.ValidateRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	20, // 15: silo.plugin.v1.ValidateResponse.field_errors:type_name -> silo.plugin.v1.ValidateResponse.FieldErrorsEntry
-	11, // 16: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
-	3,  // 17: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
-	7,  // 18: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
-	12, // 19: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
-	14, // 20: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
-	16, // 21: silo.plugin.v1.RequestRouter.Validate:input_type -> silo.plugin.v1.ValidateRequest
-	5,  // 22: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
-	9,  // 23: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
-	13, // 24: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
-	15, // 25: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
-	17, // 26: silo.plugin.v1.RequestRouter.Validate:output_type -> silo.plugin.v1.ValidateResponse
-	22, // [22:27] is the sub-list for method output_type
-	17, // [17:22] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	1,  // 15: silo.plugin.v1.ValidateRequest.siblings:type_name -> silo.plugin.v1.RouterConnection
+	20, // 16: silo.plugin.v1.ValidateResponse.field_errors:type_name -> silo.plugin.v1.ValidateResponse.FieldErrorsEntry
+	11, // 17: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
+	3,  // 18: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
+	7,  // 19: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
+	12, // 20: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
+	14, // 21: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
+	16, // 22: silo.plugin.v1.RequestRouter.Validate:input_type -> silo.plugin.v1.ValidateRequest
+	5,  // 23: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
+	9,  // 24: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
+	13, // 25: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
+	15, // 26: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
+	17, // 27: silo.plugin.v1.RequestRouter.Validate:output_type -> silo.plugin.v1.ValidateResponse
+	23, // [23:28] is the sub-list for method output_type
+	18, // [18:23] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_request_router_proto_init() }

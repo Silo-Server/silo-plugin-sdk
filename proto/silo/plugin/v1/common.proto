@@ -52,6 +52,10 @@ message AdminFormField {
   bool dynamic_options = 12;                  // populate options from ListConfigOptions[key]
   repeated AdminFormCondition show_when = 13; // conditional visibility
   AdminFormValidation validation = 14;        // per-field constraints
+  // exclusive_group_field names another config field whose value defines a
+  // group; at most one connection per distinct value of that field may have THIS
+  // field truthy. Empty = no exclusivity.
+  string exclusive_group_field = 15;
 }
 
 // AdminFormCondition: the owning field/section is shown only when, for every

@@ -298,8 +298,12 @@ type AdminFormField struct {
 	DynamicOptions bool                   `protobuf:"varint,12,opt,name=dynamic_options,json=dynamicOptions,proto3" json:"dynamic_options,omitempty"` // populate options from ListConfigOptions[key]
 	ShowWhen       []*AdminFormCondition  `protobuf:"bytes,13,rep,name=show_when,json=showWhen,proto3" json:"show_when,omitempty"`                    // conditional visibility
 	Validation     *AdminFormValidation   `protobuf:"bytes,14,opt,name=validation,proto3" json:"validation,omitempty"`                                // per-field constraints
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// exclusive_group_field names another config field whose value defines a
+	// group; at most one connection per distinct value of that field may have THIS
+	// field truthy. Empty = no exclusivity.
+	ExclusiveGroupField string `protobuf:"bytes,15,opt,name=exclusive_group_field,json=exclusiveGroupField,proto3" json:"exclusive_group_field,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *AdminFormField) Reset() {
@@ -428,6 +432,13 @@ func (x *AdminFormField) GetValidation() *AdminFormValidation {
 		return x.Validation
 	}
 	return nil
+}
+
+func (x *AdminFormField) GetExclusiveGroupField() string {
+	if x != nil {
+		return x.ExclusiveGroupField
+	}
+	return ""
 }
 
 // AdminFormCondition: the owning field/section is shown only when, for every
@@ -1456,7 +1467,7 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x0fAdminFormOption\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"\xc5\x04\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\"\xf9\x04\n" +
 	"\x0eAdminFormField\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
@@ -1474,7 +1485,8 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\tshow_when\x18\r \x03(\v2\".silo.plugin.v1.AdminFormConditionR\bshowWhen\x12C\n" +
 	"\n" +
 	"validation\x18\x0e \x01(\v2#.silo.plugin.v1.AdminFormValidationR\n" +
-	"validation\"B\n" +
+	"validation\x122\n" +
+	"\x15exclusive_group_field\x18\x0f \x01(\tR\x13exclusiveGroupField\"B\n" +
 	"\x12AdminFormCondition\x12\x14\n" +
 	"\x05field\x18\x01 \x01(\tR\x05field\x12\x16\n" +
 	"\x06equals\x18\x02 \x03(\tR\x06equals\"\xc3\x01\n" +

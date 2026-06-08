@@ -130,6 +130,11 @@ message TestConnectionResponse {
 message ValidateRequest {
   string capability_id = 1;
   RouterConnection connection = 2;
+  // siblings are the other connections bound to this installation+capability, so
+  // a plugin can enforce cross-connection rules (e.g. one default per service
+  // type). They carry id + config only — no base_url/api_key (validation reads
+  // flags, not credentials).
+  repeated RouterConnection siblings = 3;
 }
 
 message ValidateResponse {
