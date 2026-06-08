@@ -184,11 +184,67 @@ func (x *RouterConnection) GetConfig() *structpb.Struct {
 	return nil
 }
 
+// RequestedQuality is one quality tier the host wants fulfilled. The host owns
+// quality governance, so it stamps is4k rather than each plugin re-deriving it
+// from the id string. id is the tier identity echoed back as
+// FulfillmentTarget.quality (e.g. "1080p" / "2160p").
+type RequestedQuality struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Is4K          bool                   `protobuf:"varint,2,opt,name=is4k,proto3" json:"is4k,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestedQuality) Reset() {
+	*x = RequestedQuality{}
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestedQuality) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestedQuality) ProtoMessage() {}
+
+func (x *RequestedQuality) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestedQuality.ProtoReflect.Descriptor instead.
+func (*RequestedQuality) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RequestedQuality) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RequestedQuality) GetIs4K() bool {
+	if x != nil {
+		return x.Is4K
+	}
+	return false
+}
+
 type FulfillRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CapabilityId  string                 `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
 	Request       *RequestDescriptor     `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	Qualities     []string               `protobuf:"bytes,3,rep,name=qualities,proto3" json:"qualities,omitempty"`
+	Qualities     []*RequestedQuality    `protobuf:"bytes,3,rep,name=qualities,proto3" json:"qualities,omitempty"`
 	Connections   []*RouterConnection    `protobuf:"bytes,4,rep,name=connections,proto3" json:"connections,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -196,7 +252,7 @@ type FulfillRequest struct {
 
 func (x *FulfillRequest) Reset() {
 	*x = FulfillRequest{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[2]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -208,7 +264,7 @@ func (x *FulfillRequest) String() string {
 func (*FulfillRequest) ProtoMessage() {}
 
 func (x *FulfillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[2]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -221,7 +277,7 @@ func (x *FulfillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FulfillRequest.ProtoReflect.Descriptor instead.
 func (*FulfillRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{2}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *FulfillRequest) GetCapabilityId() string {
@@ -238,7 +294,7 @@ func (x *FulfillRequest) GetRequest() *RequestDescriptor {
 	return nil
 }
 
-func (x *FulfillRequest) GetQualities() []string {
+func (x *FulfillRequest) GetQualities() []*RequestedQuality {
 	if x != nil {
 		return x.Qualities
 	}
@@ -269,7 +325,7 @@ type FulfillmentTarget struct {
 
 func (x *FulfillmentTarget) Reset() {
 	*x = FulfillmentTarget{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +337,7 @@ func (x *FulfillmentTarget) String() string {
 func (*FulfillmentTarget) ProtoMessage() {}
 
 func (x *FulfillmentTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +350,7 @@ func (x *FulfillmentTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FulfillmentTarget.ProtoReflect.Descriptor instead.
 func (*FulfillmentTarget) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{3}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *FulfillmentTarget) GetQuality() string {
@@ -350,7 +406,7 @@ type FulfillResponse struct {
 
 func (x *FulfillResponse) Reset() {
 	*x = FulfillResponse{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -362,7 +418,7 @@ func (x *FulfillResponse) String() string {
 func (*FulfillResponse) ProtoMessage() {}
 
 func (x *FulfillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -375,7 +431,7 @@ func (x *FulfillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FulfillResponse.ProtoReflect.Descriptor instead.
 func (*FulfillResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{4}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *FulfillResponse) GetTargets() []*FulfillmentTarget {
@@ -403,7 +459,7 @@ type TargetRef struct {
 
 func (x *TargetRef) Reset() {
 	*x = TargetRef{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -415,7 +471,7 @@ func (x *TargetRef) String() string {
 func (*TargetRef) ProtoMessage() {}
 
 func (x *TargetRef) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -428,7 +484,7 @@ func (x *TargetRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TargetRef.ProtoReflect.Descriptor instead.
 func (*TargetRef) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{5}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *TargetRef) GetQuality() string {
@@ -464,7 +520,7 @@ type CheckStatusRequest struct {
 
 func (x *CheckStatusRequest) Reset() {
 	*x = CheckStatusRequest{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -476,7 +532,7 @@ func (x *CheckStatusRequest) String() string {
 func (*CheckStatusRequest) ProtoMessage() {}
 
 func (x *CheckStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -489,7 +545,7 @@ func (x *CheckStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckStatusRequest.ProtoReflect.Descriptor instead.
 func (*CheckStatusRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{6}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CheckStatusRequest) GetCapabilityId() string {
@@ -534,7 +590,7 @@ type TargetStatus struct {
 
 func (x *TargetStatus) Reset() {
 	*x = TargetStatus{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -546,7 +602,7 @@ func (x *TargetStatus) String() string {
 func (*TargetStatus) ProtoMessage() {}
 
 func (x *TargetStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -559,7 +615,7 @@ func (x *TargetStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TargetStatus.ProtoReflect.Descriptor instead.
 func (*TargetStatus) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{7}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *TargetStatus) GetQuality() string {
@@ -606,7 +662,7 @@ type CheckStatusResponse struct {
 
 func (x *CheckStatusResponse) Reset() {
 	*x = CheckStatusResponse{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -618,7 +674,7 @@ func (x *CheckStatusResponse) String() string {
 func (*CheckStatusResponse) ProtoMessage() {}
 
 func (x *CheckStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -631,7 +687,7 @@ func (x *CheckStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckStatusResponse.ProtoReflect.Descriptor instead.
 func (*CheckStatusResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{8}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CheckStatusResponse) GetStatuses() []*TargetStatus {
@@ -651,7 +707,7 @@ type ConfigOption struct {
 
 func (x *ConfigOption) Reset() {
 	*x = ConfigOption{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -663,7 +719,7 @@ func (x *ConfigOption) String() string {
 func (*ConfigOption) ProtoMessage() {}
 
 func (x *ConfigOption) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -676,7 +732,7 @@ func (x *ConfigOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigOption.ProtoReflect.Descriptor instead.
 func (*ConfigOption) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{9}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ConfigOption) GetValue() string {
@@ -702,7 +758,7 @@ type ConfigOptionList struct {
 
 func (x *ConfigOptionList) Reset() {
 	*x = ConfigOptionList{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -714,7 +770,7 @@ func (x *ConfigOptionList) String() string {
 func (*ConfigOptionList) ProtoMessage() {}
 
 func (x *ConfigOptionList) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -727,7 +783,7 @@ func (x *ConfigOptionList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigOptionList.ProtoReflect.Descriptor instead.
 func (*ConfigOptionList) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{10}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ConfigOptionList) GetOptions() []*ConfigOption {
@@ -747,7 +803,7 @@ type ListConfigOptionsRequest struct {
 
 func (x *ListConfigOptionsRequest) Reset() {
 	*x = ListConfigOptionsRequest{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -759,7 +815,7 @@ func (x *ListConfigOptionsRequest) String() string {
 func (*ListConfigOptionsRequest) ProtoMessage() {}
 
 func (x *ListConfigOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -772,7 +828,7 @@ func (x *ListConfigOptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConfigOptionsRequest.ProtoReflect.Descriptor instead.
 func (*ListConfigOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{11}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListConfigOptionsRequest) GetCapabilityId() string {
@@ -799,7 +855,7 @@ type ListConfigOptionsResponse struct {
 
 func (x *ListConfigOptionsResponse) Reset() {
 	*x = ListConfigOptionsResponse{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -811,7 +867,7 @@ func (x *ListConfigOptionsResponse) String() string {
 func (*ListConfigOptionsResponse) ProtoMessage() {}
 
 func (x *ListConfigOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -824,7 +880,7 @@ func (x *ListConfigOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConfigOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListConfigOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListConfigOptionsResponse) GetOptionsByField() map[string]*ConfigOptionList {
@@ -844,7 +900,7 @@ type TestConnectionRequest struct {
 
 func (x *TestConnectionRequest) Reset() {
 	*x = TestConnectionRequest{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -856,7 +912,7 @@ func (x *TestConnectionRequest) String() string {
 func (*TestConnectionRequest) ProtoMessage() {}
 
 func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -869,7 +925,7 @@ func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionRequest.ProtoReflect.Descriptor instead.
 func (*TestConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{13}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *TestConnectionRequest) GetCapabilityId() string {
@@ -896,7 +952,7 @@ type TestConnectionResponse struct {
 
 func (x *TestConnectionResponse) Reset() {
 	*x = TestConnectionResponse{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -908,7 +964,7 @@ func (x *TestConnectionResponse) String() string {
 func (*TestConnectionResponse) ProtoMessage() {}
 
 func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -921,7 +977,7 @@ func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionResponse.ProtoReflect.Descriptor instead.
 func (*TestConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{14}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *TestConnectionResponse) GetOk() bool {
@@ -948,7 +1004,7 @@ type ValidateRequest struct {
 
 func (x *ValidateRequest) Reset() {
 	*x = ValidateRequest{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -960,7 +1016,7 @@ func (x *ValidateRequest) String() string {
 func (*ValidateRequest) ProtoMessage() {}
 
 func (x *ValidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,7 +1029,7 @@ func (x *ValidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateRequest.ProtoReflect.Descriptor instead.
 func (*ValidateRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{15}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ValidateRequest) GetCapabilityId() string {
@@ -1000,7 +1056,7 @@ type ValidateResponse struct {
 
 func (x *ValidateResponse) Reset() {
 	*x = ValidateResponse{}
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1012,7 +1068,7 @@ func (x *ValidateResponse) String() string {
 func (*ValidateResponse) ProtoMessage() {}
 
 func (x *ValidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_request_router_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1025,7 +1081,7 @@ func (x *ValidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateResponse.ProtoReflect.Descriptor instead.
 func (*ValidateResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{16}
+	return file_silo_plugin_v1_request_router_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ValidateResponse) GetFieldErrors() map[string]string {
@@ -1063,11 +1119,14 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bbase_url\x18\x02 \x01(\tR\abaseUrl\x12\x17\n" +
 	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\x12/\n" +
-	"\x06config\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x06config\"\xd4\x01\n" +
+	"\x06config\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x06config\"6\n" +
+	"\x10RequestedQuality\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04is4k\x18\x02 \x01(\bR\x04is4k\"\xf6\x01\n" +
 	"\x0eFulfillRequest\x12#\n" +
 	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12;\n" +
-	"\arequest\x18\x02 \x01(\v2!.silo.plugin.v1.RequestDescriptorR\arequest\x12\x1c\n" +
-	"\tqualities\x18\x03 \x03(\tR\tqualities\x12B\n" +
+	"\arequest\x18\x02 \x01(\v2!.silo.plugin.v1.RequestDescriptorR\arequest\x12>\n" +
+	"\tqualities\x18\x03 \x03(\v2 .silo.plugin.v1.RequestedQualityR\tqualities\x12B\n" +
 	"\vconnections\x18\x04 \x03(\v2 .silo.plugin.v1.RouterConnectionR\vconnections\"\xce\x01\n" +
 	"\x11FulfillmentTarget\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
@@ -1152,62 +1211,64 @@ func file_silo_plugin_v1_request_router_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_request_router_proto_rawDescData
 }
 
-var file_silo_plugin_v1_request_router_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_silo_plugin_v1_request_router_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_silo_plugin_v1_request_router_proto_goTypes = []any{
 	(*RequestDescriptor)(nil),         // 0: silo.plugin.v1.RequestDescriptor
 	(*RouterConnection)(nil),          // 1: silo.plugin.v1.RouterConnection
-	(*FulfillRequest)(nil),            // 2: silo.plugin.v1.FulfillRequest
-	(*FulfillmentTarget)(nil),         // 3: silo.plugin.v1.FulfillmentTarget
-	(*FulfillResponse)(nil),           // 4: silo.plugin.v1.FulfillResponse
-	(*TargetRef)(nil),                 // 5: silo.plugin.v1.TargetRef
-	(*CheckStatusRequest)(nil),        // 6: silo.plugin.v1.CheckStatusRequest
-	(*TargetStatus)(nil),              // 7: silo.plugin.v1.TargetStatus
-	(*CheckStatusResponse)(nil),       // 8: silo.plugin.v1.CheckStatusResponse
-	(*ConfigOption)(nil),              // 9: silo.plugin.v1.ConfigOption
-	(*ConfigOptionList)(nil),          // 10: silo.plugin.v1.ConfigOptionList
-	(*ListConfigOptionsRequest)(nil),  // 11: silo.plugin.v1.ListConfigOptionsRequest
-	(*ListConfigOptionsResponse)(nil), // 12: silo.plugin.v1.ListConfigOptionsResponse
-	(*TestConnectionRequest)(nil),     // 13: silo.plugin.v1.TestConnectionRequest
-	(*TestConnectionResponse)(nil),    // 14: silo.plugin.v1.TestConnectionResponse
-	(*ValidateRequest)(nil),           // 15: silo.plugin.v1.ValidateRequest
-	(*ValidateResponse)(nil),          // 16: silo.plugin.v1.ValidateResponse
-	nil,                               // 17: silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
-	nil,                               // 18: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
-	nil,                               // 19: silo.plugin.v1.ValidateResponse.FieldErrorsEntry
-	(*structpb.Struct)(nil),           // 20: google.protobuf.Struct
+	(*RequestedQuality)(nil),          // 2: silo.plugin.v1.RequestedQuality
+	(*FulfillRequest)(nil),            // 3: silo.plugin.v1.FulfillRequest
+	(*FulfillmentTarget)(nil),         // 4: silo.plugin.v1.FulfillmentTarget
+	(*FulfillResponse)(nil),           // 5: silo.plugin.v1.FulfillResponse
+	(*TargetRef)(nil),                 // 6: silo.plugin.v1.TargetRef
+	(*CheckStatusRequest)(nil),        // 7: silo.plugin.v1.CheckStatusRequest
+	(*TargetStatus)(nil),              // 8: silo.plugin.v1.TargetStatus
+	(*CheckStatusResponse)(nil),       // 9: silo.plugin.v1.CheckStatusResponse
+	(*ConfigOption)(nil),              // 10: silo.plugin.v1.ConfigOption
+	(*ConfigOptionList)(nil),          // 11: silo.plugin.v1.ConfigOptionList
+	(*ListConfigOptionsRequest)(nil),  // 12: silo.plugin.v1.ListConfigOptionsRequest
+	(*ListConfigOptionsResponse)(nil), // 13: silo.plugin.v1.ListConfigOptionsResponse
+	(*TestConnectionRequest)(nil),     // 14: silo.plugin.v1.TestConnectionRequest
+	(*TestConnectionResponse)(nil),    // 15: silo.plugin.v1.TestConnectionResponse
+	(*ValidateRequest)(nil),           // 16: silo.plugin.v1.ValidateRequest
+	(*ValidateResponse)(nil),          // 17: silo.plugin.v1.ValidateResponse
+	nil,                               // 18: silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
+	nil,                               // 19: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
+	nil,                               // 20: silo.plugin.v1.ValidateResponse.FieldErrorsEntry
+	(*structpb.Struct)(nil),           // 21: google.protobuf.Struct
 }
 var file_silo_plugin_v1_request_router_proto_depIdxs = []int32{
-	17, // 0: silo.plugin.v1.RequestDescriptor.external_ids:type_name -> silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
-	20, // 1: silo.plugin.v1.RouterConnection.config:type_name -> google.protobuf.Struct
+	18, // 0: silo.plugin.v1.RequestDescriptor.external_ids:type_name -> silo.plugin.v1.RequestDescriptor.ExternalIdsEntry
+	21, // 1: silo.plugin.v1.RouterConnection.config:type_name -> google.protobuf.Struct
 	0,  // 2: silo.plugin.v1.FulfillRequest.request:type_name -> silo.plugin.v1.RequestDescriptor
-	1,  // 3: silo.plugin.v1.FulfillRequest.connections:type_name -> silo.plugin.v1.RouterConnection
-	3,  // 4: silo.plugin.v1.FulfillResponse.targets:type_name -> silo.plugin.v1.FulfillmentTarget
-	0,  // 5: silo.plugin.v1.CheckStatusRequest.request:type_name -> silo.plugin.v1.RequestDescriptor
-	5,  // 6: silo.plugin.v1.CheckStatusRequest.targets:type_name -> silo.plugin.v1.TargetRef
-	1,  // 7: silo.plugin.v1.CheckStatusRequest.connections:type_name -> silo.plugin.v1.RouterConnection
-	7,  // 8: silo.plugin.v1.CheckStatusResponse.statuses:type_name -> silo.plugin.v1.TargetStatus
-	9,  // 9: silo.plugin.v1.ConfigOptionList.options:type_name -> silo.plugin.v1.ConfigOption
-	1,  // 10: silo.plugin.v1.ListConfigOptionsRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	18, // 11: silo.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
-	1,  // 12: silo.plugin.v1.TestConnectionRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	1,  // 13: silo.plugin.v1.ValidateRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	19, // 14: silo.plugin.v1.ValidateResponse.field_errors:type_name -> silo.plugin.v1.ValidateResponse.FieldErrorsEntry
-	10, // 15: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
-	2,  // 16: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
-	6,  // 17: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
-	11, // 18: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
-	13, // 19: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
-	15, // 20: silo.plugin.v1.RequestRouter.Validate:input_type -> silo.plugin.v1.ValidateRequest
-	4,  // 21: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
-	8,  // 22: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
-	12, // 23: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
-	14, // 24: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
-	16, // 25: silo.plugin.v1.RequestRouter.Validate:output_type -> silo.plugin.v1.ValidateResponse
-	21, // [21:26] is the sub-list for method output_type
-	16, // [16:21] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	2,  // 3: silo.plugin.v1.FulfillRequest.qualities:type_name -> silo.plugin.v1.RequestedQuality
+	1,  // 4: silo.plugin.v1.FulfillRequest.connections:type_name -> silo.plugin.v1.RouterConnection
+	4,  // 5: silo.plugin.v1.FulfillResponse.targets:type_name -> silo.plugin.v1.FulfillmentTarget
+	0,  // 6: silo.plugin.v1.CheckStatusRequest.request:type_name -> silo.plugin.v1.RequestDescriptor
+	6,  // 7: silo.plugin.v1.CheckStatusRequest.targets:type_name -> silo.plugin.v1.TargetRef
+	1,  // 8: silo.plugin.v1.CheckStatusRequest.connections:type_name -> silo.plugin.v1.RouterConnection
+	8,  // 9: silo.plugin.v1.CheckStatusResponse.statuses:type_name -> silo.plugin.v1.TargetStatus
+	10, // 10: silo.plugin.v1.ConfigOptionList.options:type_name -> silo.plugin.v1.ConfigOption
+	1,  // 11: silo.plugin.v1.ListConfigOptionsRequest.connection:type_name -> silo.plugin.v1.RouterConnection
+	19, // 12: silo.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
+	1,  // 13: silo.plugin.v1.TestConnectionRequest.connection:type_name -> silo.plugin.v1.RouterConnection
+	1,  // 14: silo.plugin.v1.ValidateRequest.connection:type_name -> silo.plugin.v1.RouterConnection
+	20, // 15: silo.plugin.v1.ValidateResponse.field_errors:type_name -> silo.plugin.v1.ValidateResponse.FieldErrorsEntry
+	11, // 16: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
+	3,  // 17: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
+	7,  // 18: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
+	12, // 19: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
+	14, // 20: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
+	16, // 21: silo.plugin.v1.RequestRouter.Validate:input_type -> silo.plugin.v1.ValidateRequest
+	5,  // 22: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
+	9,  // 23: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
+	13, // 24: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
+	15, // 25: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
+	17, // 26: silo.plugin.v1.RequestRouter.Validate:output_type -> silo.plugin.v1.ValidateResponse
+	22, // [22:27] is the sub-list for method output_type
+	17, // [17:22] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_request_router_proto_init() }
@@ -1221,7 +1282,7 @@ func file_silo_plugin_v1_request_router_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_request_router_proto_rawDesc), len(file_silo_plugin_v1_request_router_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

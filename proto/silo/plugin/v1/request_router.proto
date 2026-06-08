@@ -38,10 +38,19 @@ message RouterConnection {
   google.protobuf.Struct config = 4;
 }
 
+// RequestedQuality is one quality tier the host wants fulfilled. The host owns
+// quality governance, so it stamps is4k rather than each plugin re-deriving it
+// from the id string. id is the tier identity echoed back as
+// FulfillmentTarget.quality (e.g. "1080p" / "2160p").
+message RequestedQuality {
+  string id = 1;
+  bool is4k = 2;
+}
+
 message FulfillRequest {
   string capability_id = 1;
   RequestDescriptor request = 2;
-  repeated string qualities = 3;
+  repeated RequestedQuality qualities = 3;
   repeated RouterConnection connections = 4;
 }
 
