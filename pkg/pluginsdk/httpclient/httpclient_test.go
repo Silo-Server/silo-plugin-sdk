@@ -103,3 +103,43 @@ func TestRequiresBaseURLAndKeyAndTrimsBaseURL(t *testing.T) {
 		t.Fatalf("bad joined path %q", gotPath)
 	}
 }
+
+func TestApiKeyNotLeakedInError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"message":"upstream boom"}`))
+	}))
+	defer srv.Close()
+	err := New(srv.URL, "super-secret-key", nil).GetJSON(context.Background(), "/x", nil)
+	if err == nil {
+		t.Fatal("want error")
+	}
+	if strings.Contains(err.Error(), "super-secret-key") {
+		t.Fatalf("api key leaked into error: %v", err)
+	}
+	var se *StatusError
+	if errors.As(err, &se) && (strings.Contains(se.Body, "super-secret-key") || strings.Contains(se.Message, "super-secret-key")) {
+		t.Fatalf("api key leaked into StatusError: %+v", se)
+	}
+}
+
+func TestResponseBodyCappedAtMaxResponseBody(t *testing.T) {
+	// A 2 MiB body must not be read unbounded; the LimitReader truncates it,
+	// so decode fails cleanly (no hang, no OOM) rather than reading it all.
+	big := make([]byte, 2*1024*1024)
+	for i := range big {
+		big[i] = 'a'
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"x":"`))
+		w.Write(big)
+		// intentionally never closes the JSON string -> truncated at the cap
+	}))
+	defer srv.Close()
+	var out map[string]any
+	err := New(srv.URL, "k", nil).GetJSON(context.Background(), "/x", &out)
+	if err == nil {
+		t.Fatal("want a decode error from the capped/truncated body, got nil")
+	}
+}

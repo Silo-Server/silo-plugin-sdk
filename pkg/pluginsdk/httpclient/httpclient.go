@@ -20,6 +20,10 @@ import (
 
 const maxResponseBody = 1 << 20 // 1 MiB
 
+// defaultHTTPClient is shared so its connection pool survives across calls
+// (each New(nil) reuses one pooled Transport rather than minting a fresh one).
+var defaultHTTPClient = &http.Client{Timeout: 30 * time.Second}
+
 // Client talks to one API instance.
 type Client struct {
 	baseURL    string
@@ -51,7 +55,7 @@ func (e *StatusError) Error() string {
 // right-trimmed of "/"; apiKey is space-trimmed.
 func New(baseURL, apiKey string, hc *http.Client) *Client {
 	if hc == nil {
-		hc = &http.Client{Timeout: 30 * time.Second}
+		hc = defaultHTTPClient
 	}
 	return &Client{
 		baseURL:    strings.TrimRight(strings.TrimSpace(baseURL), "/"),
@@ -114,12 +118,12 @@ func (c *Client) DoJSON(ctx context.Context, method, path string, body, dest any
 		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxResponseBody))
 		return nil
 	}
-	if err := json.NewDecoder(io.LimitReader(resp.Body, maxResponseBody)).Decode(dest); err != nil {
-		if err == io.EOF {
-			return nil // empty 2xx body: success, no content to decode
-		}
+	err = json.NewDecoder(io.LimitReader(resp.Body, maxResponseBody)).Decode(dest)
+	if err != nil && err != io.EOF {
 		return fmt.Errorf("httpclient: decode response: %w", err)
 	}
+	// Drain any trailing bytes (bounded) so the connection can be pooled/reused.
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxResponseBody))
 	return nil
 }
 
