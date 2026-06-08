@@ -34,6 +34,8 @@ func TestStatusErrorParsesMessageWithRawFallback(t *testing.T) {
 		case "/json":
 			w.WriteHeader(http.StatusConflict)
 			w.Write([]byte(`{"message":"dup"}`))
+		case "/not-modified":
+			w.WriteHeader(http.StatusNotModified)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`boom`))
@@ -50,6 +52,10 @@ func TestStatusErrorParsesMessageWithRawFallback(t *testing.T) {
 	err = c.GetJSON(context.Background(), "/raw", nil)
 	if !errors.As(err, &se) || se.StatusCode != 500 || se.Message != "boom" || se.Body != "boom" {
 		t.Fatalf("want StatusError{500,boom,boom}, got %v", err)
+	}
+	err = c.GetJSON(context.Background(), "/not-modified", nil)
+	if !errors.As(err, &se) || se.StatusCode != http.StatusNotModified {
+		t.Fatalf("want StatusError{304}, got %v", err)
 	}
 }
 

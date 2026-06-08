@@ -109,7 +109,7 @@ func (c *Client) DoJSON(ctx context.Context, method, path string, body, dest any
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		raw, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
 		trimmed := strings.TrimSpace(string(raw))
 		return &StatusError{StatusCode: resp.StatusCode, Body: trimmed, Message: parseMessage(raw)}

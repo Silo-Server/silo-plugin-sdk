@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -46,5 +47,16 @@ func TestLoadWithChecksumEmptyVersionKeepsManifestVersion(t *testing.T) {
 	}
 	if m.GetVersion() != "0.0.1" {
 		t.Fatalf("version: got %q want 0.0.1", m.GetVersion())
+	}
+}
+
+func TestLoadWithChecksumAppliesVersionOverrideBeforeValidation(t *testing.T) {
+	raw := strings.Replace(testManifestJSON, `"version": "0.0.1",`, `"version": "",`, 1)
+	m, err := LoadWithChecksum([]byte(raw), "9.9.9")
+	if err != nil {
+		t.Fatalf("LoadWithChecksum: %v", err)
+	}
+	if m.GetVersion() != "9.9.9" {
+		t.Fatalf("version override: got %q want 9.9.9", m.GetVersion())
 	}
 }

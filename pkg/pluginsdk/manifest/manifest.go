@@ -29,17 +29,14 @@ func knownCapabilityTypeSet() map[string]struct{} {
 }
 
 func Load(data []byte) (*pluginv1.PluginManifest, error) {
-	var manifest pluginv1.PluginManifest
-	// Use DiscardUnknown so that fields defined outside the proto schema do
-	// not cause a decode error. The proto-schema fields are still fully
-	// decoded.
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(data, &manifest); err != nil {
-		return nil, fmt.Errorf("decode plugin manifest: %w", err)
-	}
-	if err := Validate(&manifest); err != nil {
+	manifest, err := decode(data)
+	if err != nil {
 		return nil, err
 	}
-	return &manifest, nil
+	if err := Validate(manifest); err != nil {
+		return nil, err
+	}
+	return manifest, nil
 }
 
 func MustLoad(data []byte) *pluginv1.PluginManifest {
@@ -60,6 +57,17 @@ func LoadFromDisk(path string) (*pluginv1.PluginManifest, error) {
 		return nil, fmt.Errorf("load plugin manifest %q: %w", path, err)
 	}
 	return manifest, nil
+}
+
+func decode(data []byte) (*pluginv1.PluginManifest, error) {
+	var manifest pluginv1.PluginManifest
+	// Use DiscardUnknown so that fields defined outside the proto schema do
+	// not cause a decode error. The proto-schema fields are still fully
+	// decoded.
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(data, &manifest); err != nil {
+		return nil, fmt.Errorf("decode plugin manifest: %w", err)
+	}
+	return &manifest, nil
 }
 
 // Validate validates the proto plugin manifest.
@@ -185,6 +193,13 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 
 	// Cross-field references are validated in a second pass so a field may
 	// reference another declared later (e.g. show_when pointing at a field below).
+	hasReference := func(key string) bool {
+		if _, ok := seen[key]; ok {
+			return true
+		}
+		_, ok := parsed.Properties[key]
+		return ok
+	}
 	for _, field := range form.GetFields() {
 		if field == nil {
 			continue
@@ -194,12 +209,12 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 			if cond.GetField() == "" {
 				return fmt.Errorf("plugin config schema %q admin_form field %q show_when.field is required", schema.GetKey(), key)
 			}
-			if _, ok := seen[cond.GetField()]; !ok {
+			if !hasReference(cond.GetField()) {
 				return fmt.Errorf("plugin config schema %q admin_form field %q show_when references unknown field %q", schema.GetKey(), key, cond.GetField())
 			}
 		}
 		if eg := field.GetExclusiveGroupField(); eg != "" {
-			if _, ok := seen[eg]; !ok {
+			if !hasReference(eg) {
 				return fmt.Errorf("plugin config schema %q admin_form field %q exclusive_group_field references unknown field %q", schema.GetKey(), key, eg)
 			}
 		}
@@ -214,10 +229,11 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 			}
 		}
 		for _, cond := range section.GetShowWhen() {
-			if cond.GetField() != "" {
-				if _, ok := seen[cond.GetField()]; !ok {
-					return fmt.Errorf("plugin config schema %q admin_form section %q show_when references unknown field %q", schema.GetKey(), section.GetKey(), cond.GetField())
-				}
+			if cond.GetField() == "" {
+				return fmt.Errorf("plugin config schema %q admin_form section %q show_when.field is required", schema.GetKey(), section.GetKey())
+			}
+			if !hasReference(cond.GetField()) {
+				return fmt.Errorf("plugin config schema %q admin_form section %q show_when references unknown field %q", schema.GetKey(), section.GetKey(), cond.GetField())
 			}
 		}
 	}

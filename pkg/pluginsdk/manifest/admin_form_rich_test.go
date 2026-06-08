@@ -236,6 +236,58 @@ func TestSectionFieldKeysReferencesUnknownField(t *testing.T) {
 	}
 }
 
+func TestExclusiveGroupFieldReferencesDeclaredConfigField(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id": "silo.example",
+	  "version": "1.0.0",
+	  "silo_api_version": "v1",
+	  "capabilities": [{
+	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
+	    "config_schema": [{
+	      "key": "connection",
+	      "title": "Connection",
+	      "json_schema": "{\"type\":\"object\",\"properties\":{\"service_kind\":{\"type\":\"string\"},\"is_default\":{\"type\":\"boolean\"}}}",
+	      "admin_form": {
+	        "fields": [
+	          {"key":"is_default","label":"Default","control":"ADMIN_FORM_CONTROL_SWITCH","exclusive_group_field":"service_kind"}
+	        ]
+	      }
+	    }]
+	  }]
+	}`)
+	if _, err := manifest.Load(raw); err != nil {
+		t.Fatalf("Load rejected exclusive_group_field referencing declared config field: %v", err)
+	}
+}
+
+func TestExclusiveGroupFieldReferencesUnknownField(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id": "silo.example",
+	  "version": "1.0.0",
+	  "silo_api_version": "v1",
+	  "capabilities": [{
+	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
+	    "config_schema": [{
+	      "key": "connection",
+	      "title": "Connection",
+	      "json_schema": "{\"type\":\"object\",\"properties\":{\"is_default\":{\"type\":\"boolean\"}}}",
+	      "admin_form": {
+	        "fields": [
+	          {"key":"is_default","label":"Default","control":"ADMIN_FORM_CONTROL_SWITCH","exclusive_group_field":"ghost"}
+	        ]
+	      }
+	    }]
+	  }]
+	}`)
+	_, err := manifest.Load(raw)
+	if err == nil {
+		t.Fatal("Load accepted exclusive_group_field referencing unknown field; want error")
+	}
+	if !strings.Contains(err.Error(), "exclusive_group_field references unknown field") {
+		t.Fatalf("unexpected error message: %v", err)
+	}
+}
+
 // TestForwardReferenceShowWhenPassesValidation ensures that the rich admin form
 // from TestLoadAcceptsRichAdminForm still passes after cross-field ref
 // validation is added. The is_default field references service_kind in its

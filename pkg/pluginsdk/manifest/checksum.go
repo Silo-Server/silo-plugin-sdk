@@ -15,12 +15,15 @@ import (
 // the canonical plugin manifest-bootstrap previously copied into each plugin's
 // main.go.
 func LoadWithChecksum(embedded []byte, version string) (*pluginv1.PluginManifest, error) {
-	m, err := Load(embedded)
+	m, err := decode(embedded)
 	if err != nil {
 		return nil, fmt.Errorf("load embedded manifest: %w", err)
 	}
 	if version != "" {
 		m.Version = version
+	}
+	if err := Validate(m); err != nil {
+		return nil, fmt.Errorf("load embedded manifest: %w", err)
 	}
 	exe, err := os.Executable()
 	if err != nil {
