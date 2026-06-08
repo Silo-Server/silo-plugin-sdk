@@ -119,11 +119,12 @@ func (c *Client) DoJSON(ctx context.Context, method, path string, body, dest any
 		return nil
 	}
 	err = json.NewDecoder(io.LimitReader(resp.Body, maxResponseBody)).Decode(dest)
+	// Drain trailing bytes (bounded) so the connection can be pooled/reused on
+	// every path, including when decode fails on a malformed body.
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxResponseBody))
 	if err != nil && err != io.EOF {
 		return fmt.Errorf("httpclient: decode response: %w", err)
 	}
-	// Drain any trailing bytes (bounded) so the connection can be pooled/reused.
-	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxResponseBody))
 	return nil
 }
 

@@ -123,6 +123,46 @@ func TestApiKeyNotLeakedInError(t *testing.T) {
 	}
 }
 
+func TestMalformedBodyReturnsDecodeErrorAndConnectionIsReused(t *testing.T) {
+	// The server returns malformed JSON on every request. We assert:
+	// 1. DoJSON returns a non-nil error containing "decode response".
+	// 2. The connection is reused across two sequential calls (same RemoteAddr),
+	//    which is only possible when the body was fully drained on the first call.
+	connIDs := make(map[string]int)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		connIDs[r.RemoteAddr]++
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"bad":`)) // intentionally truncated / malformed
+	}))
+	defer srv.Close()
+
+	c := New(srv.URL, "k", nil)
+	var out struct{ X string }
+
+	err := c.GetJSON(context.Background(), "/x", &out)
+	if err == nil {
+		t.Fatal("expected decode error, got nil")
+	}
+	if !strings.Contains(err.Error(), "decode response") {
+		t.Fatalf("error should mention decode response, got: %v", err)
+	}
+
+	// Second call — if the body was not drained the connection cannot be reused.
+	err = c.GetJSON(context.Background(), "/x", &out)
+	if err == nil {
+		t.Fatal("expected decode error on second call, got nil")
+	}
+	if !strings.Contains(err.Error(), "decode response") {
+		t.Fatalf("second error should mention decode response, got: %v", err)
+	}
+
+	// Check that exactly one remote address was used (connection pooled/reused).
+	if len(connIDs) != 1 {
+		t.Fatalf("expected 1 distinct connection (reuse), got %d: %v", len(connIDs), connIDs)
+	}
+}
+
 func TestResponseBodyCappedAtMaxResponseBody(t *testing.T) {
 	// A 2 MiB body must not be read unbounded; the LimitReader truncates it,
 	// so decode fails cleanly (no hang, no OOM) rather than reading it all.

@@ -144,11 +144,21 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 			return fmt.Errorf("plugin config schema %q admin_form field %q is not declared in json_schema", schema.GetKey(), key)
 		}
 		switch field.GetControl() {
-		case pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT,
-			pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_MULTI_SELECT:
+		case pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_MULTI_SELECT:
+			if property.Type != "array" {
+				return fmt.Errorf("plugin config schema %q admin_form field %q multi_select control requires an array json_schema property", schema.GetKey(), key)
+			}
+			// A static multi_select must enumerate its options. A field declaring
+			// dynamic_options is exempt: the plugin supplies options at runtime
+			// via ListConfigOptions, so it legitimately carries no static set.
+			if !field.GetDynamicOptions() && len(field.GetOptions()) == 0 {
+				return fmt.Errorf("plugin config schema %q admin_form field %q select control requires options", schema.GetKey(), key)
+			}
+		case pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT:
 			// A static select must enumerate its options. A field declaring
 			// dynamic_options is exempt: the plugin supplies options at runtime
 			// via ListConfigOptions, so it legitimately carries no static set.
+			// No type constraint: SELECT value may be string or numeric.
 			if !field.GetDynamicOptions() && len(field.GetOptions()) == 0 {
 				return fmt.Errorf("plugin config schema %q admin_form field %q select control requires options", schema.GetKey(), key)
 			}
@@ -168,6 +178,45 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 			case "string":
 				if _, ok := defaultValue.AsInterface().(string); !ok {
 					return fmt.Errorf("plugin config schema %q admin_form field %q default_value must be string", schema.GetKey(), key)
+				}
+			}
+		}
+	}
+
+	// Cross-field references are validated in a second pass so a field may
+	// reference another declared later (e.g. show_when pointing at a field below).
+	for _, field := range form.GetFields() {
+		if field == nil {
+			continue
+		}
+		key := field.GetKey()
+		for _, cond := range field.GetShowWhen() {
+			if cond.GetField() == "" {
+				return fmt.Errorf("plugin config schema %q admin_form field %q show_when.field is required", schema.GetKey(), key)
+			}
+			if _, ok := seen[cond.GetField()]; !ok {
+				return fmt.Errorf("plugin config schema %q admin_form field %q show_when references unknown field %q", schema.GetKey(), key, cond.GetField())
+			}
+		}
+		if eg := field.GetExclusiveGroupField(); eg != "" {
+			if _, ok := seen[eg]; !ok {
+				return fmt.Errorf("plugin config schema %q admin_form field %q exclusive_group_field references unknown field %q", schema.GetKey(), key, eg)
+			}
+		}
+	}
+	for _, section := range form.GetSections() {
+		if section == nil {
+			continue
+		}
+		for _, fk := range section.GetFieldKeys() {
+			if _, ok := seen[fk]; !ok {
+				return fmt.Errorf("plugin config schema %q admin_form section %q references unknown field %q", schema.GetKey(), section.GetKey(), fk)
+			}
+		}
+		for _, cond := range section.GetShowWhen() {
+			if cond.GetField() != "" {
+				if _, ok := seen[cond.GetField()]; !ok {
+					return fmt.Errorf("plugin config schema %q admin_form section %q show_when references unknown field %q", schema.GetKey(), section.GetKey(), cond.GetField())
 				}
 			}
 		}
