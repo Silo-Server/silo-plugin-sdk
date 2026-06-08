@@ -27,6 +27,10 @@ message RequestDescriptor {
   bool is_anime = 5;
   int64 requester_user_id = 6;
   string requester_profile_id = 7;
+  // requester identity for plugins that attribute requests to a per-user account
+  // on the downstream service (e.g. Seerr). Empty when the host cannot resolve it.
+  string requester_email = 8;
+  string requester_username = 9;
 }
 
 message RouterConnection {

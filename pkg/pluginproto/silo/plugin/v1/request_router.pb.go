@@ -31,8 +31,12 @@ type RequestDescriptor struct {
 	IsAnime            bool                   `protobuf:"varint,5,opt,name=is_anime,json=isAnime,proto3" json:"is_anime,omitempty"`
 	RequesterUserId    int64                  `protobuf:"varint,6,opt,name=requester_user_id,json=requesterUserId,proto3" json:"requester_user_id,omitempty"`
 	RequesterProfileId string                 `protobuf:"bytes,7,opt,name=requester_profile_id,json=requesterProfileId,proto3" json:"requester_profile_id,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// requester identity for plugins that attribute requests to a per-user account
+	// on the downstream service (e.g. Seerr). Empty when the host cannot resolve it.
+	RequesterEmail    string `protobuf:"bytes,8,opt,name=requester_email,json=requesterEmail,proto3" json:"requester_email,omitempty"`
+	RequesterUsername string `protobuf:"bytes,9,opt,name=requester_username,json=requesterUsername,proto3" json:"requester_username,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *RequestDescriptor) Reset() {
@@ -110,6 +114,20 @@ func (x *RequestDescriptor) GetRequesterUserId() int64 {
 func (x *RequestDescriptor) GetRequesterProfileId() string {
 	if x != nil {
 		return x.RequesterProfileId
+	}
+	return ""
+}
+
+func (x *RequestDescriptor) GetRequesterEmail() string {
+	if x != nil {
+		return x.RequesterEmail
+	}
+	return ""
+}
+
+func (x *RequestDescriptor) GetRequesterUsername() string {
+	if x != nil {
+		return x.RequesterUsername
 	}
 	return ""
 }
@@ -1114,7 +1132,7 @@ var File_silo_plugin_v1_request_router_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"\n" +
-	"#silo/plugin/v1/request_router.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"\xec\x02\n" +
+	"#silo/plugin/v1/request_router.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"\xc4\x03\n" +
 	"\x11RequestDescriptor\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x01 \x01(\tR\tmediaType\x12\x14\n" +
@@ -1123,7 +1141,9 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"\fexternal_ids\x18\x04 \x03(\v22.silo.plugin.v1.RequestDescriptor.ExternalIdsEntryR\vexternalIds\x12\x19\n" +
 	"\bis_anime\x18\x05 \x01(\bR\aisAnime\x12*\n" +
 	"\x11requester_user_id\x18\x06 \x01(\x03R\x0frequesterUserId\x120\n" +
-	"\x14requester_profile_id\x18\a \x01(\tR\x12requesterProfileId\x1a>\n" +
+	"\x14requester_profile_id\x18\a \x01(\tR\x12requesterProfileId\x12'\n" +
+	"\x0frequester_email\x18\b \x01(\tR\x0erequesterEmail\x12-\n" +
+	"\x12requester_username\x18\t \x01(\tR\x11requesterUsername\x1a>\n" +
 	"\x10ExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x87\x01\n" +
