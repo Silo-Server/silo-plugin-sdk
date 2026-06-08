@@ -28,6 +28,7 @@ enum AdminFormControl {
   ADMIN_FORM_CONTROL_NUMBER = 4;
   ADMIN_FORM_CONTROL_SWITCH = 5;
   ADMIN_FORM_CONTROL_SELECT = 6;
+  ADMIN_FORM_CONTROL_MULTI_SELECT = 7;  // array-of-values (e.g. tags)
 }
 
 message AdminFormOption {
@@ -48,11 +49,50 @@ message AdminFormField {
   google.protobuf.Value default_value = 9;
   repeated AdminFormOption options = 10;
   int32 rows = 11;
+  bool dynamic_options = 12;                  // populate options from ListConfigOptions[key]
+  repeated AdminFormCondition show_when = 13; // conditional visibility
+  AdminFormValidation validation = 14;        // per-field constraints
+  // exclusive_group_field names another config field whose value defines a
+  // group; at most one connection per distinct value of that field may have THIS
+  // field truthy. Empty = no exclusivity.
+  string exclusive_group_field = 15;
+}
+
+// AdminFormCondition: the owning field/section is shown only when, for every
+// listed condition, the named field's stringified value is in `equals`.
+message AdminFormCondition {
+  string field = 1;
+  repeated string equals = 2;
+}
+
+// AdminFormValidation: per-field constraints, enforced client-side and
+// re-checked server-side. has_min/has_max distinguish "unset" from a real 0.
+message AdminFormValidation {
+  bool   has_min = 1;
+  double min = 2;
+  bool   has_max = 3;
+  double max = 4;
+  string pattern = 5;       // RE2
+  int32  min_length = 6;
+  int32  max_length = 7;
+}
+
+// AdminFormSection groups fields (by key) into an ordered, optionally
+// collapsible section with its own visibility.
+message AdminFormSection {
+  string key = 1;
+  string title = 2;
+  string description = 3;
+  bool   collapsible = 4;
+  bool   collapsed_default = 5;
+  repeated string field_keys = 6;
+  repeated AdminFormCondition show_when = 7;
 }
 
 message AdminFormDescriptor {
   repeated AdminFormField fields = 1;
   string submit_label = 2;
+  repeated AdminFormSection sections = 3;     // optional; absent -> flat render of `fields`
 }
 
 message ConfigEntry {

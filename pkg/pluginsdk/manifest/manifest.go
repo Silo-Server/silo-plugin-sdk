@@ -29,17 +29,14 @@ func knownCapabilityTypeSet() map[string]struct{} {
 }
 
 func Load(data []byte) (*pluginv1.PluginManifest, error) {
-	var manifest pluginv1.PluginManifest
-	// Use DiscardUnknown so that fields defined outside the proto schema do
-	// not cause a decode error. The proto-schema fields are still fully
-	// decoded.
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(data, &manifest); err != nil {
-		return nil, fmt.Errorf("decode plugin manifest: %w", err)
-	}
-	if err := Validate(&manifest); err != nil {
+	manifest, err := decode(data)
+	if err != nil {
 		return nil, err
 	}
-	return &manifest, nil
+	if err := Validate(manifest); err != nil {
+		return nil, err
+	}
+	return manifest, nil
 }
 
 func MustLoad(data []byte) *pluginv1.PluginManifest {
@@ -60,6 +57,17 @@ func LoadFromDisk(path string) (*pluginv1.PluginManifest, error) {
 		return nil, fmt.Errorf("load plugin manifest %q: %w", path, err)
 	}
 	return manifest, nil
+}
+
+func decode(data []byte) (*pluginv1.PluginManifest, error) {
+	var manifest pluginv1.PluginManifest
+	// Use DiscardUnknown so that fields defined outside the proto schema do
+	// not cause a decode error. The proto-schema fields are still fully
+	// decoded.
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(data, &manifest); err != nil {
+		return nil, fmt.Errorf("decode plugin manifest: %w", err)
+	}
+	return &manifest, nil
 }
 
 // Validate validates the proto plugin manifest.
@@ -92,6 +100,13 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 	for _, schema := range manifest.UserConfigSchema {
 		if err := validateConfigSchema(schema); err != nil {
 			return err
+		}
+	}
+	for _, c := range manifest.GetCapabilities() {
+		for _, cs := range c.GetConfigSchema() {
+			if err := validateConfigSchema(cs); err != nil {
+				return fmt.Errorf("capability %q config schema: %w", c.GetId(), err)
+			}
 		}
 	}
 	return nil
@@ -136,8 +151,25 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 		if !ok {
 			return fmt.Errorf("plugin config schema %q admin_form field %q is not declared in json_schema", schema.GetKey(), key)
 		}
-		if field.GetControl() == pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT && len(field.GetOptions()) == 0 {
-			return fmt.Errorf("plugin config schema %q admin_form field %q select control requires options", schema.GetKey(), key)
+		switch field.GetControl() {
+		case pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_MULTI_SELECT:
+			if property.Type != "array" {
+				return fmt.Errorf("plugin config schema %q admin_form field %q multi_select control requires an array json_schema property", schema.GetKey(), key)
+			}
+			// A static multi_select must enumerate its options. A field declaring
+			// dynamic_options is exempt: the plugin supplies options at runtime
+			// via ListConfigOptions, so it legitimately carries no static set.
+			if !field.GetDynamicOptions() && len(field.GetOptions()) == 0 {
+				return fmt.Errorf("plugin config schema %q admin_form field %q select control requires options", schema.GetKey(), key)
+			}
+		case pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT:
+			// A static select must enumerate its options. A field declaring
+			// dynamic_options is exempt: the plugin supplies options at runtime
+			// via ListConfigOptions, so it legitimately carries no static set.
+			// No type constraint: SELECT value may be string or numeric.
+			if !field.GetDynamicOptions() && len(field.GetOptions()) == 0 {
+				return fmt.Errorf("plugin config schema %q admin_form field %q select control requires options", schema.GetKey(), key)
+			}
 		}
 		if defaultValue := field.GetDefaultValue(); defaultValue != nil {
 			switch property.Type {
@@ -155,6 +187,53 @@ func validateConfigSchema(schema *pluginv1.ConfigSchema) error {
 				if _, ok := defaultValue.AsInterface().(string); !ok {
 					return fmt.Errorf("plugin config schema %q admin_form field %q default_value must be string", schema.GetKey(), key)
 				}
+			}
+		}
+	}
+
+	// Cross-field references are validated in a second pass so a field may
+	// reference another declared later (e.g. show_when pointing at a field below).
+	hasReference := func(key string) bool {
+		if _, ok := seen[key]; ok {
+			return true
+		}
+		_, ok := parsed.Properties[key]
+		return ok
+	}
+	for _, field := range form.GetFields() {
+		if field == nil {
+			continue
+		}
+		key := field.GetKey()
+		for _, cond := range field.GetShowWhen() {
+			if cond.GetField() == "" {
+				return fmt.Errorf("plugin config schema %q admin_form field %q show_when.field is required", schema.GetKey(), key)
+			}
+			if !hasReference(cond.GetField()) {
+				return fmt.Errorf("plugin config schema %q admin_form field %q show_when references unknown field %q", schema.GetKey(), key, cond.GetField())
+			}
+		}
+		if eg := field.GetExclusiveGroupField(); eg != "" {
+			if !hasReference(eg) {
+				return fmt.Errorf("plugin config schema %q admin_form field %q exclusive_group_field references unknown field %q", schema.GetKey(), key, eg)
+			}
+		}
+	}
+	for _, section := range form.GetSections() {
+		if section == nil {
+			continue
+		}
+		for _, fk := range section.GetFieldKeys() {
+			if _, ok := seen[fk]; !ok {
+				return fmt.Errorf("plugin config schema %q admin_form section %q references unknown field %q", schema.GetKey(), section.GetKey(), fk)
+			}
+		}
+		for _, cond := range section.GetShowWhen() {
+			if cond.GetField() == "" {
+				return fmt.Errorf("plugin config schema %q admin_form section %q show_when.field is required", schema.GetKey(), section.GetKey())
+			}
+			if !hasReference(cond.GetField()) {
+				return fmt.Errorf("plugin config schema %q admin_form section %q show_when references unknown field %q", schema.GetKey(), section.GetKey(), cond.GetField())
 			}
 		}
 	}
