@@ -7,7 +7,14 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestDefaultHTTPClientUsesRaisedTimeout(t *testing.T) {
+	if defaultHTTPClient.Timeout != 2*time.Minute {
+		t.Fatalf("default timeout = %s, want 2m", defaultHTTPClient.Timeout)
+	}
+}
 
 func TestPostJSONSetsApiKeyAndDecodes(t *testing.T) {
 	var key, method, ct string

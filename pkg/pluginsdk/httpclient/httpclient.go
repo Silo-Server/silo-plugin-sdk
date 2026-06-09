@@ -18,11 +18,14 @@ import (
 	"time"
 )
 
-const maxResponseBody = 1 << 20 // 1 MiB
+const (
+	defaultHTTPTimeout = 2 * time.Minute
+	maxResponseBody    = 1 << 20 // 1 MiB
+)
 
 // defaultHTTPClient is shared so its connection pool survives across calls
 // (each New(nil) reuses one pooled Transport rather than minting a fresh one).
-var defaultHTTPClient = &http.Client{Timeout: 30 * time.Second}
+var defaultHTTPClient = &http.Client{Timeout: defaultHTTPTimeout}
 
 // Client talks to one API instance.
 type Client struct {
@@ -51,7 +54,7 @@ func (e *StatusError) Error() string {
 	return fmt.Sprintf("httpclient: HTTP %d: %s", e.StatusCode, msg)
 }
 
-// New builds a client. A nil hc gets a default 30s-timeout client. baseURL is
+// New builds a client. A nil hc gets a default 2m-timeout client. baseURL is
 // right-trimmed of "/"; apiKey is space-trimmed.
 func New(baseURL, apiKey string, hc *http.Client) *Client {
 	if hc == nil {
