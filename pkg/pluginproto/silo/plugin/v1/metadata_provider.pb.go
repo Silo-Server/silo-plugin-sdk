@@ -391,8 +391,12 @@ type MetadataItem struct {
 	People            []*PersonRecord  `protobuf:"bytes,28,rep,name=people,proto3" json:"people,omitempty"`
 	ReleaseDate       string           `protobuf:"bytes,29,opt,name=release_date,json=releaseDate,proto3" json:"release_date,omitempty"`
 	AirTime           string           `protobuf:"bytes,30,opt,name=air_time,json=airTime,proto3" json:"air_time,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Publication/airing status of the work (e.g. "Continuing", "Ended").
+	// Metadata sources with native status (AniList RELEASING/FINISHED,
+	// MangaDex ongoing/completed) normalize into these two forms.
+	Status        string `protobuf:"bytes,31,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MetadataItem) Reset() {
@@ -632,6 +636,13 @@ func (x *MetadataItem) GetReleaseDate() string {
 func (x *MetadataItem) GetAirTime() string {
 	if x != nil {
 		return x.AirTime
+	}
+	return ""
+}
+
+func (x *MetadataItem) GetStatus() string {
+	if x != nil {
+		return x.Status
 	}
 	return ""
 }
@@ -1832,7 +1843,7 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\n" +
 	"photo_path\x18\t \x01(\tR\tphotoPath\x12'\n" +
 	"\x0fphoto_thumbhash\x18\n" +
-	" \x01(\tR\x0ephotoThumbhash\"\xd0\b\n" +
+	" \x01(\tR\x0ephotoThumbhash\"\xe8\b\n" +
 	"\fMetadataItem\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -1867,7 +1878,8 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\rlast_air_date\x18\x1b \x01(\tR\vlastAirDate\x124\n" +
 	"\x06people\x18\x1c \x03(\v2\x1c.silo.plugin.v1.PersonRecordR\x06people\x12!\n" +
 	"\frelease_date\x18\x1d \x01(\tR\vreleaseDate\x12\x19\n" +
-	"\bair_time\x18\x1e \x01(\tR\aairTime\"\xc7\x01\n" +
+	"\bair_time\x18\x1e \x01(\tR\aairTime\x12\x16\n" +
+	"\x06status\x18\x1f \x01(\tR\x06status\"\xc7\x01\n" +
 	"\x12GetMetadataRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
