@@ -84,6 +84,10 @@ message MetadataItem {
   repeated PersonRecord people = 28;
   string release_date = 29;
   string air_time = 30;
+  // Publication/airing status of the work (e.g. "Continuing", "Ended").
+  // Metadata sources with native status (AniList RELEASING/FINISHED,
+  // MangaDex ongoing/completed) normalize into these two forms.
+  string status = 31;
 }
 
 message GetMetadataRequest {
