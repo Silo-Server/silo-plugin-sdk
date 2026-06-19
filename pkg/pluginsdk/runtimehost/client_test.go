@@ -39,6 +39,8 @@ type fakeServer struct {
 	hostInfoResp         *pluginv1.GetHostInfoResponse
 	callHTTPReq          *pluginv1.CallPluginHTTPRequest
 	callHTTPResp         *pluginv1.CallPluginHTTPResponse
+	validateCredReq      *pluginv1.ValidateProfileCredentialRequest
+	validateCredResp     *pluginv1.ValidateProfileCredentialResponse
 }
 
 func (f *fakeServer) CheckMediaPresence(_ context.Context, req *pluginv1.CheckMediaPresenceRequest) (*pluginv1.CheckMediaPresenceResponse, error) {
@@ -129,6 +131,14 @@ func (f *fakeServer) CallPluginHTTP(_ context.Context, r *pluginv1.CallPluginHTT
 		return f.callHTTPResp, nil
 	}
 	return &pluginv1.CallPluginHTTPResponse{StatusCode: 204}, nil
+}
+
+func (f *fakeServer) ValidateProfileCredential(_ context.Context, r *pluginv1.ValidateProfileCredentialRequest) (*pluginv1.ValidateProfileCredentialResponse, error) {
+	f.validateCredReq = r
+	if f.validateCredResp != nil {
+		return f.validateCredResp, nil
+	}
+	return &pluginv1.ValidateProfileCredentialResponse{}, nil
 }
 
 func dial(t *testing.T, srv *fakeServer) *grpc.ClientConn {
@@ -253,6 +263,28 @@ func TestListLibraries_PassesUserID(t *testing.T) {
 	}
 	if srv.gotUserID != "user-42" {
 		t.Errorf("user_id = %q, want user-42", srv.gotUserID)
+	}
+}
+
+func TestValidateProfileCredential_MapsRequestAndResponse(t *testing.T) {
+	srv := &fakeServer{
+		validateCredResp: &pluginv1.ValidateProfileCredentialResponse{
+			UserId:    "user-42",
+			ProfileId: "profile-7",
+		},
+	}
+	conn := dial(t, srv)
+	c := runtimehost.NewClient(conn)
+
+	got, err := c.ValidateProfileCredential(context.Background(), "jim#kids", "password#1234")
+	if err != nil {
+		t.Fatalf("ValidateProfileCredential: %v", err)
+	}
+	if srv.validateCredReq.GetUsername() != "jim#kids" || srv.validateCredReq.GetPassword() != "password#1234" {
+		t.Fatalf("request not mapped: %+v", srv.validateCredReq)
+	}
+	if got.UserID != "user-42" || got.ProfileID != "profile-7" {
+		t.Fatalf("response = %+v", got)
 	}
 }
 

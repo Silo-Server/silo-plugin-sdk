@@ -494,6 +494,111 @@ func (x *ListLibrariesResponse) GetLibraries() []*Library {
 	return nil
 }
 
+type ValidateProfileCredentialRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateProfileCredentialRequest) Reset() {
+	*x = ValidateProfileCredentialRequest{}
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateProfileCredentialRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateProfileCredentialRequest) ProtoMessage() {}
+
+func (x *ValidateProfileCredentialRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateProfileCredentialRequest.ProtoReflect.Descriptor instead.
+func (*ValidateProfileCredentialRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ValidateProfileCredentialRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *ValidateProfileCredentialRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type ValidateProfileCredentialResponse struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// Empty means the user's primary profile.
+	ProfileId     string `protobuf:"bytes,2,opt,name=profile_id,json=profileId,proto3" json:"profile_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateProfileCredentialResponse) Reset() {
+	*x = ValidateProfileCredentialResponse{}
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateProfileCredentialResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateProfileCredentialResponse) ProtoMessage() {}
+
+func (x *ValidateProfileCredentialResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateProfileCredentialResponse.ProtoReflect.Descriptor instead.
+func (*ValidateProfileCredentialResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ValidateProfileCredentialResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ValidateProfileCredentialResponse) GetProfileId() string {
+	if x != nil {
+		return x.ProfileId
+	}
+	return ""
+}
+
 type Library struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -506,7 +611,7 @@ type Library struct {
 
 func (x *Library) Reset() {
 	*x = Library{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -518,7 +623,7 @@ func (x *Library) String() string {
 func (*Library) ProtoMessage() {}
 
 func (x *Library) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -531,7 +636,7 @@ func (x *Library) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Library.ProtoReflect.Descriptor instead.
 func (*Library) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{10}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Library) GetId() string {
@@ -570,7 +675,7 @@ type CheckMediaPresenceRequest struct {
 
 func (x *CheckMediaPresenceRequest) Reset() {
 	*x = CheckMediaPresenceRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -582,7 +687,7 @@ func (x *CheckMediaPresenceRequest) String() string {
 func (*CheckMediaPresenceRequest) ProtoMessage() {}
 
 func (x *CheckMediaPresenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -595,7 +700,7 @@ func (x *CheckMediaPresenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckMediaPresenceRequest.ProtoReflect.Descriptor instead.
 func (*CheckMediaPresenceRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{11}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CheckMediaPresenceRequest) GetProvider() string {
@@ -630,7 +735,7 @@ type CheckMediaPresenceResponse struct {
 
 func (x *CheckMediaPresenceResponse) Reset() {
 	*x = CheckMediaPresenceResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -642,7 +747,7 @@ func (x *CheckMediaPresenceResponse) String() string {
 func (*CheckMediaPresenceResponse) ProtoMessage() {}
 
 func (x *CheckMediaPresenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -655,7 +760,7 @@ func (x *CheckMediaPresenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckMediaPresenceResponse.ProtoReflect.Descriptor instead.
 func (*CheckMediaPresenceResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CheckMediaPresenceResponse) GetPresent() []*MediaPresence {
@@ -677,7 +782,7 @@ type MediaPresence struct {
 
 func (x *MediaPresence) Reset() {
 	*x = MediaPresence{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -689,7 +794,7 @@ func (x *MediaPresence) String() string {
 func (*MediaPresence) ProtoMessage() {}
 
 func (x *MediaPresence) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -702,7 +807,7 @@ func (x *MediaPresence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MediaPresence.ProtoReflect.Descriptor instead.
 func (*MediaPresence) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{13}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *MediaPresence) GetExternalId() string {
@@ -741,7 +846,7 @@ type ListInstalledPluginsRequest struct {
 
 func (x *ListInstalledPluginsRequest) Reset() {
 	*x = ListInstalledPluginsRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +858,7 @@ func (x *ListInstalledPluginsRequest) String() string {
 func (*ListInstalledPluginsRequest) ProtoMessage() {}
 
 func (x *ListInstalledPluginsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +871,7 @@ func (x *ListInstalledPluginsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInstalledPluginsRequest.ProtoReflect.Descriptor instead.
 func (*ListInstalledPluginsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{14}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{16}
 }
 
 type ListInstalledPluginsResponse struct {
@@ -778,7 +883,7 @@ type ListInstalledPluginsResponse struct {
 
 func (x *ListInstalledPluginsResponse) Reset() {
 	*x = ListInstalledPluginsResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -790,7 +895,7 @@ func (x *ListInstalledPluginsResponse) String() string {
 func (*ListInstalledPluginsResponse) ProtoMessage() {}
 
 func (x *ListInstalledPluginsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -803,7 +908,7 @@ func (x *ListInstalledPluginsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInstalledPluginsResponse.ProtoReflect.Descriptor instead.
 func (*ListInstalledPluginsResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{15}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListInstalledPluginsResponse) GetPlugins() []*InstalledPlugin {
@@ -826,7 +931,7 @@ type InstalledPlugin struct {
 
 func (x *InstalledPlugin) Reset() {
 	*x = InstalledPlugin{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -838,7 +943,7 @@ func (x *InstalledPlugin) String() string {
 func (*InstalledPlugin) ProtoMessage() {}
 
 func (x *InstalledPlugin) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -851,7 +956,7 @@ func (x *InstalledPlugin) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstalledPlugin.ProtoReflect.Descriptor instead.
 func (*InstalledPlugin) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{16}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *InstalledPlugin) GetInstallationId() int64 {
@@ -899,7 +1004,7 @@ type SetGlobalConfigEntryRequest struct {
 
 func (x *SetGlobalConfigEntryRequest) Reset() {
 	*x = SetGlobalConfigEntryRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -911,7 +1016,7 @@ func (x *SetGlobalConfigEntryRequest) String() string {
 func (*SetGlobalConfigEntryRequest) ProtoMessage() {}
 
 func (x *SetGlobalConfigEntryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -924,7 +1029,7 @@ func (x *SetGlobalConfigEntryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetGlobalConfigEntryRequest.ProtoReflect.Descriptor instead.
 func (*SetGlobalConfigEntryRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{17}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SetGlobalConfigEntryRequest) GetKey() string {
@@ -949,7 +1054,7 @@ type SetGlobalConfigEntryResponse struct {
 
 func (x *SetGlobalConfigEntryResponse) Reset() {
 	*x = SetGlobalConfigEntryResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +1066,7 @@ func (x *SetGlobalConfigEntryResponse) String() string {
 func (*SetGlobalConfigEntryResponse) ProtoMessage() {}
 
 func (x *SetGlobalConfigEntryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1079,7 @@ func (x *SetGlobalConfigEntryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetGlobalConfigEntryResponse.ProtoReflect.Descriptor instead.
 func (*SetGlobalConfigEntryResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{18}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{20}
 }
 
 type ListLibraryMediaRequest struct {
@@ -998,7 +1103,7 @@ type ListLibraryMediaRequest struct {
 
 func (x *ListLibraryMediaRequest) Reset() {
 	*x = ListLibraryMediaRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1010,7 +1115,7 @@ func (x *ListLibraryMediaRequest) String() string {
 func (*ListLibraryMediaRequest) ProtoMessage() {}
 
 func (x *ListLibraryMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1023,7 +1128,7 @@ func (x *ListLibraryMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLibraryMediaRequest.ProtoReflect.Descriptor instead.
 func (*ListLibraryMediaRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{19}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListLibraryMediaRequest) GetLibraryIds() []string {
@@ -1107,7 +1212,7 @@ type ListLibraryMediaResponse struct {
 
 func (x *ListLibraryMediaResponse) Reset() {
 	*x = ListLibraryMediaResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[20]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1119,7 +1224,7 @@ func (x *ListLibraryMediaResponse) String() string {
 func (*ListLibraryMediaResponse) ProtoMessage() {}
 
 func (x *ListLibraryMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[20]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1132,7 +1237,7 @@ func (x *ListLibraryMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLibraryMediaResponse.ProtoReflect.Descriptor instead.
 func (*ListLibraryMediaResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{20}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListLibraryMediaResponse) GetItems() []*CatalogMediaItem {
@@ -1179,7 +1284,7 @@ type CatalogMediaItem struct {
 
 func (x *CatalogMediaItem) Reset() {
 	*x = CatalogMediaItem{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[21]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1191,7 +1296,7 @@ func (x *CatalogMediaItem) String() string {
 func (*CatalogMediaItem) ProtoMessage() {}
 
 func (x *CatalogMediaItem) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[21]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1204,7 +1309,7 @@ func (x *CatalogMediaItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CatalogMediaItem.ProtoReflect.Descriptor instead.
 func (*CatalogMediaItem) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{21}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CatalogMediaItem) GetMediaId() string {
@@ -1322,7 +1427,7 @@ type GetCatalogStatsRequest struct {
 
 func (x *GetCatalogStatsRequest) Reset() {
 	*x = GetCatalogStatsRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[22]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1334,7 +1439,7 @@ func (x *GetCatalogStatsRequest) String() string {
 func (*GetCatalogStatsRequest) ProtoMessage() {}
 
 func (x *GetCatalogStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[22]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1347,7 +1452,7 @@ func (x *GetCatalogStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCatalogStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetCatalogStatsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{22}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetCatalogStatsRequest) GetLibraryIds() []string {
@@ -1368,7 +1473,7 @@ type GetCatalogStatsResponse struct {
 
 func (x *GetCatalogStatsResponse) Reset() {
 	*x = GetCatalogStatsResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[23]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1380,7 +1485,7 @@ func (x *GetCatalogStatsResponse) String() string {
 func (*GetCatalogStatsResponse) ProtoMessage() {}
 
 func (x *GetCatalogStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[23]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1393,7 +1498,7 @@ func (x *GetCatalogStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCatalogStatsResponse.ProtoReflect.Descriptor instead.
 func (*GetCatalogStatsResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{23}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetCatalogStatsResponse) GetTotalItems() int32 {
@@ -1427,7 +1532,7 @@ type CatalogTypeCount struct {
 
 func (x *CatalogTypeCount) Reset() {
 	*x = CatalogTypeCount{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[24]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1439,7 +1544,7 @@ func (x *CatalogTypeCount) String() string {
 func (*CatalogTypeCount) ProtoMessage() {}
 
 func (x *CatalogTypeCount) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[24]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1452,7 +1557,7 @@ func (x *CatalogTypeCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CatalogTypeCount.ProtoReflect.Descriptor instead.
 func (*CatalogTypeCount) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{24}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CatalogTypeCount) GetMediaType() string {
@@ -1481,7 +1586,7 @@ type CatalogLibraryCount struct {
 
 func (x *CatalogLibraryCount) Reset() {
 	*x = CatalogLibraryCount{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[25]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1493,7 +1598,7 @@ func (x *CatalogLibraryCount) String() string {
 func (*CatalogLibraryCount) ProtoMessage() {}
 
 func (x *CatalogLibraryCount) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[25]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1506,7 +1611,7 @@ func (x *CatalogLibraryCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CatalogLibraryCount.ProtoReflect.Descriptor instead.
 func (*CatalogLibraryCount) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{25}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *CatalogLibraryCount) GetLibraryId() string {
@@ -1553,7 +1658,7 @@ type ResolveCatalogImageURLsRequest struct {
 
 func (x *ResolveCatalogImageURLsRequest) Reset() {
 	*x = ResolveCatalogImageURLsRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[26]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1565,7 +1670,7 @@ func (x *ResolveCatalogImageURLsRequest) String() string {
 func (*ResolveCatalogImageURLsRequest) ProtoMessage() {}
 
 func (x *ResolveCatalogImageURLsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[26]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1578,7 +1683,7 @@ func (x *ResolveCatalogImageURLsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveCatalogImageURLsRequest.ProtoReflect.Descriptor instead.
 func (*ResolveCatalogImageURLsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{26}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ResolveCatalogImageURLsRequest) GetPaths() []string {
@@ -1607,7 +1712,7 @@ type ResolveCatalogImageURLsResponse struct {
 
 func (x *ResolveCatalogImageURLsResponse) Reset() {
 	*x = ResolveCatalogImageURLsResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[27]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1619,7 +1724,7 @@ func (x *ResolveCatalogImageURLsResponse) String() string {
 func (*ResolveCatalogImageURLsResponse) ProtoMessage() {}
 
 func (x *ResolveCatalogImageURLsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[27]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1632,7 +1737,7 @@ func (x *ResolveCatalogImageURLsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveCatalogImageURLsResponse.ProtoReflect.Descriptor instead.
 func (*ResolveCatalogImageURLsResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{27}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ResolveCatalogImageURLsResponse) GetUrls() map[string]string {
@@ -1662,7 +1767,7 @@ type MintScopedStreamRequest struct {
 
 func (x *MintScopedStreamRequest) Reset() {
 	*x = MintScopedStreamRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[28]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1674,7 +1779,7 @@ func (x *MintScopedStreamRequest) String() string {
 func (*MintScopedStreamRequest) ProtoMessage() {}
 
 func (x *MintScopedStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[28]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1687,7 +1792,7 @@ func (x *MintScopedStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MintScopedStreamRequest.ProtoReflect.Descriptor instead.
 func (*MintScopedStreamRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{28}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *MintScopedStreamRequest) GetMediaFileId() int64 {
@@ -1785,7 +1890,7 @@ type MintScopedStreamResponse struct {
 
 func (x *MintScopedStreamResponse) Reset() {
 	*x = MintScopedStreamResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[29]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1797,7 +1902,7 @@ func (x *MintScopedStreamResponse) String() string {
 func (*MintScopedStreamResponse) ProtoMessage() {}
 
 func (x *MintScopedStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[29]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1810,7 +1915,7 @@ func (x *MintScopedStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MintScopedStreamResponse.ProtoReflect.Descriptor instead.
 func (*MintScopedStreamResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{29}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *MintScopedStreamResponse) GetStreamUrl() string {
@@ -1848,7 +1953,7 @@ type CallPluginHTTPRequest struct {
 
 func (x *CallPluginHTTPRequest) Reset() {
 	*x = CallPluginHTTPRequest{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[30]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1860,7 +1965,7 @@ func (x *CallPluginHTTPRequest) String() string {
 func (*CallPluginHTTPRequest) ProtoMessage() {}
 
 func (x *CallPluginHTTPRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[30]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1873,7 +1978,7 @@ func (x *CallPluginHTTPRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CallPluginHTTPRequest.ProtoReflect.Descriptor instead.
 func (*CallPluginHTTPRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{30}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *CallPluginHTTPRequest) GetInstallationId() int32 {
@@ -1929,7 +2034,7 @@ type CallPluginHTTPResponse struct {
 
 func (x *CallPluginHTTPResponse) Reset() {
 	*x = CallPluginHTTPResponse{}
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[31]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1941,7 +2046,7 @@ func (x *CallPluginHTTPResponse) String() string {
 func (*CallPluginHTTPResponse) ProtoMessage() {}
 
 func (x *CallPluginHTTPResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[31]
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1954,7 +2059,7 @@ func (x *CallPluginHTTPResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CallPluginHTTPResponse.ProtoReflect.Descriptor instead.
 func (*CallPluginHTTPResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{31}
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CallPluginHTTPResponse) GetStatusCode() int32 {
@@ -2008,7 +2113,14 @@ const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x14ListLibrariesRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"N\n" +
 	"\x15ListLibrariesResponse\x125\n" +
-	"\tlibraries\x18\x01 \x03(\v2\x17.silo.plugin.v1.LibraryR\tlibraries\"L\n" +
+	"\tlibraries\x18\x01 \x03(\v2\x17.silo.plugin.v1.LibraryR\tlibraries\"Z\n" +
+	" ValidateProfileCredentialRequest\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"[\n" +
+	"!ValidateProfileCredentialResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"\n" +
+	"profile_id\x18\x02 \x01(\tR\tprofileId\"L\n" +
 	"\aLibrary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -2149,14 +2261,14 @@ const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x04body\x18\x03 \x01(\fR\x04body\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xe7\n" +
-	"\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xea\v\n" +
 	"\vRuntimeHost\x12Y\n" +
 	"\fPublishEvent\x12#.silo.plugin.v1.PublishEventRequest\x1a$.silo.plugin.v1.PublishEventResponse\x12_\n" +
 	"\x0ePublishEventTo\x12%.silo.plugin.v1.PublishEventToRequest\x1a&.silo.plugin.v1.PublishEventToResponse\x12\x83\x01\n" +
 	"\x1aPublishEventToInstallation\x121.silo.plugin.v1.PublishEventToInstallationRequest\x1a2.silo.plugin.v1.PublishEventToInstallationResponse\x12V\n" +
 	"\vGetHostInfo\x12\".silo.plugin.v1.GetHostInfoRequest\x1a#.silo.plugin.v1.GetHostInfoResponse\x12\\\n" +
-	"\rListLibraries\x12$.silo.plugin.v1.ListLibrariesRequest\x1a%.silo.plugin.v1.ListLibrariesResponse\x12k\n" +
+	"\rListLibraries\x12$.silo.plugin.v1.ListLibrariesRequest\x1a%.silo.plugin.v1.ListLibrariesResponse\x12\x80\x01\n" +
+	"\x19ValidateProfileCredential\x120.silo.plugin.v1.ValidateProfileCredentialRequest\x1a1.silo.plugin.v1.ValidateProfileCredentialResponse\x12k\n" +
 	"\x12CheckMediaPresence\x12).silo.plugin.v1.CheckMediaPresenceRequest\x1a*.silo.plugin.v1.CheckMediaPresenceResponse\x12q\n" +
 	"\x14ListInstalledPlugins\x12+.silo.plugin.v1.ListInstalledPluginsRequest\x1a,.silo.plugin.v1.ListInstalledPluginsResponse\x12q\n" +
 	"\x14SetGlobalConfigEntry\x12+.silo.plugin.v1.SetGlobalConfigEntryRequest\x1a,.silo.plugin.v1.SetGlobalConfigEntryResponse\x12e\n" +
@@ -2178,7 +2290,7 @@ func file_silo_plugin_v1_runtime_host_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_runtime_host_proto_rawDescData
 }
 
-var file_silo_plugin_v1_runtime_host_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_silo_plugin_v1_runtime_host_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_silo_plugin_v1_runtime_host_proto_goTypes = []any{
 	(*PublishEventRequest)(nil),                // 0: silo.plugin.v1.PublishEventRequest
 	(*PublishEventResponse)(nil),               // 1: silo.plugin.v1.PublishEventResponse
@@ -2190,78 +2302,82 @@ var file_silo_plugin_v1_runtime_host_proto_goTypes = []any{
 	(*GetHostInfoResponse)(nil),                // 7: silo.plugin.v1.GetHostInfoResponse
 	(*ListLibrariesRequest)(nil),               // 8: silo.plugin.v1.ListLibrariesRequest
 	(*ListLibrariesResponse)(nil),              // 9: silo.plugin.v1.ListLibrariesResponse
-	(*Library)(nil),                            // 10: silo.plugin.v1.Library
-	(*CheckMediaPresenceRequest)(nil),          // 11: silo.plugin.v1.CheckMediaPresenceRequest
-	(*CheckMediaPresenceResponse)(nil),         // 12: silo.plugin.v1.CheckMediaPresenceResponse
-	(*MediaPresence)(nil),                      // 13: silo.plugin.v1.MediaPresence
-	(*ListInstalledPluginsRequest)(nil),        // 14: silo.plugin.v1.ListInstalledPluginsRequest
-	(*ListInstalledPluginsResponse)(nil),       // 15: silo.plugin.v1.ListInstalledPluginsResponse
-	(*InstalledPlugin)(nil),                    // 16: silo.plugin.v1.InstalledPlugin
-	(*SetGlobalConfigEntryRequest)(nil),        // 17: silo.plugin.v1.SetGlobalConfigEntryRequest
-	(*SetGlobalConfigEntryResponse)(nil),       // 18: silo.plugin.v1.SetGlobalConfigEntryResponse
-	(*ListLibraryMediaRequest)(nil),            // 19: silo.plugin.v1.ListLibraryMediaRequest
-	(*ListLibraryMediaResponse)(nil),           // 20: silo.plugin.v1.ListLibraryMediaResponse
-	(*CatalogMediaItem)(nil),                   // 21: silo.plugin.v1.CatalogMediaItem
-	(*GetCatalogStatsRequest)(nil),             // 22: silo.plugin.v1.GetCatalogStatsRequest
-	(*GetCatalogStatsResponse)(nil),            // 23: silo.plugin.v1.GetCatalogStatsResponse
-	(*CatalogTypeCount)(nil),                   // 24: silo.plugin.v1.CatalogTypeCount
-	(*CatalogLibraryCount)(nil),                // 25: silo.plugin.v1.CatalogLibraryCount
-	(*ResolveCatalogImageURLsRequest)(nil),     // 26: silo.plugin.v1.ResolveCatalogImageURLsRequest
-	(*ResolveCatalogImageURLsResponse)(nil),    // 27: silo.plugin.v1.ResolveCatalogImageURLsResponse
-	(*MintScopedStreamRequest)(nil),            // 28: silo.plugin.v1.MintScopedStreamRequest
-	(*MintScopedStreamResponse)(nil),           // 29: silo.plugin.v1.MintScopedStreamResponse
-	(*CallPluginHTTPRequest)(nil),              // 30: silo.plugin.v1.CallPluginHTTPRequest
-	(*CallPluginHTTPResponse)(nil),             // 31: silo.plugin.v1.CallPluginHTTPResponse
-	nil,                                        // 32: silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
-	nil,                                        // 33: silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
-	nil,                                        // 34: silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
-	(*structpb.Struct)(nil),                    // 35: google.protobuf.Struct
-	(*CapabilityDescriptor)(nil),               // 36: silo.plugin.v1.CapabilityDescriptor
+	(*ValidateProfileCredentialRequest)(nil),   // 10: silo.plugin.v1.ValidateProfileCredentialRequest
+	(*ValidateProfileCredentialResponse)(nil),  // 11: silo.plugin.v1.ValidateProfileCredentialResponse
+	(*Library)(nil),                            // 12: silo.plugin.v1.Library
+	(*CheckMediaPresenceRequest)(nil),          // 13: silo.plugin.v1.CheckMediaPresenceRequest
+	(*CheckMediaPresenceResponse)(nil),         // 14: silo.plugin.v1.CheckMediaPresenceResponse
+	(*MediaPresence)(nil),                      // 15: silo.plugin.v1.MediaPresence
+	(*ListInstalledPluginsRequest)(nil),        // 16: silo.plugin.v1.ListInstalledPluginsRequest
+	(*ListInstalledPluginsResponse)(nil),       // 17: silo.plugin.v1.ListInstalledPluginsResponse
+	(*InstalledPlugin)(nil),                    // 18: silo.plugin.v1.InstalledPlugin
+	(*SetGlobalConfigEntryRequest)(nil),        // 19: silo.plugin.v1.SetGlobalConfigEntryRequest
+	(*SetGlobalConfigEntryResponse)(nil),       // 20: silo.plugin.v1.SetGlobalConfigEntryResponse
+	(*ListLibraryMediaRequest)(nil),            // 21: silo.plugin.v1.ListLibraryMediaRequest
+	(*ListLibraryMediaResponse)(nil),           // 22: silo.plugin.v1.ListLibraryMediaResponse
+	(*CatalogMediaItem)(nil),                   // 23: silo.plugin.v1.CatalogMediaItem
+	(*GetCatalogStatsRequest)(nil),             // 24: silo.plugin.v1.GetCatalogStatsRequest
+	(*GetCatalogStatsResponse)(nil),            // 25: silo.plugin.v1.GetCatalogStatsResponse
+	(*CatalogTypeCount)(nil),                   // 26: silo.plugin.v1.CatalogTypeCount
+	(*CatalogLibraryCount)(nil),                // 27: silo.plugin.v1.CatalogLibraryCount
+	(*ResolveCatalogImageURLsRequest)(nil),     // 28: silo.plugin.v1.ResolveCatalogImageURLsRequest
+	(*ResolveCatalogImageURLsResponse)(nil),    // 29: silo.plugin.v1.ResolveCatalogImageURLsResponse
+	(*MintScopedStreamRequest)(nil),            // 30: silo.plugin.v1.MintScopedStreamRequest
+	(*MintScopedStreamResponse)(nil),           // 31: silo.plugin.v1.MintScopedStreamResponse
+	(*CallPluginHTTPRequest)(nil),              // 32: silo.plugin.v1.CallPluginHTTPRequest
+	(*CallPluginHTTPResponse)(nil),             // 33: silo.plugin.v1.CallPluginHTTPResponse
+	nil,                                        // 34: silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
+	nil,                                        // 35: silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
+	nil,                                        // 36: silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
+	(*structpb.Struct)(nil),                    // 37: google.protobuf.Struct
+	(*CapabilityDescriptor)(nil),               // 38: silo.plugin.v1.CapabilityDescriptor
 }
 var file_silo_plugin_v1_runtime_host_proto_depIdxs = []int32{
-	35, // 0: silo.plugin.v1.PublishEventRequest.payload:type_name -> google.protobuf.Struct
-	35, // 1: silo.plugin.v1.PublishEventToRequest.payload:type_name -> google.protobuf.Struct
-	35, // 2: silo.plugin.v1.PublishEventToInstallationRequest.payload:type_name -> google.protobuf.Struct
-	10, // 3: silo.plugin.v1.ListLibrariesResponse.libraries:type_name -> silo.plugin.v1.Library
-	13, // 4: silo.plugin.v1.CheckMediaPresenceResponse.present:type_name -> silo.plugin.v1.MediaPresence
-	16, // 5: silo.plugin.v1.ListInstalledPluginsResponse.plugins:type_name -> silo.plugin.v1.InstalledPlugin
-	36, // 6: silo.plugin.v1.InstalledPlugin.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
-	35, // 7: silo.plugin.v1.SetGlobalConfigEntryRequest.value:type_name -> google.protobuf.Struct
-	21, // 8: silo.plugin.v1.ListLibraryMediaResponse.items:type_name -> silo.plugin.v1.CatalogMediaItem
-	24, // 9: silo.plugin.v1.GetCatalogStatsResponse.media_type_counts:type_name -> silo.plugin.v1.CatalogTypeCount
-	25, // 10: silo.plugin.v1.GetCatalogStatsResponse.library_counts:type_name -> silo.plugin.v1.CatalogLibraryCount
-	32, // 11: silo.plugin.v1.ResolveCatalogImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
-	33, // 12: silo.plugin.v1.CallPluginHTTPRequest.headers:type_name -> silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
-	35, // 13: silo.plugin.v1.CallPluginHTTPRequest.query:type_name -> google.protobuf.Struct
-	34, // 14: silo.plugin.v1.CallPluginHTTPResponse.headers:type_name -> silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
+	37, // 0: silo.plugin.v1.PublishEventRequest.payload:type_name -> google.protobuf.Struct
+	37, // 1: silo.plugin.v1.PublishEventToRequest.payload:type_name -> google.protobuf.Struct
+	37, // 2: silo.plugin.v1.PublishEventToInstallationRequest.payload:type_name -> google.protobuf.Struct
+	12, // 3: silo.plugin.v1.ListLibrariesResponse.libraries:type_name -> silo.plugin.v1.Library
+	15, // 4: silo.plugin.v1.CheckMediaPresenceResponse.present:type_name -> silo.plugin.v1.MediaPresence
+	18, // 5: silo.plugin.v1.ListInstalledPluginsResponse.plugins:type_name -> silo.plugin.v1.InstalledPlugin
+	38, // 6: silo.plugin.v1.InstalledPlugin.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
+	37, // 7: silo.plugin.v1.SetGlobalConfigEntryRequest.value:type_name -> google.protobuf.Struct
+	23, // 8: silo.plugin.v1.ListLibraryMediaResponse.items:type_name -> silo.plugin.v1.CatalogMediaItem
+	26, // 9: silo.plugin.v1.GetCatalogStatsResponse.media_type_counts:type_name -> silo.plugin.v1.CatalogTypeCount
+	27, // 10: silo.plugin.v1.GetCatalogStatsResponse.library_counts:type_name -> silo.plugin.v1.CatalogLibraryCount
+	34, // 11: silo.plugin.v1.ResolveCatalogImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
+	35, // 12: silo.plugin.v1.CallPluginHTTPRequest.headers:type_name -> silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
+	37, // 13: silo.plugin.v1.CallPluginHTTPRequest.query:type_name -> google.protobuf.Struct
+	36, // 14: silo.plugin.v1.CallPluginHTTPResponse.headers:type_name -> silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
 	0,  // 15: silo.plugin.v1.RuntimeHost.PublishEvent:input_type -> silo.plugin.v1.PublishEventRequest
 	2,  // 16: silo.plugin.v1.RuntimeHost.PublishEventTo:input_type -> silo.plugin.v1.PublishEventToRequest
 	4,  // 17: silo.plugin.v1.RuntimeHost.PublishEventToInstallation:input_type -> silo.plugin.v1.PublishEventToInstallationRequest
 	6,  // 18: silo.plugin.v1.RuntimeHost.GetHostInfo:input_type -> silo.plugin.v1.GetHostInfoRequest
 	8,  // 19: silo.plugin.v1.RuntimeHost.ListLibraries:input_type -> silo.plugin.v1.ListLibrariesRequest
-	11, // 20: silo.plugin.v1.RuntimeHost.CheckMediaPresence:input_type -> silo.plugin.v1.CheckMediaPresenceRequest
-	14, // 21: silo.plugin.v1.RuntimeHost.ListInstalledPlugins:input_type -> silo.plugin.v1.ListInstalledPluginsRequest
-	17, // 22: silo.plugin.v1.RuntimeHost.SetGlobalConfigEntry:input_type -> silo.plugin.v1.SetGlobalConfigEntryRequest
-	19, // 23: silo.plugin.v1.RuntimeHost.ListLibraryMedia:input_type -> silo.plugin.v1.ListLibraryMediaRequest
-	22, // 24: silo.plugin.v1.RuntimeHost.GetCatalogStats:input_type -> silo.plugin.v1.GetCatalogStatsRequest
-	26, // 25: silo.plugin.v1.RuntimeHost.ResolveCatalogImageURLs:input_type -> silo.plugin.v1.ResolveCatalogImageURLsRequest
-	28, // 26: silo.plugin.v1.RuntimeHost.MintScopedStream:input_type -> silo.plugin.v1.MintScopedStreamRequest
-	30, // 27: silo.plugin.v1.RuntimeHost.CallPluginHTTP:input_type -> silo.plugin.v1.CallPluginHTTPRequest
-	1,  // 28: silo.plugin.v1.RuntimeHost.PublishEvent:output_type -> silo.plugin.v1.PublishEventResponse
-	3,  // 29: silo.plugin.v1.RuntimeHost.PublishEventTo:output_type -> silo.plugin.v1.PublishEventToResponse
-	5,  // 30: silo.plugin.v1.RuntimeHost.PublishEventToInstallation:output_type -> silo.plugin.v1.PublishEventToInstallationResponse
-	7,  // 31: silo.plugin.v1.RuntimeHost.GetHostInfo:output_type -> silo.plugin.v1.GetHostInfoResponse
-	9,  // 32: silo.plugin.v1.RuntimeHost.ListLibraries:output_type -> silo.plugin.v1.ListLibrariesResponse
-	12, // 33: silo.plugin.v1.RuntimeHost.CheckMediaPresence:output_type -> silo.plugin.v1.CheckMediaPresenceResponse
-	15, // 34: silo.plugin.v1.RuntimeHost.ListInstalledPlugins:output_type -> silo.plugin.v1.ListInstalledPluginsResponse
-	18, // 35: silo.plugin.v1.RuntimeHost.SetGlobalConfigEntry:output_type -> silo.plugin.v1.SetGlobalConfigEntryResponse
-	20, // 36: silo.plugin.v1.RuntimeHost.ListLibraryMedia:output_type -> silo.plugin.v1.ListLibraryMediaResponse
-	23, // 37: silo.plugin.v1.RuntimeHost.GetCatalogStats:output_type -> silo.plugin.v1.GetCatalogStatsResponse
-	27, // 38: silo.plugin.v1.RuntimeHost.ResolveCatalogImageURLs:output_type -> silo.plugin.v1.ResolveCatalogImageURLsResponse
-	29, // 39: silo.plugin.v1.RuntimeHost.MintScopedStream:output_type -> silo.plugin.v1.MintScopedStreamResponse
-	31, // 40: silo.plugin.v1.RuntimeHost.CallPluginHTTP:output_type -> silo.plugin.v1.CallPluginHTTPResponse
-	28, // [28:41] is the sub-list for method output_type
-	15, // [15:28] is the sub-list for method input_type
+	10, // 20: silo.plugin.v1.RuntimeHost.ValidateProfileCredential:input_type -> silo.plugin.v1.ValidateProfileCredentialRequest
+	13, // 21: silo.plugin.v1.RuntimeHost.CheckMediaPresence:input_type -> silo.plugin.v1.CheckMediaPresenceRequest
+	16, // 22: silo.plugin.v1.RuntimeHost.ListInstalledPlugins:input_type -> silo.plugin.v1.ListInstalledPluginsRequest
+	19, // 23: silo.plugin.v1.RuntimeHost.SetGlobalConfigEntry:input_type -> silo.plugin.v1.SetGlobalConfigEntryRequest
+	21, // 24: silo.plugin.v1.RuntimeHost.ListLibraryMedia:input_type -> silo.plugin.v1.ListLibraryMediaRequest
+	24, // 25: silo.plugin.v1.RuntimeHost.GetCatalogStats:input_type -> silo.plugin.v1.GetCatalogStatsRequest
+	28, // 26: silo.plugin.v1.RuntimeHost.ResolveCatalogImageURLs:input_type -> silo.plugin.v1.ResolveCatalogImageURLsRequest
+	30, // 27: silo.plugin.v1.RuntimeHost.MintScopedStream:input_type -> silo.plugin.v1.MintScopedStreamRequest
+	32, // 28: silo.plugin.v1.RuntimeHost.CallPluginHTTP:input_type -> silo.plugin.v1.CallPluginHTTPRequest
+	1,  // 29: silo.plugin.v1.RuntimeHost.PublishEvent:output_type -> silo.plugin.v1.PublishEventResponse
+	3,  // 30: silo.plugin.v1.RuntimeHost.PublishEventTo:output_type -> silo.plugin.v1.PublishEventToResponse
+	5,  // 31: silo.plugin.v1.RuntimeHost.PublishEventToInstallation:output_type -> silo.plugin.v1.PublishEventToInstallationResponse
+	7,  // 32: silo.plugin.v1.RuntimeHost.GetHostInfo:output_type -> silo.plugin.v1.GetHostInfoResponse
+	9,  // 33: silo.plugin.v1.RuntimeHost.ListLibraries:output_type -> silo.plugin.v1.ListLibrariesResponse
+	11, // 34: silo.plugin.v1.RuntimeHost.ValidateProfileCredential:output_type -> silo.plugin.v1.ValidateProfileCredentialResponse
+	14, // 35: silo.plugin.v1.RuntimeHost.CheckMediaPresence:output_type -> silo.plugin.v1.CheckMediaPresenceResponse
+	17, // 36: silo.plugin.v1.RuntimeHost.ListInstalledPlugins:output_type -> silo.plugin.v1.ListInstalledPluginsResponse
+	20, // 37: silo.plugin.v1.RuntimeHost.SetGlobalConfigEntry:output_type -> silo.plugin.v1.SetGlobalConfigEntryResponse
+	22, // 38: silo.plugin.v1.RuntimeHost.ListLibraryMedia:output_type -> silo.plugin.v1.ListLibraryMediaResponse
+	25, // 39: silo.plugin.v1.RuntimeHost.GetCatalogStats:output_type -> silo.plugin.v1.GetCatalogStatsResponse
+	29, // 40: silo.plugin.v1.RuntimeHost.ResolveCatalogImageURLs:output_type -> silo.plugin.v1.ResolveCatalogImageURLsResponse
+	31, // 41: silo.plugin.v1.RuntimeHost.MintScopedStream:output_type -> silo.plugin.v1.MintScopedStreamResponse
+	33, // 42: silo.plugin.v1.RuntimeHost.CallPluginHTTP:output_type -> silo.plugin.v1.CallPluginHTTPResponse
+	29, // [29:43] is the sub-list for method output_type
+	15, // [15:29] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
 	15, // [15:15] is the sub-list for extension extendee
 	0,  // [0:15] is the sub-list for field type_name
@@ -2279,7 +2395,7 @@ func file_silo_plugin_v1_runtime_host_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_runtime_host_proto_rawDesc), len(file_silo_plugin_v1_runtime_host_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   35,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

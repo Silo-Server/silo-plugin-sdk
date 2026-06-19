@@ -32,6 +32,11 @@ service RuntimeHost {
   // If user_id is empty, all libraries are returned (admin context).
   rpc ListLibraries(ListLibrariesRequest) returns (ListLibrariesResponse);
 
+  // ValidateProfileCredential validates a username/password pair against the
+  // host and returns the resolved user/profile identity. Plugins use this for
+  // third-party protocols such as OPDS where the browser bearer is unavailable.
+  rpc ValidateProfileCredential(ValidateProfileCredentialRequest) returns (ValidateProfileCredentialResponse);
+
   // CheckMediaPresence reports which of the requested external IDs already
   // exist in the host catalog. v1 supports provider="tmdb" only.
   rpc CheckMediaPresence(CheckMediaPresenceRequest) returns (CheckMediaPresenceResponse);
@@ -111,6 +116,17 @@ message ListLibrariesRequest {
 
 message ListLibrariesResponse {
   repeated Library libraries = 1;
+}
+
+message ValidateProfileCredentialRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message ValidateProfileCredentialResponse {
+  string user_id = 1;
+  // Empty means the user's primary profile.
+  string profile_id = 2;
 }
 
 message Library {

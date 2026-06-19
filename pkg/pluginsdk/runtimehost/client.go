@@ -19,6 +19,11 @@ type Client struct {
 	rpc pluginv1.RuntimeHostClient
 }
 
+type ProfileCredential struct {
+	UserID    string
+	ProfileID string
+}
+
 type CallPluginHTTPRequest struct {
 	InstallationID int
 	Method         string
@@ -169,6 +174,20 @@ func (c *Client) ListLibraries(ctx context.Context, userID string) ([]*pluginv1.
 		return nil, err
 	}
 	return resp.GetLibraries(), nil
+}
+
+func (c *Client) ValidateProfileCredential(ctx context.Context, username, password string) (*ProfileCredential, error) {
+	resp, err := c.rpc.ValidateProfileCredential(ctx, &pluginv1.ValidateProfileCredentialRequest{
+		Username: username,
+		Password: password,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ProfileCredential{
+		UserID:    resp.GetUserId(),
+		ProfileID: resp.GetProfileId(),
+	}, nil
 }
 
 // MediaPresence describes a single host catalog match returned by

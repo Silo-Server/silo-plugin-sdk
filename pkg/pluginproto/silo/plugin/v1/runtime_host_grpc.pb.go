@@ -24,6 +24,7 @@ const (
 	RuntimeHost_PublishEventToInstallation_FullMethodName = "/silo.plugin.v1.RuntimeHost/PublishEventToInstallation"
 	RuntimeHost_GetHostInfo_FullMethodName                = "/silo.plugin.v1.RuntimeHost/GetHostInfo"
 	RuntimeHost_ListLibraries_FullMethodName              = "/silo.plugin.v1.RuntimeHost/ListLibraries"
+	RuntimeHost_ValidateProfileCredential_FullMethodName  = "/silo.plugin.v1.RuntimeHost/ValidateProfileCredential"
 	RuntimeHost_CheckMediaPresence_FullMethodName         = "/silo.plugin.v1.RuntimeHost/CheckMediaPresence"
 	RuntimeHost_ListInstalledPlugins_FullMethodName       = "/silo.plugin.v1.RuntimeHost/ListInstalledPlugins"
 	RuntimeHost_SetGlobalConfigEntry_FullMethodName       = "/silo.plugin.v1.RuntimeHost/SetGlobalConfigEntry"
@@ -58,6 +59,10 @@ type RuntimeHostClient interface {
 	// ListLibraries returns libraries visible in the host catalog.
 	// If user_id is empty, all libraries are returned (admin context).
 	ListLibraries(ctx context.Context, in *ListLibrariesRequest, opts ...grpc.CallOption) (*ListLibrariesResponse, error)
+	// ValidateProfileCredential validates a username/password pair against the
+	// host and returns the resolved user/profile identity. Plugins use this for
+	// third-party protocols such as OPDS where the browser bearer is unavailable.
+	ValidateProfileCredential(ctx context.Context, in *ValidateProfileCredentialRequest, opts ...grpc.CallOption) (*ValidateProfileCredentialResponse, error)
 	// CheckMediaPresence reports which of the requested external IDs already
 	// exist in the host catalog. v1 supports provider="tmdb" only.
 	CheckMediaPresence(ctx context.Context, in *CheckMediaPresenceRequest, opts ...grpc.CallOption) (*CheckMediaPresenceResponse, error)
@@ -137,6 +142,16 @@ func (c *runtimeHostClient) ListLibraries(ctx context.Context, in *ListLibraries
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListLibrariesResponse)
 	err := c.cc.Invoke(ctx, RuntimeHost_ListLibraries_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *runtimeHostClient) ValidateProfileCredential(ctx context.Context, in *ValidateProfileCredentialRequest, opts ...grpc.CallOption) (*ValidateProfileCredentialResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateProfileCredentialResponse)
+	err := c.cc.Invoke(ctx, RuntimeHost_ValidateProfileCredential_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -247,6 +262,10 @@ type RuntimeHostServer interface {
 	// ListLibraries returns libraries visible in the host catalog.
 	// If user_id is empty, all libraries are returned (admin context).
 	ListLibraries(context.Context, *ListLibrariesRequest) (*ListLibrariesResponse, error)
+	// ValidateProfileCredential validates a username/password pair against the
+	// host and returns the resolved user/profile identity. Plugins use this for
+	// third-party protocols such as OPDS where the browser bearer is unavailable.
+	ValidateProfileCredential(context.Context, *ValidateProfileCredentialRequest) (*ValidateProfileCredentialResponse, error)
 	// CheckMediaPresence reports which of the requested external IDs already
 	// exist in the host catalog. v1 supports provider="tmdb" only.
 	CheckMediaPresence(context.Context, *CheckMediaPresenceRequest) (*CheckMediaPresenceResponse, error)
@@ -295,6 +314,9 @@ func (UnimplementedRuntimeHostServer) GetHostInfo(context.Context, *GetHostInfoR
 }
 func (UnimplementedRuntimeHostServer) ListLibraries(context.Context, *ListLibrariesRequest) (*ListLibrariesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListLibraries not implemented")
+}
+func (UnimplementedRuntimeHostServer) ValidateProfileCredential(context.Context, *ValidateProfileCredentialRequest) (*ValidateProfileCredentialResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateProfileCredential not implemented")
 }
 func (UnimplementedRuntimeHostServer) CheckMediaPresence(context.Context, *CheckMediaPresenceRequest) (*CheckMediaPresenceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckMediaPresence not implemented")
@@ -426,6 +448,24 @@ func _RuntimeHost_ListLibraries_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RuntimeHostServer).ListLibraries(ctx, req.(*ListLibrariesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RuntimeHost_ValidateProfileCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateProfileCredentialRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RuntimeHostServer).ValidateProfileCredential(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RuntimeHost_ValidateProfileCredential_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RuntimeHostServer).ValidateProfileCredential(ctx, req.(*ValidateProfileCredentialRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -600,6 +640,10 @@ var RuntimeHost_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListLibraries",
 			Handler:    _RuntimeHost_ListLibraries_Handler,
+		},
+		{
+			MethodName: "ValidateProfileCredential",
+			Handler:    _RuntimeHost_ValidateProfileCredential_Handler,
 		},
 		{
 			MethodName: "CheckMediaPresence",
