@@ -13,7 +13,7 @@ Public Go SDK for building Silo plugins. **Not a runtime plugin** — this is a 
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, profile credential validation, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
 
 ## Capability families
 
@@ -42,7 +42,32 @@ A typical plugin:
 3. Supports the `manifest` subcommand via `pkg/pluginsdk/runtime` so the host can introspect manifests without launching the plugin.
 4. Is installed either from a catalog or by uploading a trusted binary to a Silo server.
 
-For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host).
+For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host). For a plugin app that appears in Silo's user and admin sidebars, see [`examples/hello-plugin-app`](examples/hello-plugin-app).
+
+## HTTP route navigation
+
+Plugins that expose `http_routes.v1` can ask Silo to surface selected routes in the web UI by marking them navigable in `manifest.json`:
+
+```json
+{
+  "id": "app",
+  "method": "GET",
+  "path": "/*",
+  "access": "authenticated",
+  "navigable": true,
+  "navigation_label": "Hello App",
+  "navigation_kind": "user"
+}
+```
+
+`navigation_kind` controls where Silo renders the menu entry:
+
+- `user` — the route appears in the main user sidebar under Apps.
+- `admin` — the route appears in admin plugin navigation.
+
+Navigable routes must not use public access. Use `access: "authenticated"` for user apps and `access: "admin"` for admin/operator pages. `navigation_label` is the text shown in the sidebar; if it is empty the host falls back to the plugin id.
+
+`path` is the route mounted below `/api/v1/plugins/{installation_id}`. For a single-page app, use a wildcard path such as `/*` or `/admin/*` so browser refreshes and nested routes continue to reach the plugin.
 
 ## Calling back into the host
 
@@ -51,6 +76,7 @@ Plugins talk to the host through the `RuntimeHost` service, accessed via `pkg/pl
 - `PublishEvent` / `PublishEventTo` / `PublishEventToInstallation` — fire events into the host's bus, broadcast, addressed to a stable `plugin_id`, or addressed to one specific installation.
 - `GetHostInfo` — read host URL metadata for callback URLs and external-facing plugin links.
 - `ListLibraries` — enumerate libraries the operator has configured.
+- `ValidateProfileCredential` — validate a username/password pair through the host and return the resolved user/profile identity for protocol plugins that cannot carry the browser bearer token.
 - `CheckMediaPresence` — ask whether a given external id is already in the catalog.
 - `ListInstalledPlugins` — discover sibling plugins (e.g. routers a request plugin can target).
 - `ListLibraryMedia` / `GetCatalogStats` — read public-safe catalog rows and aggregate counts.
@@ -79,6 +105,8 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 ```
 
 The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
+
+`metadata_provider.v1` results may set `MetadataItem.status` to a normalized publication or airing state such as `Continuing` or `Ended` when the upstream source exposes one.
 
 ## Scan sources
 

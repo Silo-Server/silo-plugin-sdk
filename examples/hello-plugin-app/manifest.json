@@ -1,0 +1,34 @@
+{
+  "plugin_id": "example.hello-plugin-app",
+  "version": "0.1.0",
+  "checksum": "__CHECKSUM__",
+  "silo_api_version": "v1",
+  "capabilities": [
+    {
+      "type": "http_routes.v1",
+      "id": "app",
+      "display_name": "Hello Plugin App",
+      "description": "Serves a user app and an admin app through plugin HTTP routes."
+    }
+  ],
+  "http_routes": [
+    {
+      "id": "user-app",
+      "method": "GET",
+      "path": "/*",
+      "access": "authenticated",
+      "navigable": true,
+      "navigation_label": "Hello App",
+      "navigation_kind": "user"
+    },
+    {
+      "id": "admin-app",
+      "method": "GET",
+      "path": "/admin/*",
+      "access": "admin",
+      "navigable": true,
+      "navigation_label": "Hello Admin",
+      "navigation_kind": "admin"
+    }
+  ]
+}

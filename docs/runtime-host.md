@@ -13,6 +13,7 @@ plugin, the plugin calls back into the host.
 | `PublishEventToInstallation(target_installation_id, name, payload)` | Publish an event addressed to one specific plugin installation. |
 | `GetHostInfo()` | Return public-safe host URLs for callbacks and plugin-served links. |
 | `ListLibraries(user_id)` | Return libraries (optionally scoped to a user). |
+| `ValidateProfileCredential(username, password)` | Validate credentials through the host and return the resolved user/profile identity. |
 | `CheckMediaPresence(provider, media_type, ids)` | Batched lookup: which external IDs already exist in the host catalog. v1 supports provider="tmdb" only. |
 | `ListInstalledPlugins()` | Return installed plugins and their advertised capabilities. |
 | `SetGlobalConfigEntry(key, value)` | Persist a plugin-owned global config entry for the calling plugin installation. |
@@ -84,6 +85,26 @@ func (c *capability) DoThing(ctx context.Context, ...) {
     }
 }
 ```
+
+### Profile credential validation
+
+Protocol plugins sometimes receive only a username and password from a
+third-party client instead of a browser bearer token. Use
+`ValidateProfileCredential` to delegate that check to the host:
+
+```go
+host := sdkruntime.Host()
+if host == nil { return }
+
+credential, err := host.ValidateProfileCredential(ctx, "alex#kids", "password#1234")
+if err != nil { return }
+
+userID := credential.UserID
+profileID := credential.ProfileID // empty means the user's primary profile
+```
+
+Do not validate or persist Silo account passwords inside a plugin. Treat the
+password string as transient input and avoid logging it.
 
 ### Library presence
 
