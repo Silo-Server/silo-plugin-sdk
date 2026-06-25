@@ -1987,6 +1987,9 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\vGetEpisodes\x12\".silo.plugin.v1.GetEpisodesRequest\x1a#.silo.plugin.v1.GetEpisodesResponse\x12P\n" +
 	"\tGetImages\x12 .silo.plugin.v1.GetImagesRequest\x1a!.silo.plugin.v1.GetImagesResponse\x12b\n" +
 	"\x0fResolveImageURL\x12&.silo.plugin.v1.ResolveImageURLRequest\x1a'.silo.plugin.v1.ResolveImageURLResponse\x12e\n" +
+	"\x10ResolveImageURLs\x12'.silo.plugin.v1.ResolveImageURLsRequest\x1a(.silo.plugin.v1.ResolveImageURLsResponse2\xda\x01\n" +
+	"\rImageResolver\x12b\n" +
+	"\x0fResolveImageURL\x12&.silo.plugin.v1.ResolveImageURLRequest\x1a'.silo.plugin.v1.ResolveImageURLResponse\x12e\n" +
 	"\x10ResolveImageURLs\x12'.silo.plugin.v1.ResolveImageURLsRequest\x1a(.silo.plugin.v1.ResolveImageURLsResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
 
 var (
@@ -2064,16 +2067,20 @@ var file_silo_plugin_v1_metadata_provider_proto_depIdxs = []int32{
 	17, // 31: silo.plugin.v1.MetadataProvider.GetImages:input_type -> silo.plugin.v1.GetImagesRequest
 	19, // 32: silo.plugin.v1.MetadataProvider.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
 	21, // 33: silo.plugin.v1.MetadataProvider.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
-	2,  // 34: silo.plugin.v1.MetadataProvider.Search:output_type -> silo.plugin.v1.SearchMetadataResponse
-	6,  // 35: silo.plugin.v1.MetadataProvider.GetMetadata:output_type -> silo.plugin.v1.GetMetadataResponse
-	9,  // 36: silo.plugin.v1.MetadataProvider.GetPersonDetail:output_type -> silo.plugin.v1.GetPersonDetailResponse
-	12, // 37: silo.plugin.v1.MetadataProvider.GetSeasons:output_type -> silo.plugin.v1.GetSeasonsResponse
-	15, // 38: silo.plugin.v1.MetadataProvider.GetEpisodes:output_type -> silo.plugin.v1.GetEpisodesResponse
-	18, // 39: silo.plugin.v1.MetadataProvider.GetImages:output_type -> silo.plugin.v1.GetImagesResponse
-	20, // 40: silo.plugin.v1.MetadataProvider.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
-	22, // 41: silo.plugin.v1.MetadataProvider.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
-	34, // [34:42] is the sub-list for method output_type
-	26, // [26:34] is the sub-list for method input_type
+	19, // 34: silo.plugin.v1.ImageResolver.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
+	21, // 35: silo.plugin.v1.ImageResolver.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
+	2,  // 36: silo.plugin.v1.MetadataProvider.Search:output_type -> silo.plugin.v1.SearchMetadataResponse
+	6,  // 37: silo.plugin.v1.MetadataProvider.GetMetadata:output_type -> silo.plugin.v1.GetMetadataResponse
+	9,  // 38: silo.plugin.v1.MetadataProvider.GetPersonDetail:output_type -> silo.plugin.v1.GetPersonDetailResponse
+	12, // 39: silo.plugin.v1.MetadataProvider.GetSeasons:output_type -> silo.plugin.v1.GetSeasonsResponse
+	15, // 40: silo.plugin.v1.MetadataProvider.GetEpisodes:output_type -> silo.plugin.v1.GetEpisodesResponse
+	18, // 41: silo.plugin.v1.MetadataProvider.GetImages:output_type -> silo.plugin.v1.GetImagesResponse
+	20, // 42: silo.plugin.v1.MetadataProvider.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
+	22, // 43: silo.plugin.v1.MetadataProvider.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
+	20, // 44: silo.plugin.v1.ImageResolver.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
+	22, // 45: silo.plugin.v1.ImageResolver.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
+	36, // [36:46] is the sub-list for method output_type
+	26, // [26:36] is the sub-list for method input_type
 	26, // [26:26] is the sub-list for extension type_name
 	26, // [26:26] is the sub-list for extension extendee
 	0,  // [0:26] is the sub-list for field type_name
@@ -2092,7 +2099,7 @@ func file_silo_plugin_v1_metadata_provider_proto_init() {
 			NumEnums:      0,
 			NumMessages:   24,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_silo_plugin_v1_metadata_provider_proto_goTypes,
 		DependencyIndexes: file_silo_plugin_v1_metadata_provider_proto_depIdxs,
