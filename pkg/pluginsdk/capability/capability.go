@@ -9,6 +9,7 @@ const (
 	MediaAnalyzer    = "media_analyzer.v1"
 	AuthProvider     = "auth_provider.v1"
 	MetadataProvider = "metadata_provider.v1"
+	ImageResolver    = "image_resolver.v1"
 	MarkerProvider   = "marker_provider.v1"
 	AudiobookBackend = "audiobook_backend.v1"
 	EbookBackend     = "ebook_backend.v1"
@@ -24,6 +25,7 @@ var KnownTypes = []string{
 	MediaAnalyzer,
 	AuthProvider,
 	MetadataProvider,
+	ImageResolver,
 	MarkerProvider,
 	AudiobookBackend,
 	EbookBackend,

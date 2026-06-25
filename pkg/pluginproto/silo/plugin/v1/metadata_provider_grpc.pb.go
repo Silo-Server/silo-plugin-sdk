@@ -383,3 +383,141 @@ var MetadataProvider_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "silo/plugin/v1/metadata_provider.proto",
 }
+
+const (
+	ImageResolver_ResolveImageURL_FullMethodName  = "/silo.plugin.v1.ImageResolver/ResolveImageURL"
+	ImageResolver_ResolveImageURLs_FullMethodName = "/silo.plugin.v1.ImageResolver/ResolveImageURLs"
+)
+
+// ImageResolverClient is the client API for ImageResolver service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ImageResolverClient interface {
+	ResolveImageURL(ctx context.Context, in *ResolveImageURLRequest, opts ...grpc.CallOption) (*ResolveImageURLResponse, error)
+	ResolveImageURLs(ctx context.Context, in *ResolveImageURLsRequest, opts ...grpc.CallOption) (*ResolveImageURLsResponse, error)
+}
+
+type imageResolverClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewImageResolverClient(cc grpc.ClientConnInterface) ImageResolverClient {
+	return &imageResolverClient{cc}
+}
+
+func (c *imageResolverClient) ResolveImageURL(ctx context.Context, in *ResolveImageURLRequest, opts ...grpc.CallOption) (*ResolveImageURLResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResolveImageURLResponse)
+	err := c.cc.Invoke(ctx, ImageResolver_ResolveImageURL_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *imageResolverClient) ResolveImageURLs(ctx context.Context, in *ResolveImageURLsRequest, opts ...grpc.CallOption) (*ResolveImageURLsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResolveImageURLsResponse)
+	err := c.cc.Invoke(ctx, ImageResolver_ResolveImageURLs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ImageResolverServer is the server API for ImageResolver service.
+// All implementations should embed UnimplementedImageResolverServer
+// for forward compatibility.
+type ImageResolverServer interface {
+	ResolveImageURL(context.Context, *ResolveImageURLRequest) (*ResolveImageURLResponse, error)
+	ResolveImageURLs(context.Context, *ResolveImageURLsRequest) (*ResolveImageURLsResponse, error)
+}
+
+// UnimplementedImageResolverServer should be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedImageResolverServer struct{}
+
+func (UnimplementedImageResolverServer) ResolveImageURL(context.Context, *ResolveImageURLRequest) (*ResolveImageURLResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveImageURL not implemented")
+}
+func (UnimplementedImageResolverServer) ResolveImageURLs(context.Context, *ResolveImageURLsRequest) (*ResolveImageURLsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveImageURLs not implemented")
+}
+func (UnimplementedImageResolverServer) testEmbeddedByValue() {}
+
+// UnsafeImageResolverServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ImageResolverServer will
+// result in compilation errors.
+type UnsafeImageResolverServer interface {
+	mustEmbedUnimplementedImageResolverServer()
+}
+
+func RegisterImageResolverServer(s grpc.ServiceRegistrar, srv ImageResolverServer) {
+	// If the following call panics, it indicates UnimplementedImageResolverServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&ImageResolver_ServiceDesc, srv)
+}
+
+func _ImageResolver_ResolveImageURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveImageURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ImageResolverServer).ResolveImageURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ImageResolver_ResolveImageURL_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ImageResolverServer).ResolveImageURL(ctx, req.(*ResolveImageURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ImageResolver_ResolveImageURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveImageURLsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ImageResolverServer).ResolveImageURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ImageResolver_ResolveImageURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ImageResolverServer).ResolveImageURLs(ctx, req.(*ResolveImageURLsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ImageResolver_ServiceDesc is the grpc.ServiceDesc for ImageResolver service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ImageResolver_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "silo.plugin.v1.ImageResolver",
+	HandlerType: (*ImageResolverServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ResolveImageURL",
+			Handler:    _ImageResolver_ResolveImageURL_Handler,
+		},
+		{
+			MethodName: "ResolveImageURLs",
+			Handler:    _ImageResolver_ResolveImageURLs_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "silo/plugin/v1/metadata_provider.proto",
+}

@@ -17,6 +17,11 @@ service MetadataProvider {
   rpc ResolveImageURLs(ResolveImageURLsRequest) returns (ResolveImageURLsResponse);
 }
 
+service ImageResolver {
+  rpc ResolveImageURL(ResolveImageURLRequest) returns (ResolveImageURLResponse);
+  rpc ResolveImageURLs(ResolveImageURLsRequest) returns (ResolveImageURLsResponse);
+}
+
 message ProviderSearchResult {
   string provider_id = 1;
   string item_type = 2;

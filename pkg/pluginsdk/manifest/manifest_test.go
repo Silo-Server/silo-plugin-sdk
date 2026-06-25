@@ -29,6 +29,35 @@ func TestLoadAcceptsRequestRouterCapability(t *testing.T) {
 	}
 }
 
+func TestLoadAcceptsImageResolverCapability(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id": "silo.example",
+	  "version": "1.0.0",
+	  "silo_api_version": "v1",
+	  "capabilities": [
+	    {
+	      "type": "image_resolver.v1",
+	      "id": "tmdb",
+	      "display_name": "TMDB Images",
+	      "metadata": {
+	        "schemes": ["tmdb"],
+	        "priority": 100
+	      }
+	    }
+	  ]
+	}`)
+	m, err := manifest.Load(raw)
+	if err != nil {
+		t.Fatalf("Load returned unexpected error: %v", err)
+	}
+	if got := m.GetCapabilities()[0].GetType(); got != "image_resolver.v1" {
+		t.Fatalf("capability type = %q, want image_resolver.v1", got)
+	}
+	if got := m.GetCapabilities()[0].GetMetadata().GetFields()["priority"].GetNumberValue(); got != 100 {
+		t.Fatalf("capability metadata priority = %v, want 100", got)
+	}
+}
+
 func TestLoadRejectsUnknownCapabilityType(t *testing.T) {
 	raw := []byte(`{
 	  "plugin_id": "silo.example",

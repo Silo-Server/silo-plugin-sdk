@@ -33,3 +33,19 @@ func TestMarkerProviderIsKnownType(t *testing.T) {
 		t.Fatalf("MarkerProvider (%q) missing from KnownTypes %v", MarkerProvider, KnownTypes)
 	}
 }
+
+func TestImageResolverIsKnownType(t *testing.T) {
+	if ImageResolver != "image_resolver.v1" {
+		t.Fatalf("ImageResolver const = %q, want %q", ImageResolver, "image_resolver.v1")
+	}
+	found := false
+	for _, k := range KnownTypes {
+		if k == ImageResolver {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("ImageResolver (%q) missing from KnownTypes %v", ImageResolver, KnownTypes)
+	}
+}
