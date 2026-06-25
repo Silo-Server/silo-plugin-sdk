@@ -87,6 +87,7 @@ jobs:
           func main() {}
           EOF
           go get "github.com/Silo-Server/silo-plugin-sdk@${{ needs.version.outputs.tag }}"
+          go mod tidy
           go build ./...
 
   release:
