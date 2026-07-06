@@ -58,6 +58,30 @@ message PersonRecord {
   string photo_thumbhash = 10;
 }
 
+// VideoRecord describes a remote promotional/supplemental video (trailer,
+// teaser, featurette, ...) hosted on an external site. `kind` and `site` are
+// lowercase snake_case strings rather than enums so plugins can emit values
+// newer than the host's vocabulary; unknown kinds degrade to "other" host-side.
+message VideoRecord {
+  // Provider-native video id, used by the host as a stable dedup key.
+  string provider_key = 1;
+  // "trailer", "teaser", "featurette", "clip", "behind_the_scenes",
+  // "bloopers", or "other".
+  string kind = 2;
+  // Hosting site, e.g. "youtube".
+  string site = 3;
+  // Site-native video key (e.g. the YouTube video id).
+  string site_key = 4;
+  string name = 5;
+  // ISO 639-1 language code, empty when unknown.
+  string language = 6;
+  bool is_official = 7;
+  // Vertical resolution hint (e.g. 1080), 0 when unknown.
+  int32 size_hint = 8;
+  // RFC 3339 publication timestamp, empty when unknown.
+  string published_at = 9;
+}
+
 message MetadataItem {
   string provider_id = 1;
   string item_type = 2;
@@ -93,6 +117,8 @@ message MetadataItem {
   // Metadata sources with native status (AniList RELEASING/FINISHED,
   // MangaDex ongoing/completed) normalize into these two forms.
   string status = 31;
+  // Remote promotional/supplemental videos (trailers, teasers, ...).
+  repeated VideoRecord videos = 32;
 }
 
 message GetMetadataRequest {
