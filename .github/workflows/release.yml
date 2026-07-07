@@ -67,7 +67,10 @@ jobs:
 
       - name: Verify tagged module can be consumed externally
         env:
-          GOPROXY: direct
+          # GOPRIVATE implies GONOPROXY for Silo modules, so the SDK itself is
+          # still fetched directly from GitHub; the proxy only serves
+          # third-party deps whose origin hosts reject CI traffic (gonum.org).
+          GOPROXY: https://proxy.golang.org,direct
           GOPRIVATE: github.com/Silo-Server/*
           GONOSUMDB: github.com/Silo-Server/*
         run: |
