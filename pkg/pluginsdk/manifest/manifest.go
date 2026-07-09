@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"google.golang.org/protobuf/encoding/protojson"
 
@@ -19,6 +23,14 @@ import (
 // them via the admin plugins API so SPAs can filter by them client-side.
 // They do not drive any dispatch behavior on the server side.
 var knownCapabilityTypes = knownCapabilityTypeSet()
+
+const (
+	maxPresentationDisplayNameRunes = 120
+	maxPresentationSummaryRunes     = 240
+	maxPresentationMarkdownBytes    = 32 << 10
+	maxPresentationURLBytes         = 2048
+	maxPresentationIdentityRunes    = 120
+)
 
 func knownCapabilityTypeSet() map[string]struct{} {
 	out := make(map[string]struct{}, len(capability.KnownTypes))
@@ -81,6 +93,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 	if manifest.Version == "" {
 		return fmt.Errorf("plugin manifest version is required")
 	}
+	if err := validatePresentation(manifest.GetPresentation()); err != nil {
+		return err
+	}
 	for _, capability := range manifest.Capabilities {
 		if capability.Type == "" {
 			return fmt.Errorf("plugin capability type is required")
@@ -110,6 +125,147 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 		}
 	}
 	return nil
+}
+
+// ValidateCatalogPresentation applies the stricter presentation contract used
+// by curated catalogs. The general manifest validator keeps presentation
+// optional so older and directly uploaded plugins remain compatible.
+func ValidateCatalogPresentation(manifest *pluginv1.PluginManifest, expectedSourceURL string) error {
+	if err := Validate(manifest); err != nil {
+		return err
+	}
+	presentation := manifest.GetPresentation()
+	if presentation == nil {
+		return fmt.Errorf("plugin presentation is required for catalog publishing")
+	}
+
+	requiredFields := []struct {
+		name  string
+		value string
+	}{
+		{name: "display_name", value: presentation.GetDisplayName()},
+		{name: "summary", value: presentation.GetSummary()},
+		{name: "description_markdown", value: presentation.GetDescriptionMarkdown()},
+		{name: "setup_markdown", value: presentation.GetSetupMarkdown()},
+		{name: "homepage_url", value: presentation.GetHomepageUrl()},
+		{name: "source_url", value: presentation.GetSourceUrl()},
+		{name: "support_url", value: presentation.GetSupportUrl()},
+		{name: "changelog_url", value: presentation.GetChangelogUrl()},
+		{name: "publisher_name", value: presentation.GetPublisherName()},
+		{name: "publisher_url", value: presentation.GetPublisherUrl()},
+		{name: "license_spdx", value: presentation.GetLicenseSpdx()},
+	}
+	for _, field := range requiredFields {
+		if strings.TrimSpace(field.value) == "" {
+			return fmt.Errorf("plugin presentation %s is required for catalog publishing", field.name)
+		}
+	}
+
+	if expectedSourceURL != "" && !equalCanonicalURL(presentation.GetSourceUrl(), expectedSourceURL) {
+		return fmt.Errorf("plugin presentation source_url %q must match catalog repository %q", presentation.GetSourceUrl(), expectedSourceURL)
+	}
+	return nil
+}
+
+func validatePresentation(presentation *pluginv1.PluginPresentation) error {
+	if presentation == nil {
+		return nil
+	}
+
+	singleLineFields := []struct {
+		name  string
+		value string
+		limit int
+	}{
+		{name: "display_name", value: presentation.GetDisplayName(), limit: maxPresentationDisplayNameRunes},
+		{name: "summary", value: presentation.GetSummary(), limit: maxPresentationSummaryRunes},
+		{name: "publisher_name", value: presentation.GetPublisherName(), limit: maxPresentationIdentityRunes},
+		{name: "license_spdx", value: presentation.GetLicenseSpdx(), limit: maxPresentationIdentityRunes},
+	}
+	for _, field := range singleLineFields {
+		if field.value != "" && field.value != strings.TrimSpace(field.value) {
+			return fmt.Errorf("plugin presentation %s must not have leading or trailing whitespace", field.name)
+		}
+		if utf8.RuneCountInString(field.value) > field.limit {
+			return fmt.Errorf("plugin presentation %s exceeds %d characters", field.name, field.limit)
+		}
+		if hasDisallowedControl(field.value, false) {
+			return fmt.Errorf("plugin presentation %s contains control characters", field.name)
+		}
+	}
+
+	markdownFields := []struct {
+		name  string
+		value string
+	}{
+		{name: "description_markdown", value: presentation.GetDescriptionMarkdown()},
+		{name: "setup_markdown", value: presentation.GetSetupMarkdown()},
+	}
+	for _, field := range markdownFields {
+		if len(field.value) > maxPresentationMarkdownBytes {
+			return fmt.Errorf("plugin presentation %s exceeds %d bytes", field.name, maxPresentationMarkdownBytes)
+		}
+		if hasDisallowedControl(field.value, true) {
+			return fmt.Errorf("plugin presentation %s contains control characters", field.name)
+		}
+	}
+
+	urlFields := []struct {
+		name  string
+		value string
+	}{
+		{name: "homepage_url", value: presentation.GetHomepageUrl()},
+		{name: "source_url", value: presentation.GetSourceUrl()},
+		{name: "support_url", value: presentation.GetSupportUrl()},
+		{name: "changelog_url", value: presentation.GetChangelogUrl()},
+		{name: "publisher_url", value: presentation.GetPublisherUrl()},
+	}
+	for _, field := range urlFields {
+		if err := validatePresentationURL(field.value); err != nil {
+			return fmt.Errorf("plugin presentation %s: %w", field.name, err)
+		}
+	}
+	return nil
+}
+
+func validatePresentationURL(raw string) error {
+	if raw == "" {
+		return nil
+	}
+	if len(raw) > maxPresentationURLBytes {
+		return fmt.Errorf("exceeds %d bytes", maxPresentationURLBytes)
+	}
+	if raw != strings.TrimSpace(raw) || strings.ContainsAny(raw, " \t\r\n") || hasDisallowedControl(raw, false) {
+		return fmt.Errorf("contains whitespace or control characters")
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("must be a valid absolute http or https URL: %w", err)
+	}
+	if (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+		return fmt.Errorf("must be an absolute http or https URL")
+	}
+	if parsed.User != nil {
+		return fmt.Errorf("must not contain user credentials")
+	}
+	return nil
+}
+
+func equalCanonicalURL(left, right string) bool {
+	return strings.EqualFold(strings.TrimSuffix(left, "/"), strings.TrimSuffix(right, "/"))
+}
+
+func hasDisallowedControl(value string, allowMarkdownWhitespace bool) bool {
+	for _, char := range value {
+		if !unicode.IsControl(char) {
+			continue
+		}
+		if allowMarkdownWhitespace && (char == '\n' || char == '\r' || char == '\t') {
+			continue
+		}
+		return true
+	}
+	return false
 }
 
 func validateConfigSchema(schema *pluginv1.ConfigSchema) error {

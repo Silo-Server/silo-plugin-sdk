@@ -44,6 +44,47 @@ A typical plugin:
 
 For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host).
 
+## Operator-facing presentation
+
+`PluginManifest.presentation` gives the Silo admin UI typed, plugin-level copy
+and canonical links. It is optional for backward compatibility, but cataloged
+plugins should provide a complete block:
+
+```json
+{
+  "presentation": {
+    "display_name": "Example Plugin",
+    "summary": "A one-sentence explanation for a homelab administrator.",
+    "description_markdown": "A longer description of what the plugin does and when to use it.",
+    "setup_markdown": "1. Install the plugin.\n2. Add the required connection.\n3. Enable it for the relevant library.",
+    "homepage_url": "https://example.com/plugin",
+    "source_url": "https://github.com/Silo-Server/example-plugin",
+    "support_url": "https://github.com/Silo-Server/example-plugin/issues",
+    "changelog_url": "https://github.com/Silo-Server/example-plugin/releases",
+    "publisher_name": "Silo",
+    "publisher_url": "https://github.com/Silo-Server",
+    "license_spdx": "AGPL-3.0-or-later"
+  }
+}
+```
+
+- `display_name` is limited to 120 characters and `summary` to 240 characters;
+  both are concise card copy without leading or trailing whitespace.
+- `description_markdown` and `setup_markdown` use CommonMark-style Markdown;
+  raw HTML is not part of the contract, and each field is limited to 32 KiB.
+- All URLs must be absolute `http` or `https` links and must not contain
+  embedded credentials; each URL is limited to 2048 bytes.
+- Publisher and source fields are self-declared identity information. Catalog
+  provenance and approval are assigned by the host/catalog, never by this block.
+  `publisher_name` is limited to 120 characters.
+- Use an SPDX license expression of at most 120 characters. Use `NOASSERTION`
+  when the repository has not declared a license rather than guessing one.
+
+Curated catalog tooling should call
+`manifest.ValidateCatalogPresentation(manifest, canonicalRepositoryURL)` to
+require the complete block and prevent a published `source_url` from drifting
+away from the repository that produced the release.
+
 ## Calling back into the host
 
 Plugins talk to the host through the `RuntimeHost` service, accessed via `pkg/pluginsdk/runtimehost.Client`. The host invokes `Runtime.BindHostBroker` on startup so plugins can dial back over the shared broker; `runtimedefault` handles that step for you. Available RPCs:
