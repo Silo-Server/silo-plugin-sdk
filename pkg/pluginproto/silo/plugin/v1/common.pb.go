@@ -1070,6 +1070,133 @@ func (x *CapabilityDescriptor) GetIconUrl() string {
 	return ""
 }
 
+// PluginPresentation describes a plugin for server operators and links them to
+// its publisher, source, support, and release history. These values are
+// self-declared by the plugin and never determine catalog approval.
+type PluginPresentation struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	DisplayName         string                 `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Summary             string                 `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
+	DescriptionMarkdown string                 `protobuf:"bytes,3,opt,name=description_markdown,json=descriptionMarkdown,proto3" json:"description_markdown,omitempty"`
+	SetupMarkdown       string                 `protobuf:"bytes,4,opt,name=setup_markdown,json=setupMarkdown,proto3" json:"setup_markdown,omitempty"`
+	HomepageUrl         string                 `protobuf:"bytes,5,opt,name=homepage_url,json=homepageUrl,proto3" json:"homepage_url,omitempty"`
+	SourceUrl           string                 `protobuf:"bytes,6,opt,name=source_url,json=sourceUrl,proto3" json:"source_url,omitempty"`
+	SupportUrl          string                 `protobuf:"bytes,7,opt,name=support_url,json=supportUrl,proto3" json:"support_url,omitempty"`
+	ChangelogUrl        string                 `protobuf:"bytes,8,opt,name=changelog_url,json=changelogUrl,proto3" json:"changelog_url,omitempty"`
+	PublisherName       string                 `protobuf:"bytes,9,opt,name=publisher_name,json=publisherName,proto3" json:"publisher_name,omitempty"`
+	PublisherUrl        string                 `protobuf:"bytes,10,opt,name=publisher_url,json=publisherUrl,proto3" json:"publisher_url,omitempty"`
+	LicenseSpdx         string                 `protobuf:"bytes,11,opt,name=license_spdx,json=licenseSpdx,proto3" json:"license_spdx,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PluginPresentation) Reset() {
+	*x = PluginPresentation{}
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginPresentation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginPresentation) ProtoMessage() {}
+
+func (x *PluginPresentation) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginPresentation.ProtoReflect.Descriptor instead.
+func (*PluginPresentation) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *PluginPresentation) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetDescriptionMarkdown() string {
+	if x != nil {
+		return x.DescriptionMarkdown
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetSetupMarkdown() string {
+	if x != nil {
+		return x.SetupMarkdown
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetHomepageUrl() string {
+	if x != nil {
+		return x.HomepageUrl
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetSourceUrl() string {
+	if x != nil {
+		return x.SourceUrl
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetSupportUrl() string {
+	if x != nil {
+		return x.SupportUrl
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetChangelogUrl() string {
+	if x != nil {
+		return x.ChangelogUrl
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetPublisherName() string {
+	if x != nil {
+		return x.PublisherName
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetPublisherUrl() string {
+	if x != nil {
+		return x.PublisherUrl
+	}
+	return ""
+}
+
+func (x *PluginPresentation) GetLicenseSpdx() string {
+	if x != nil {
+		return x.LicenseSpdx
+	}
+	return ""
+}
+
 type PluginManifest struct {
 	state              protoimpl.MessageState  `protogen:"open.v1"`
 	PluginId           string                  `protobuf:"bytes,1,opt,name=plugin_id,json=pluginId,proto3" json:"plugin_id,omitempty"`
@@ -1088,14 +1215,17 @@ type PluginManifest struct {
 	// e.g. "Books/Audiobooks" lands in Apps → Books → Audiobooks. Plugins
 	// without a category render under "Other". The host does not validate
 	// the value; the sidebar tolerates unknown segments.
-	Category      string `protobuf:"bytes,12,opt,name=category,proto3" json:"category,omitempty"`
+	Category string `protobuf:"bytes,12,opt,name=category,proto3" json:"category,omitempty"`
+	// Optional operator-facing identity, documentation, and repository links.
+	// Older manifests remain valid when this block is absent.
+	Presentation  *PluginPresentation `protobuf:"bytes,13,opt,name=presentation,proto3" json:"presentation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PluginManifest) Reset() {
 	*x = PluginManifest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1107,7 +1237,7 @@ func (x *PluginManifest) String() string {
 func (*PluginManifest) ProtoMessage() {}
 
 func (x *PluginManifest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1120,7 +1250,7 @@ func (x *PluginManifest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginManifest.ProtoReflect.Descriptor instead.
 func (*PluginManifest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PluginManifest) GetPluginId() string {
@@ -1207,6 +1337,13 @@ func (x *PluginManifest) GetCategory() string {
 	return ""
 }
 
+func (x *PluginManifest) GetPresentation() *PluginPresentation {
+	if x != nil {
+		return x.Presentation
+	}
+	return nil
+}
+
 type GetManifestRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1215,7 +1352,7 @@ type GetManifestRequest struct {
 
 func (x *GetManifestRequest) Reset() {
 	*x = GetManifestRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1227,7 +1364,7 @@ func (x *GetManifestRequest) String() string {
 func (*GetManifestRequest) ProtoMessage() {}
 
 func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1240,7 +1377,7 @@ func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestRequest.ProtoReflect.Descriptor instead.
 func (*GetManifestRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{13}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{14}
 }
 
 type GetManifestResponse struct {
@@ -1252,7 +1389,7 @@ type GetManifestResponse struct {
 
 func (x *GetManifestResponse) Reset() {
 	*x = GetManifestResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1264,7 +1401,7 @@ func (x *GetManifestResponse) String() string {
 func (*GetManifestResponse) ProtoMessage() {}
 
 func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1277,7 +1414,7 @@ func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestResponse.ProtoReflect.Descriptor instead.
 func (*GetManifestResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{14}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetManifestResponse) GetManifest() *PluginManifest {
@@ -1296,7 +1433,7 @@ type ConfigureRequest struct {
 
 func (x *ConfigureRequest) Reset() {
 	*x = ConfigureRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1308,7 +1445,7 @@ func (x *ConfigureRequest) String() string {
 func (*ConfigureRequest) ProtoMessage() {}
 
 func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1321,7 +1458,7 @@ func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureRequest.ProtoReflect.Descriptor instead.
 func (*ConfigureRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{15}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ConfigureRequest) GetConfig() []*ConfigEntry {
@@ -1339,7 +1476,7 @@ type ConfigureResponse struct {
 
 func (x *ConfigureResponse) Reset() {
 	*x = ConfigureResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1351,7 +1488,7 @@ func (x *ConfigureResponse) String() string {
 func (*ConfigureResponse) ProtoMessage() {}
 
 func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1364,7 +1501,7 @@ func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureResponse.ProtoReflect.Descriptor instead.
 func (*ConfigureResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{16}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{17}
 }
 
 type BindHostBrokerRequest struct {
@@ -1376,7 +1513,7 @@ type BindHostBrokerRequest struct {
 
 func (x *BindHostBrokerRequest) Reset() {
 	*x = BindHostBrokerRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1388,7 +1525,7 @@ func (x *BindHostBrokerRequest) String() string {
 func (*BindHostBrokerRequest) ProtoMessage() {}
 
 func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1401,7 +1538,7 @@ func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerRequest.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{17}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *BindHostBrokerRequest) GetBrokerId() uint32 {
@@ -1419,7 +1556,7 @@ type BindHostBrokerResponse struct {
 
 func (x *BindHostBrokerResponse) Reset() {
 	*x = BindHostBrokerResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1431,7 +1568,7 @@ func (x *BindHostBrokerResponse) String() string {
 func (*BindHostBrokerResponse) ProtoMessage() {}
 
 func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1444,7 +1581,7 @@ func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerResponse.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{18}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{19}
 }
 
 var File_silo_plugin_v1_common_proto protoreflect.FileDescriptor
@@ -1539,7 +1676,22 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1d\n" +
 	"\n" +
 	"auth_modes\x18\b \x03(\tR\tauthModes\x12\x19\n" +
-	"\bicon_url\x18\t \x01(\tR\aiconUrl\"\x95\x05\n" +
+	"\bicon_url\x18\t \x01(\tR\aiconUrl\"\xa2\x03\n" +
+	"\x12PluginPresentation\x12!\n" +
+	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x18\n" +
+	"\asummary\x18\x02 \x01(\tR\asummary\x121\n" +
+	"\x14description_markdown\x18\x03 \x01(\tR\x13descriptionMarkdown\x12%\n" +
+	"\x0esetup_markdown\x18\x04 \x01(\tR\rsetupMarkdown\x12!\n" +
+	"\fhomepage_url\x18\x05 \x01(\tR\vhomepageUrl\x12\x1d\n" +
+	"\n" +
+	"source_url\x18\x06 \x01(\tR\tsourceUrl\x12\x1f\n" +
+	"\vsupport_url\x18\a \x01(\tR\n" +
+	"supportUrl\x12#\n" +
+	"\rchangelog_url\x18\b \x01(\tR\fchangelogUrl\x12%\n" +
+	"\x0epublisher_name\x18\t \x01(\tR\rpublisherName\x12#\n" +
+	"\rpublisher_url\x18\n" +
+	" \x01(\tR\fpublisherUrl\x12!\n" +
+	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\xdd\x05\n" +
 	"\x0ePluginManifest\x12\x1b\n" +
 	"\tplugin_id\x18\x01 \x01(\tR\bpluginId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x1a\n" +
@@ -1554,7 +1706,8 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x06assets\x18\n" +
 	" \x03(\v2\x1d.silo.plugin.v1.PackagedAssetR\x06assets\x123\n" +
 	"\bmetadata\x18\v \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1a\n" +
-	"\bcategory\x18\f \x01(\tR\bcategory\"\x14\n" +
+	"\bcategory\x18\f \x01(\tR\bcategory\x12F\n" +
+	"\fpresentation\x18\r \x01(\v2\".silo.plugin.v1.PluginPresentationR\fpresentation\"\x14\n" +
 	"\x12GetManifestRequest\"Q\n" +
 	"\x13GetManifestResponse\x12:\n" +
 	"\bmanifest\x18\x01 \x01(\v2\x1e.silo.plugin.v1.PluginManifestR\bmanifest\"G\n" +
@@ -1591,7 +1744,7 @@ func file_silo_plugin_v1_common_proto_rawDescGZIP() []byte {
 }
 
 var file_silo_plugin_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_silo_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_silo_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_silo_plugin_v1_common_proto_goTypes = []any{
 	(AdminFormControl)(0),          // 0: silo.plugin.v1.AdminFormControl
 	(*SupportedPlatform)(nil),      // 1: silo.plugin.v1.SupportedPlatform
@@ -1606,49 +1759,51 @@ var file_silo_plugin_v1_common_proto_goTypes = []any{
 	(*HttpRouteDescriptor)(nil),    // 10: silo.plugin.v1.HttpRouteDescriptor
 	(*PackagedAsset)(nil),          // 11: silo.plugin.v1.PackagedAsset
 	(*CapabilityDescriptor)(nil),   // 12: silo.plugin.v1.CapabilityDescriptor
-	(*PluginManifest)(nil),         // 13: silo.plugin.v1.PluginManifest
-	(*GetManifestRequest)(nil),     // 14: silo.plugin.v1.GetManifestRequest
-	(*GetManifestResponse)(nil),    // 15: silo.plugin.v1.GetManifestResponse
-	(*ConfigureRequest)(nil),       // 16: silo.plugin.v1.ConfigureRequest
-	(*ConfigureResponse)(nil),      // 17: silo.plugin.v1.ConfigureResponse
-	(*BindHostBrokerRequest)(nil),  // 18: silo.plugin.v1.BindHostBrokerRequest
-	(*BindHostBrokerResponse)(nil), // 19: silo.plugin.v1.BindHostBrokerResponse
-	(*structpb.Value)(nil),         // 20: google.protobuf.Value
-	(*structpb.Struct)(nil),        // 21: google.protobuf.Struct
+	(*PluginPresentation)(nil),     // 13: silo.plugin.v1.PluginPresentation
+	(*PluginManifest)(nil),         // 14: silo.plugin.v1.PluginManifest
+	(*GetManifestRequest)(nil),     // 15: silo.plugin.v1.GetManifestRequest
+	(*GetManifestResponse)(nil),    // 16: silo.plugin.v1.GetManifestResponse
+	(*ConfigureRequest)(nil),       // 17: silo.plugin.v1.ConfigureRequest
+	(*ConfigureResponse)(nil),      // 18: silo.plugin.v1.ConfigureResponse
+	(*BindHostBrokerRequest)(nil),  // 19: silo.plugin.v1.BindHostBrokerRequest
+	(*BindHostBrokerResponse)(nil), // 20: silo.plugin.v1.BindHostBrokerResponse
+	(*structpb.Value)(nil),         // 21: google.protobuf.Value
+	(*structpb.Struct)(nil),        // 22: google.protobuf.Struct
 }
 var file_silo_plugin_v1_common_proto_depIdxs = []int32{
 	8,  // 0: silo.plugin.v1.ConfigSchema.admin_form:type_name -> silo.plugin.v1.AdminFormDescriptor
 	0,  // 1: silo.plugin.v1.AdminFormField.control:type_name -> silo.plugin.v1.AdminFormControl
-	20, // 2: silo.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
+	21, // 2: silo.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
 	3,  // 3: silo.plugin.v1.AdminFormField.options:type_name -> silo.plugin.v1.AdminFormOption
 	5,  // 4: silo.plugin.v1.AdminFormField.show_when:type_name -> silo.plugin.v1.AdminFormCondition
 	6,  // 5: silo.plugin.v1.AdminFormField.validation:type_name -> silo.plugin.v1.AdminFormValidation
 	5,  // 6: silo.plugin.v1.AdminFormSection.show_when:type_name -> silo.plugin.v1.AdminFormCondition
 	4,  // 7: silo.plugin.v1.AdminFormDescriptor.fields:type_name -> silo.plugin.v1.AdminFormField
 	7,  // 8: silo.plugin.v1.AdminFormDescriptor.sections:type_name -> silo.plugin.v1.AdminFormSection
-	21, // 9: silo.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
+	22, // 9: silo.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
 	2,  // 10: silo.plugin.v1.CapabilityDescriptor.config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	21, // 11: silo.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
+	22, // 11: silo.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
 	1,  // 12: silo.plugin.v1.PluginManifest.supported_platforms:type_name -> silo.plugin.v1.SupportedPlatform
 	12, // 13: silo.plugin.v1.PluginManifest.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
 	2,  // 14: silo.plugin.v1.PluginManifest.global_config_schema:type_name -> silo.plugin.v1.ConfigSchema
 	2,  // 15: silo.plugin.v1.PluginManifest.user_config_schema:type_name -> silo.plugin.v1.ConfigSchema
 	10, // 16: silo.plugin.v1.PluginManifest.http_routes:type_name -> silo.plugin.v1.HttpRouteDescriptor
 	11, // 17: silo.plugin.v1.PluginManifest.assets:type_name -> silo.plugin.v1.PackagedAsset
-	21, // 18: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
-	13, // 19: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
-	9,  // 20: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
-	14, // 21: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
-	16, // 22: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
-	18, // 23: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
-	15, // 24: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
-	17, // 25: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
-	19, // 26: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
-	24, // [24:27] is the sub-list for method output_type
-	21, // [21:24] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	22, // 18: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
+	13, // 19: silo.plugin.v1.PluginManifest.presentation:type_name -> silo.plugin.v1.PluginPresentation
+	14, // 20: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
+	9,  // 21: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
+	15, // 22: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
+	17, // 23: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
+	19, // 24: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
+	16, // 25: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
+	18, // 26: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
+	20, // 27: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
+	25, // [25:28] is the sub-list for method output_type
+	22, // [22:25] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_common_proto_init() }
@@ -1662,7 +1817,7 @@ func file_silo_plugin_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_common_proto_rawDesc), len(file_silo_plugin_v1_common_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   19,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

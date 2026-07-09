@@ -138,6 +138,23 @@ message CapabilityDescriptor {
   string icon_url = 9;
 }
 
+// PluginPresentation describes a plugin for server operators and links them to
+// its publisher, source, support, and release history. These values are
+// self-declared by the plugin and never determine catalog approval.
+message PluginPresentation {
+  string display_name = 1;
+  string summary = 2;
+  string description_markdown = 3;
+  string setup_markdown = 4;
+  string homepage_url = 5;
+  string source_url = 6;
+  string support_url = 7;
+  string changelog_url = 8;
+  string publisher_name = 9;
+  string publisher_url = 10;
+  string license_spdx = 11;
+}
+
 message PluginManifest {
   string plugin_id = 1;
   string version = 2;
@@ -156,6 +173,9 @@ message PluginManifest {
   // without a category render under "Other". The host does not validate
   // the value; the sidebar tolerates unknown segments.
   string category = 12;
+  // Optional operator-facing identity, documentation, and repository links.
+  // Older manifests remain valid when this block is absent.
+  PluginPresentation presentation = 13;
 }
 
 service Runtime {
