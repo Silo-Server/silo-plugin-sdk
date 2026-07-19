@@ -41,6 +41,41 @@ func TestValidateWatchSyncProviderRejectsMissingDescriptor(t *testing.T) {
 	}
 }
 
+func TestValidateWatchSyncProviderRejectsUnspecifiedAuthMethod(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.AuthMethods = []pluginv1.WatchSyncAuthMethod{
+		pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_UNSPECIFIED,
+	}
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected unspecified auth method to fail")
+	}
+}
+
+func TestValidateWatchSyncProviderRejectsEmptyMediaTypes(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.SupportedMediaTypes = nil
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected empty supported media types to fail")
+	}
+}
+
+func validWatchSyncManifest() *pluginv1.PluginManifest {
+	return &pluginv1.PluginManifest{
+		PluginId: "silo.valid", Version: "1.0.0",
+		Capabilities: []*pluginv1.CapabilityDescriptor{{
+			Type: "watch_sync_provider.v1", Id: "valid",
+			WatchSyncProvider: &pluginv1.WatchSyncProviderDescriptor{
+				AuthMethods: []pluginv1.WatchSyncAuthMethod{
+					pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_API_KEY,
+				},
+				ExportWatched:       true,
+				SupportedMediaTypes: []string{"movie"},
+				MaxBatchSize:        1,
+			},
+		}},
+	}
+}
+
 func TestValidateWatchSyncProviderRejectsDescriptorOnOtherCapability(t *testing.T) {
 	manifest := &pluginv1.PluginManifest{
 		PluginId: "silo.invalid", Version: "1.0.0",

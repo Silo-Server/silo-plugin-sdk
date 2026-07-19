@@ -151,11 +151,19 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 	if len(watchSync.GetAuthMethods()) == 0 {
 		return fmt.Errorf("plugin capability %q: at least one watch sync auth method is required", descriptor.GetId())
 	}
+	for _, method := range watchSync.GetAuthMethods() {
+		if method == pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_UNSPECIFIED {
+			return fmt.Errorf("plugin capability %q: watch sync auth method cannot be unspecified", descriptor.GetId())
+		}
+	}
 	if !watchSync.GetExportWatched() && !watchSync.GetExportUnwatched() && !watchSync.GetImportWatched() && !watchSync.GetImportProgress() {
 		return fmt.Errorf("plugin capability %q: at least one watch sync operation is required", descriptor.GetId())
 	}
 	if watchSync.GetMaxBatchSize() < 1 || watchSync.GetMaxBatchSize() > 100 {
 		return fmt.Errorf("plugin capability %q: watch sync max_batch_size must be between 1 and 100", descriptor.GetId())
+	}
+	if len(watchSync.GetSupportedMediaTypes()) == 0 {
+		return fmt.Errorf("plugin capability %q: at least one supported media type is required", descriptor.GetId())
 	}
 	for _, mediaType := range watchSync.GetSupportedMediaTypes() {
 		if mediaType != "movie" && mediaType != "episode" {
