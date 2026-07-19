@@ -1,0 +1,241 @@
+syntax = "proto3";
+
+package silo.plugin.v1;
+
+option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// WatchSyncProvider adapts an external watch-tracking service to Silo's
+// host-owned credential, outbox, retry, and reconciliation pipeline. Plugins
+// must treat credentials and provider secrets as transient request data and
+// must not persist or log them.
+service WatchSyncProvider {
+  rpc InitAuthorize(WatchSyncInitAuthorizeRequest) returns (WatchSyncInitAuthorizeResponse);
+  rpc ExchangeCode(WatchSyncExchangeCodeRequest) returns (WatchSyncCredentialResponse);
+  rpc ExchangeAPIKey(WatchSyncExchangeAPIKeyRequest) returns (WatchSyncCredentialResponse);
+  rpc RefreshCredentials(WatchSyncRefreshCredentialsRequest) returns (WatchSyncCredentialResponse);
+  rpc GetAccount(WatchSyncGetAccountRequest) returns (WatchSyncGetAccountResponse);
+  rpc ApplyEvents(WatchSyncApplyEventsRequest) returns (WatchSyncApplyEventsResponse);
+  rpc ListRemoteState(WatchSyncListRemoteStateRequest) returns (WatchSyncListRemoteStateResponse);
+}
+
+enum WatchSyncAuthMethod {
+  WATCH_SYNC_AUTH_METHOD_UNSPECIFIED = 0;
+  WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE = 1;
+  WATCH_SYNC_AUTH_METHOD_API_KEY = 2;
+}
+
+enum WatchSyncOperation {
+  WATCH_SYNC_OPERATION_UNSPECIFIED = 0;
+  WATCH_SYNC_OPERATION_MARK_WATCHED = 1;
+  WATCH_SYNC_OPERATION_MARK_UNWATCHED = 2;
+}
+
+enum WatchSyncOrigin {
+  WATCH_SYNC_ORIGIN_UNSPECIFIED = 0;
+  WATCH_SYNC_ORIGIN_PLAYBACK_COMPLETION = 1;
+  WATCH_SYNC_ORIGIN_MANUAL = 2;
+  WATCH_SYNC_ORIGIN_RECONCILIATION = 3;
+}
+
+enum WatchSyncApplyStatus {
+  WATCH_SYNC_APPLY_STATUS_UNSPECIFIED = 0;
+  WATCH_SYNC_APPLY_STATUS_APPLIED = 1;
+  WATCH_SYNC_APPLY_STATUS_NO_CHANGE = 2;
+  WATCH_SYNC_APPLY_STATUS_RETRY = 3;
+  WATCH_SYNC_APPLY_STATUS_REJECTED = 4;
+}
+
+enum WatchSyncFaultCode {
+  WATCH_SYNC_FAULT_CODE_UNSPECIFIED = 0;
+  WATCH_SYNC_FAULT_CODE_TEMPORARY = 1;
+  WATCH_SYNC_FAULT_CODE_RATE_LIMITED = 2;
+  WATCH_SYNC_FAULT_CODE_INVALID_CREDENTIAL = 3;
+  WATCH_SYNC_FAULT_CODE_PERMISSION_DENIED = 4;
+  WATCH_SYNC_FAULT_CODE_INVALID_REQUEST = 5;
+  WATCH_SYNC_FAULT_CODE_PERMANENT = 6;
+}
+
+message WatchSyncProviderDescriptor {
+  repeated WatchSyncAuthMethod auth_methods = 1;
+  bool export_watched = 2;
+  bool export_unwatched = 3;
+  bool import_watched = 4;
+  bool import_progress = 5;
+  repeated string supported_media_types = 6;
+  repeated string external_id_namespaces = 7;
+  int32 max_batch_size = 8;
+}
+
+message WatchSyncProviderConfig {
+  map<string, string> values = 1;
+  // The host encrypts these values at rest and includes them only in RPCs that
+  // need them. They are never Runtime.Configure entries.
+  map<string, string> secret_values = 2;
+}
+
+message WatchSyncCredentials {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  string token_type = 4;
+  repeated string scopes = 5;
+  // Provider-specific token fields. The host encrypts the credential as one
+  // opaque record and does not interpret these values.
+  map<string, string> secret_attributes = 6;
+}
+
+message WatchSyncAccount {
+  string external_subject = 1;
+  string username = 2;
+  string display_name = 3;
+  string avatar_url = 4;
+  string profile_url = 5;
+}
+
+message WatchSyncFault {
+  WatchSyncFaultCode code = 1;
+  // Safe for persistence and operator display. Must not contain credentials,
+  // authorization codes, provider response bodies, or other secrets.
+  string safe_message = 2;
+  google.protobuf.Duration retry_after = 3;
+}
+
+message WatchSyncInitAuthorizeRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  string redirect_uri = 3;
+  // Generated, stored, and validated by the host.
+  string state = 4;
+}
+
+message WatchSyncInitAuthorizeResponse {
+  string authorization_url = 1;
+  // Plugin-defined flow data. The host encrypts it until callback completion
+  // and never returns it through the public HTTP API.
+  bytes provider_state = 2;
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncExchangeCodeRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  string redirect_uri = 3;
+  string authorization_code = 4;
+  bytes provider_state = 5;
+}
+
+message WatchSyncExchangeAPIKeyRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  // API key or manually-issued bearer token. The host does not persist this
+  // request field unless the plugin validates and returns it as credentials.
+  string api_key = 3;
+}
+
+message WatchSyncRefreshCredentialsRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  WatchSyncCredentials credentials = 3;
+}
+
+message WatchSyncCredentialResponse {
+  WatchSyncCredentials credentials = 1;
+  WatchSyncAccount account = 2;
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncGetAccountRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  WatchSyncCredentials credentials = 3;
+}
+
+message WatchSyncGetAccountResponse {
+  WatchSyncAccount account = 1;
+  WatchSyncFault fault = 2;
+}
+
+message WatchSyncMedia {
+  string media_item_id = 1;
+  string media_type = 2;
+  string title = 3;
+  string original_title = 4;
+  int32 year = 5;
+  map<string, string> external_ids = 6;
+  string series_media_item_id = 7;
+  string series_title = 8;
+  int32 series_year = 9;
+  map<string, string> series_external_ids = 10;
+  int32 season_number = 11;
+  int32 episode_number = 12;
+  int32 absolute_episode_number = 13;
+  int32 series_episode_count = 14;
+  google.protobuf.Struct metadata = 15;
+}
+
+message WatchSyncEvent {
+  // Stable across retries and unique within one provider connection.
+  string event_id = 1;
+  WatchSyncOperation operation = 2;
+  WatchSyncOrigin origin = 3;
+  google.protobuf.Timestamp occurred_at = 4;
+  WatchSyncMedia media = 5;
+  string watch_history_id = 6;
+  string playback_session_id = 7;
+  double position_seconds = 8;
+  double duration_seconds = 9;
+  double completion_percent = 10;
+  int32 play_count = 11;
+}
+
+message WatchSyncApplyEventsRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  WatchSyncCredentials credentials = 3;
+  // Ordered desired-state events. Duplicate event IDs must not be interpreted
+  // as increments; ApplyEvents is an at-least-once delivery contract.
+  repeated WatchSyncEvent events = 4;
+}
+
+message WatchSyncApplyResult {
+  string event_id = 1;
+  WatchSyncApplyStatus status = 2;
+  string safe_message = 3;
+  google.protobuf.Duration retry_after = 4;
+}
+
+message WatchSyncApplyEventsResponse {
+  repeated WatchSyncApplyResult results = 1;
+  WatchSyncCredentials updated_credentials = 2;
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncListRemoteStateRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  WatchSyncCredentials credentials = 3;
+  string cursor = 4;
+  string page_token = 5;
+  int32 page_size = 6;
+}
+
+message WatchSyncRemoteState {
+  string provider_item_key = 1;
+  WatchSyncMedia media = 2;
+  int32 progress = 3;
+  string status = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message WatchSyncListRemoteStateResponse {
+  repeated WatchSyncRemoteState items = 1;
+  string next_page_token = 2;
+  string next_cursor = 3;
+  bool complete_snapshot = 4;
+  WatchSyncCredentials updated_credentials = 5;
+  WatchSyncFault fault = 6;
+}

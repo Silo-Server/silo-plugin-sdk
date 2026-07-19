@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -22,7 +23,10 @@ import (
 // Note: capability types are recorded purely for discovery — the host exposes
 // them via the admin plugins API so SPAs can filter by them client-side.
 // They do not drive any dispatch behavior on the server side.
-var knownCapabilityTypes = knownCapabilityTypeSet()
+var (
+	knownCapabilityTypes = knownCapabilityTypeSet()
+	watchSyncSlugPattern = regexp.MustCompile(`^[a-z0-9]+(?:[._-][a-z0-9]+)*$`)
+)
 
 const (
 	maxPresentationDisplayNameRunes = 120
@@ -106,6 +110,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 		if _, ok := knownCapabilityTypes[capability.Type]; !ok {
 			return fmt.Errorf("plugin capability %q: unknown type %q", capability.Id, capability.Type)
 		}
+		if err := validateWatchSyncCapability(capability); err != nil {
+			return err
+		}
 	}
 	for _, schema := range manifest.GlobalConfigSchema {
 		if err := validateConfigSchema(schema); err != nil {
@@ -122,6 +129,42 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 			if err := validateConfigSchema(cs); err != nil {
 				return fmt.Errorf("capability %q config schema: %w", c.GetId(), err)
 			}
+		}
+	}
+	return nil
+}
+
+func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) error {
+	watchSync := descriptor.GetWatchSyncProvider()
+	if descriptor.GetType() != capability.WatchSyncProvider {
+		if watchSync != nil {
+			return fmt.Errorf("plugin capability %q: watch_sync_provider descriptor requires type %q", descriptor.GetId(), capability.WatchSyncProvider)
+		}
+		return nil
+	}
+	if !watchSyncSlugPattern.MatchString(descriptor.GetId()) {
+		return fmt.Errorf("plugin capability %q: watch sync capability id must be a path-safe lowercase slug", descriptor.GetId())
+	}
+	if watchSync == nil {
+		return fmt.Errorf("plugin capability %q: watch_sync_provider descriptor is required", descriptor.GetId())
+	}
+	if len(watchSync.GetAuthMethods()) == 0 {
+		return fmt.Errorf("plugin capability %q: at least one watch sync auth method is required", descriptor.GetId())
+	}
+	if !watchSync.GetExportWatched() && !watchSync.GetExportUnwatched() && !watchSync.GetImportWatched() && !watchSync.GetImportProgress() {
+		return fmt.Errorf("plugin capability %q: at least one watch sync operation is required", descriptor.GetId())
+	}
+	if watchSync.GetMaxBatchSize() < 1 || watchSync.GetMaxBatchSize() > 100 {
+		return fmt.Errorf("plugin capability %q: watch sync max_batch_size must be between 1 and 100", descriptor.GetId())
+	}
+	for _, mediaType := range watchSync.GetSupportedMediaTypes() {
+		if mediaType != "movie" && mediaType != "episode" {
+			return fmt.Errorf("plugin capability %q: unsupported watch sync media type %q", descriptor.GetId(), mediaType)
+		}
+	}
+	for _, namespace := range watchSync.GetExternalIdNamespaces() {
+		if !watchSyncSlugPattern.MatchString(namespace) {
+			return fmt.Errorf("plugin capability %q: invalid external id namespace %q", descriptor.GetId(), namespace)
 		}
 	}
 	return nil

@@ -28,6 +28,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `http_routes.v1`
 - `request_router.v1`
 - `scan_source.v1`
+- `watch_sync_provider.v1`
 - `audiobook_backend.v1`
 - `ebook_backend.v1`
 
@@ -120,6 +121,20 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 ```
 
 The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
+
+## Watch sync providers
+
+`watch_sync_provider.v1` lets external plugins participate in Silo's host-owned
+watch-provider pipeline. The host owns encrypted per-profile credentials,
+OAuth state, durable desired-state events, retries, ordering, and
+reconciliation. Plugins are stateless protocol adapters: they receive secrets
+only for the duration of an RPC, map rich movie/episode identity to an upstream
+service, and return typed apply or retry outcomes.
+
+Watch-sync plugins must not persist or log credentials, authorization codes,
+provider flow state, or secret configuration. `ApplyEvents` is an at-least-once
+contract; plugins must treat `event_id` as stable across retries and implement
+convergent desired-state updates rather than increments.
 
 ## Scan sources
 

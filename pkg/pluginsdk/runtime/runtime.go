@@ -23,17 +23,18 @@ const (
 )
 
 type CapabilityServers struct {
-	Runtime          pluginv1.RuntimeServer
-	MetadataProvider pluginv1.MetadataProviderServer
-	ImageResolver    pluginv1.ImageResolverServer
-	MarkerProvider   pluginv1.MarkerProviderServer
-	MediaAnalyzer    pluginv1.MediaAnalyzerServer
-	ScheduledTask    pluginv1.ScheduledTaskServer
-	ScanSource       pluginv1.ScanSourceServer
-	RequestRouter    pluginv1.RequestRouterServer
-	EventConsumer    pluginv1.EventConsumerServer
-	AuthProvider     pluginv1.AuthProviderServer
-	HttpRoutes       pluginv1.HttpRoutesServer
+	Runtime           pluginv1.RuntimeServer
+	MetadataProvider  pluginv1.MetadataProviderServer
+	ImageResolver     pluginv1.ImageResolverServer
+	MarkerProvider    pluginv1.MarkerProviderServer
+	MediaAnalyzer     pluginv1.MediaAnalyzerServer
+	ScheduledTask     pluginv1.ScheduledTaskServer
+	ScanSource        pluginv1.ScanSourceServer
+	RequestRouter     pluginv1.RequestRouterServer
+	EventConsumer     pluginv1.EventConsumerServer
+	AuthProvider      pluginv1.AuthProviderServer
+	HttpRoutes        pluginv1.HttpRoutesServer
+	WatchSyncProvider pluginv1.WatchSyncProviderServer
 }
 
 // Client wraps the gRPC connection to a plugin and provides typed accessors
@@ -128,6 +129,10 @@ func (c *Client) HttpRoutes() pluginv1.HttpRoutesClient {
 	return pluginv1.NewHttpRoutesClient(c.conn)
 }
 
+func (c *Client) WatchSyncProvider() pluginv1.WatchSyncProviderClient {
+	return pluginv1.NewWatchSyncProviderClient(c.conn)
+}
+
 type GRPCPlugin struct {
 	plugin.Plugin
 	Servers CapabilityServers
@@ -169,6 +174,9 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	}
 	if p.Servers.HttpRoutes != nil {
 		pluginv1.RegisterHttpRoutesServer(server, p.Servers.HttpRoutes)
+	}
+	if p.Servers.WatchSyncProvider != nil {
+		pluginv1.RegisterWatchSyncProviderServer(server, p.Servers.WatchSyncProvider)
 	}
 	return nil
 }
