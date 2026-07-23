@@ -22,6 +22,16 @@ service ImageResolver {
   rpc ResolveImageURLs(ResolveImageURLsRequest) returns (ResolveImageURLsResponse);
 }
 
+// TitleAlias is a provider-confirmed title for the same work. Kind is an open
+// lowercase value (currently "original", "localized", or "alternate") so
+// newer plugins can add alias classes without breaking older hosts.
+message TitleAlias {
+  string title = 1;
+  // BCP 47 / ISO language tag. Empty means the provider did not identify it.
+  string language = 2;
+  string kind = 3;
+}
+
 message ProviderSearchResult {
   string provider_id = 1;
   string item_type = 2;
@@ -31,6 +41,10 @@ message ProviderSearchResult {
   string overview = 6;
   google.protobuf.Struct provider_ids = 7;
   string image_url = 8;
+  repeated TitleAlias title_aliases = 9;
+  string title_language = 10;
+  bool title_is_fallback = 11;
+  string original_language = 12;
 }
 
 message SearchMetadataRequest {
@@ -119,6 +133,9 @@ message MetadataItem {
   string status = 31;
   // Remote promotional/supplemental videos (trailers, teasers, ...).
   repeated VideoRecord videos = 32;
+  repeated TitleAlias title_aliases = 33;
+  string title_language = 34;
+  bool title_is_fallback = 35;
 }
 
 message GetMetadataRequest {

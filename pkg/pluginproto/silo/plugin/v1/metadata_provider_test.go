@@ -3,6 +3,7 @@ package pluginv1
 import (
 	"testing"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -10,6 +11,62 @@ func TestMetadataItemDescriptor_IncludesReleaseDate(t *testing.T) {
 	field := (&MetadataItem{}).ProtoReflect().Descriptor().Fields().ByName("release_date")
 	if field == nil {
 		t.Fatal("MetadataItem descriptor is missing release_date")
+	}
+}
+
+func TestMetadataTitleDescriptors_IncludeAliasAndLanguageFields(t *testing.T) {
+	for name, message := range map[string]protoreflect.ProtoMessage{
+		"ProviderSearchResult": &ProviderSearchResult{},
+		"MetadataItem":         &MetadataItem{},
+	} {
+		fields := message.ProtoReflect().Descriptor().Fields()
+		for _, field := range []string{"title_aliases", "title_language", "title_is_fallback"} {
+			if fields.ByName(protoreflect.Name(field)) == nil {
+				t.Fatalf("%s descriptor is missing %s", name, field)
+			}
+		}
+	}
+
+	if (&ProviderSearchResult{}).ProtoReflect().Descriptor().Fields().ByName("original_language") == nil {
+		t.Fatal("ProviderSearchResult descriptor is missing original_language")
+	}
+
+	fields := (&TitleAlias{}).ProtoReflect().Descriptor().Fields()
+	for _, field := range []string{"title", "language", "kind"} {
+		if fields.ByName(protoreflect.Name(field)) == nil {
+			t.Fatalf("TitleAlias descriptor is missing %s", field)
+		}
+	}
+
+	assertFieldNumber := func(message protoreflect.ProtoMessage, field string, want protoreflect.FieldNumber) {
+		t.Helper()
+		got := message.ProtoReflect().Descriptor().Fields().ByName(protoreflect.Name(field))
+		if got == nil || got.Number() != want {
+			t.Fatalf("%T.%s field number = %v, want %d", message, field, got, want)
+		}
+	}
+	assertFieldNumber(&ProviderSearchResult{}, "title_aliases", 9)
+	assertFieldNumber(&ProviderSearchResult{}, "title_language", 10)
+	assertFieldNumber(&ProviderSearchResult{}, "title_is_fallback", 11)
+	assertFieldNumber(&ProviderSearchResult{}, "original_language", 12)
+	assertFieldNumber(&MetadataItem{}, "title_aliases", 33)
+	assertFieldNumber(&MetadataItem{}, "title_language", 34)
+	assertFieldNumber(&MetadataItem{}, "title_is_fallback", 35)
+}
+
+func TestProviderSearchResult_OldPayloadDecodesWithOptionalTitleFields(t *testing.T) {
+	oldPayload, err := proto.Marshal(&ProviderSearchResult{
+		ProviderId: "603", ItemType: "movie", Title: "The Matrix", OriginalTitle: "The Matrix", Year: 1999,
+	})
+	if err != nil {
+		t.Fatalf("marshal old-style payload: %v", err)
+	}
+	var decoded ProviderSearchResult
+	if err := proto.Unmarshal(oldPayload, &decoded); err != nil {
+		t.Fatalf("unmarshal old-style payload: %v", err)
+	}
+	if decoded.GetTitle() != "The Matrix" || len(decoded.GetTitleAliases()) != 0 || decoded.GetTitleLanguage() != "" || decoded.GetTitleIsFallback() {
+		t.Fatalf("decoded payload = %#v", &decoded)
 	}
 }
 
