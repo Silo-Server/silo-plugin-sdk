@@ -52,6 +52,24 @@ func TestMetadataTitleDescriptors_IncludeAliasAndLanguageFields(t *testing.T) {
 	assertFieldNumber(&MetadataItem{}, "title_aliases", 33)
 	assertFieldNumber(&MetadataItem{}, "title_language", 34)
 	assertFieldNumber(&MetadataItem{}, "title_is_fallback", 35)
+	assertFieldNumber(&MetadataItem{}, "title_aliases_complete", 36)
+}
+
+func TestMetadataItem_OldPayloadDecodesWithOptionalTitleFields(t *testing.T) {
+	oldPayload, err := proto.Marshal(&MetadataItem{
+		ProviderId: "603", ItemType: "movie", Title: "The Matrix", OriginalTitle: "The Matrix", Year: 1999,
+	})
+	if err != nil {
+		t.Fatalf("marshal old-style payload: %v", err)
+	}
+	var decoded MetadataItem
+	if err := proto.Unmarshal(oldPayload, &decoded); err != nil {
+		t.Fatalf("unmarshal old-style payload: %v", err)
+	}
+	if decoded.GetTitle() != "The Matrix" || decoded.GetOriginalTitle() != "The Matrix" || decoded.GetYear() != 1999 ||
+		len(decoded.GetTitleAliases()) != 0 || decoded.GetTitleLanguage() != "" || decoded.GetTitleIsFallback() || decoded.GetTitleAliasesComplete() {
+		t.Fatalf("decoded payload = %#v", &decoded)
+	}
 }
 
 func TestProviderSearchResult_OldPayloadDecodesWithOptionalTitleFields(t *testing.T) {

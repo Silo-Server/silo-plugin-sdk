@@ -136,6 +136,10 @@ message MetadataItem {
   repeated TitleAlias title_aliases = 33;
   string title_language = 34;
   bool title_is_fallback = 35;
+  // True only when title_aliases is an authoritative, complete snapshot for
+  // this provider response. Older plugins decode as false, so hosts must merge
+  // rather than delete aliases when completeness is unknown.
+  bool title_aliases_complete = 36;
 }
 
 message GetMetadataRequest {

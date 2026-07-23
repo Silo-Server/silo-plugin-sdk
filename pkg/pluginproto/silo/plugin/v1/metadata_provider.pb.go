@@ -616,8 +616,12 @@ type MetadataItem struct {
 	TitleAliases    []*TitleAlias  `protobuf:"bytes,33,rep,name=title_aliases,json=titleAliases,proto3" json:"title_aliases,omitempty"`
 	TitleLanguage   string         `protobuf:"bytes,34,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
 	TitleIsFallback bool           `protobuf:"varint,35,opt,name=title_is_fallback,json=titleIsFallback,proto3" json:"title_is_fallback,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// True only when title_aliases is an authoritative, complete snapshot for
+	// this provider response. Older plugins decode as false, so hosts must merge
+	// rather than delete aliases when completeness is unknown.
+	TitleAliasesComplete bool `protobuf:"varint,36,opt,name=title_aliases_complete,json=titleAliasesComplete,proto3" json:"title_aliases_complete,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *MetadataItem) Reset() {
@@ -892,6 +896,13 @@ func (x *MetadataItem) GetTitleLanguage() string {
 func (x *MetadataItem) GetTitleIsFallback() bool {
 	if x != nil {
 		return x.TitleIsFallback
+	}
+	return false
+}
+
+func (x *MetadataItem) GetTitleAliasesComplete() bool {
+	if x != nil {
+		return x.TitleAliasesComplete
 	}
 	return false
 }
@@ -2113,7 +2124,7 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\vis_official\x18\a \x01(\bR\n" +
 	"isOfficial\x12\x1b\n" +
 	"\tsize_hint\x18\b \x01(\x05R\bsizeHint\x12!\n" +
-	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\xb1\n" +
+	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\xe7\n" +
 	"\n" +
 	"\fMetadataItem\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
@@ -2154,7 +2165,8 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\x06videos\x18  \x03(\v2\x1b.silo.plugin.v1.VideoRecordR\x06videos\x12?\n" +
 	"\rtitle_aliases\x18! \x03(\v2\x1a.silo.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
 	"\x0etitle_language\x18\" \x01(\tR\rtitleLanguage\x12*\n" +
-	"\x11title_is_fallback\x18# \x01(\bR\x0ftitleIsFallback\"\xc7\x01\n" +
+	"\x11title_is_fallback\x18# \x01(\bR\x0ftitleIsFallback\x124\n" +
+	"\x16title_aliases_complete\x18$ \x01(\bR\x14titleAliasesComplete\"\xc7\x01\n" +
 	"\x12GetMetadataRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
