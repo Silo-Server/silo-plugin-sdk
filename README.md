@@ -139,6 +139,10 @@ convergent desired-state updates rather than increments.
 Authenticated RPCs receive the same host-owned capability, configuration, and
 credential data through `WatchSyncAuthenticatedContext`. The context exists
 only for one invocation and is never plugin configuration or plugin state.
+Credentials returned by any RPC are complete authoritative replacements, not
+patches. The host validates and persists them before consuming results, pages,
+or faults—even when the response contains a fault. If credential persistence
+fails, the host commits no other response data.
 
 Descriptors and events use the shared `WatchSyncMediaType` enum so advertised
 support and delivered media cannot drift between string conventions. Apply

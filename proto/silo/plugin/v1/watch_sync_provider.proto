@@ -83,6 +83,11 @@ message WatchSyncProviderConfig {
   map<string, string> secret_values = 2;
 }
 
+// When returned by a plugin, this message is a complete authoritative
+// replacement, not a patch. The plugin must omit it unless it is valid for the
+// next RPC. The host validates and persists it before consuming any other
+// response field, including a fault. If persistence fails, the host treats the
+// RPC as failed and commits no other response data.
 message WatchSyncCredentials {
   string access_token = 1;
   string refresh_token = 2;
@@ -157,8 +162,12 @@ message WatchSyncRefreshCredentialsRequest {
 }
 
 message WatchSyncCredentialResponse {
+  // Follows the WatchSyncCredentials response commit rule, even when fault is
+  // also set.
   WatchSyncCredentials credentials = 1;
+  // Consumed only after credentials are persisted and fault is absent.
   WatchSyncAccount account = 2;
+  // Surfaced after credentials are persisted. When set, account is ignored.
   WatchSyncFault fault = 3;
 }
 
@@ -223,9 +232,11 @@ message WatchSyncApplyResult {
 
 message WatchSyncApplyEventsResponse {
   repeated WatchSyncApplyResult results = 1;
+  // Complete authoritative replacement. The host persists it before consuming
+  // results or fault; a persistence failure leaves every event uncommitted.
   WatchSyncCredentials updated_credentials = 2;
-  // Batch-level failure. When set, the host ignores results and applies the
-  // fault to the entire request.
+  // Batch-level failure. After successfully persisting updated_credentials,
+  // the host ignores results and applies the fault to the entire request.
   WatchSyncFault fault = 3;
 }
 
@@ -279,8 +290,11 @@ message WatchSyncListRemoteStateResponse {
   // incremental delta, so an absent item must not be interpreted as deletion.
   // The value must remain stable across every page in one traversal.
   bool complete_snapshot = 4;
+  // Complete authoritative replacement. The host persists it before consuming
+  // this page or fault; a persistence failure discards the page and cursor.
   WatchSyncCredentials updated_credentials = 5;
-  // Traversal-level failure. When set, the host discards this page and keeps
-  // its previously committed cursor.
+  // Traversal-level failure. After successfully persisting
+  // updated_credentials, the host discards this page and keeps its previously
+  // committed cursor.
   WatchSyncFault fault = 6;
 }

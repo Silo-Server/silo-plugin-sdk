@@ -493,6 +493,11 @@ func (x *WatchSyncProviderConfig) GetSecretValues() map[string]string {
 	return nil
 }
 
+// When returned by a plugin, this message is a complete authoritative
+// replacement, not a patch. The plugin must omit it unless it is valid for the
+// next RPC. The host validates and persists it before consuming any other
+// response field, including a fault. If persistence fails, the host treats the
+// RPC as failed and commits no other response data.
 type WatchSyncCredentials struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken  string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
@@ -1095,10 +1100,14 @@ func (x *WatchSyncRefreshCredentialsRequest) GetContext() *WatchSyncAuthenticate
 }
 
 type WatchSyncCredentialResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Credentials   *WatchSyncCredentials  `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
-	Account       *WatchSyncAccount      `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
-	Fault         *WatchSyncFault        `protobuf:"bytes,3,opt,name=fault,proto3" json:"fault,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Follows the WatchSyncCredentials response commit rule, even when fault is
+	// also set.
+	Credentials *WatchSyncCredentials `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	// Consumed only after credentials are persisted and fault is absent.
+	Account *WatchSyncAccount `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	// Surfaced after credentials are persisted. When set, account is ignored.
+	Fault         *WatchSyncFault `protobuf:"bytes,3,opt,name=fault,proto3" json:"fault,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1650,11 +1659,13 @@ func (x *WatchSyncApplyResult) GetFault() *WatchSyncFault {
 }
 
 type WatchSyncApplyEventsResponse struct {
-	state              protoimpl.MessageState  `protogen:"open.v1"`
-	Results            []*WatchSyncApplyResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
-	UpdatedCredentials *WatchSyncCredentials   `protobuf:"bytes,2,opt,name=updated_credentials,json=updatedCredentials,proto3" json:"updated_credentials,omitempty"`
-	// Batch-level failure. When set, the host ignores results and applies the
-	// fault to the entire request.
+	state   protoimpl.MessageState  `protogen:"open.v1"`
+	Results []*WatchSyncApplyResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	// Complete authoritative replacement. The host persists it before consuming
+	// results or fault; a persistence failure leaves every event uncommitted.
+	UpdatedCredentials *WatchSyncCredentials `protobuf:"bytes,2,opt,name=updated_credentials,json=updatedCredentials,proto3" json:"updated_credentials,omitempty"`
+	// Batch-level failure. After successfully persisting updated_credentials,
+	// the host ignores results and applies the fault to the entire request.
 	Fault         *WatchSyncFault `protobuf:"bytes,3,opt,name=fault,proto3" json:"fault,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1977,10 +1988,13 @@ type WatchSyncListRemoteStateResponse struct {
 	// True when this traversal is an authoritative full snapshot. False means an
 	// incremental delta, so an absent item must not be interpreted as deletion.
 	// The value must remain stable across every page in one traversal.
-	CompleteSnapshot   bool                  `protobuf:"varint,4,opt,name=complete_snapshot,json=completeSnapshot,proto3" json:"complete_snapshot,omitempty"`
+	CompleteSnapshot bool `protobuf:"varint,4,opt,name=complete_snapshot,json=completeSnapshot,proto3" json:"complete_snapshot,omitempty"`
+	// Complete authoritative replacement. The host persists it before consuming
+	// this page or fault; a persistence failure discards the page and cursor.
 	UpdatedCredentials *WatchSyncCredentials `protobuf:"bytes,5,opt,name=updated_credentials,json=updatedCredentials,proto3" json:"updated_credentials,omitempty"`
-	// Traversal-level failure. When set, the host discards this page and keeps
-	// its previously committed cursor.
+	// Traversal-level failure. After successfully persisting
+	// updated_credentials, the host discards this page and keeps its previously
+	// committed cursor.
 	Fault         *WatchSyncFault `protobuf:"bytes,6,opt,name=fault,proto3" json:"fault,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
