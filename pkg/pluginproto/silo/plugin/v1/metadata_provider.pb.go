@@ -22,23 +22,91 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ProviderSearchResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	ItemType      string                 `protobuf:"bytes,2,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"`
-	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	OriginalTitle string                 `protobuf:"bytes,4,opt,name=original_title,json=originalTitle,proto3" json:"original_title,omitempty"`
-	Year          int32                  `protobuf:"varint,5,opt,name=year,proto3" json:"year,omitempty"`
-	Overview      string                 `protobuf:"bytes,6,opt,name=overview,proto3" json:"overview,omitempty"`
-	ProviderIds   *structpb.Struct       `protobuf:"bytes,7,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
-	ImageUrl      string                 `protobuf:"bytes,8,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+// TitleAlias is a provider-confirmed title for the same work. Kind is an open
+// lowercase value (currently "original", "localized", or "alternate") so
+// newer plugins can add alias classes without breaking older hosts.
+type TitleAlias struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Title string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// BCP 47 / ISO language tag. Empty means the provider did not identify it.
+	Language      string `protobuf:"bytes,2,opt,name=language,proto3" json:"language,omitempty"`
+	Kind          string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *TitleAlias) Reset() {
+	*x = TitleAlias{}
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TitleAlias) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TitleAlias) ProtoMessage() {}
+
+func (x *TitleAlias) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TitleAlias.ProtoReflect.Descriptor instead.
+func (*TitleAlias) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *TitleAlias) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *TitleAlias) GetLanguage() string {
+	if x != nil {
+		return x.Language
+	}
+	return ""
+}
+
+func (x *TitleAlias) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+type ProviderSearchResult struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ProviderId       string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	ItemType         string                 `protobuf:"bytes,2,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"`
+	Title            string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	OriginalTitle    string                 `protobuf:"bytes,4,opt,name=original_title,json=originalTitle,proto3" json:"original_title,omitempty"`
+	Year             int32                  `protobuf:"varint,5,opt,name=year,proto3" json:"year,omitempty"`
+	Overview         string                 `protobuf:"bytes,6,opt,name=overview,proto3" json:"overview,omitempty"`
+	ProviderIds      *structpb.Struct       `protobuf:"bytes,7,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
+	ImageUrl         string                 `protobuf:"bytes,8,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	TitleAliases     []*TitleAlias          `protobuf:"bytes,9,rep,name=title_aliases,json=titleAliases,proto3" json:"title_aliases,omitempty"`
+	TitleLanguage    string                 `protobuf:"bytes,10,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
+	TitleIsFallback  bool                   `protobuf:"varint,11,opt,name=title_is_fallback,json=titleIsFallback,proto3" json:"title_is_fallback,omitempty"`
+	OriginalLanguage string                 `protobuf:"bytes,12,opt,name=original_language,json=originalLanguage,proto3" json:"original_language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
 func (x *ProviderSearchResult) Reset() {
 	*x = ProviderSearchResult{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[0]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -50,7 +118,7 @@ func (x *ProviderSearchResult) String() string {
 func (*ProviderSearchResult) ProtoMessage() {}
 
 func (x *ProviderSearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[0]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -63,7 +131,7 @@ func (x *ProviderSearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderSearchResult.ProtoReflect.Descriptor instead.
 func (*ProviderSearchResult) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{0}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ProviderSearchResult) GetProviderId() string {
@@ -122,6 +190,34 @@ func (x *ProviderSearchResult) GetImageUrl() string {
 	return ""
 }
 
+func (x *ProviderSearchResult) GetTitleAliases() []*TitleAlias {
+	if x != nil {
+		return x.TitleAliases
+	}
+	return nil
+}
+
+func (x *ProviderSearchResult) GetTitleLanguage() string {
+	if x != nil {
+		return x.TitleLanguage
+	}
+	return ""
+}
+
+func (x *ProviderSearchResult) GetTitleIsFallback() bool {
+	if x != nil {
+		return x.TitleIsFallback
+	}
+	return false
+}
+
+func (x *ProviderSearchResult) GetOriginalLanguage() string {
+	if x != nil {
+		return x.OriginalLanguage
+	}
+	return ""
+}
+
 type SearchMetadataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
@@ -135,7 +231,7 @@ type SearchMetadataRequest struct {
 
 func (x *SearchMetadataRequest) Reset() {
 	*x = SearchMetadataRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[1]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -147,7 +243,7 @@ func (x *SearchMetadataRequest) String() string {
 func (*SearchMetadataRequest) ProtoMessage() {}
 
 func (x *SearchMetadataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[1]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -160,7 +256,7 @@ func (x *SearchMetadataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchMetadataRequest.ProtoReflect.Descriptor instead.
 func (*SearchMetadataRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{1}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SearchMetadataRequest) GetQuery() string {
@@ -207,7 +303,7 @@ type SearchMetadataResponse struct {
 
 func (x *SearchMetadataResponse) Reset() {
 	*x = SearchMetadataResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[2]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -219,7 +315,7 @@ func (x *SearchMetadataResponse) String() string {
 func (*SearchMetadataResponse) ProtoMessage() {}
 
 func (x *SearchMetadataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[2]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -232,7 +328,7 @@ func (x *SearchMetadataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchMetadataResponse.ProtoReflect.Descriptor instead.
 func (*SearchMetadataResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{2}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SearchMetadataResponse) GetResults() []*ProviderSearchResult {
@@ -260,7 +356,7 @@ type PersonRecord struct {
 
 func (x *PersonRecord) Reset() {
 	*x = PersonRecord{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -272,7 +368,7 @@ func (x *PersonRecord) String() string {
 func (*PersonRecord) ProtoMessage() {}
 
 func (x *PersonRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -285,7 +381,7 @@ func (x *PersonRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PersonRecord.ProtoReflect.Descriptor instead.
 func (*PersonRecord) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{3}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PersonRecord) GetName() string {
@@ -387,7 +483,7 @@ type VideoRecord struct {
 
 func (x *VideoRecord) Reset() {
 	*x = VideoRecord{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -399,7 +495,7 @@ func (x *VideoRecord) String() string {
 func (*VideoRecord) ProtoMessage() {}
 
 func (x *VideoRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -412,7 +508,7 @@ func (x *VideoRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VideoRecord.ProtoReflect.Descriptor instead.
 func (*VideoRecord) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{4}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *VideoRecord) GetProviderKey() string {
@@ -516,14 +612,21 @@ type MetadataItem struct {
 	// MangaDex ongoing/completed) normalize into these two forms.
 	Status string `protobuf:"bytes,31,opt,name=status,proto3" json:"status,omitempty"`
 	// Remote promotional/supplemental videos (trailers, teasers, ...).
-	Videos        []*VideoRecord `protobuf:"bytes,32,rep,name=videos,proto3" json:"videos,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Videos          []*VideoRecord `protobuf:"bytes,32,rep,name=videos,proto3" json:"videos,omitempty"`
+	TitleAliases    []*TitleAlias  `protobuf:"bytes,33,rep,name=title_aliases,json=titleAliases,proto3" json:"title_aliases,omitempty"`
+	TitleLanguage   string         `protobuf:"bytes,34,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
+	TitleIsFallback bool           `protobuf:"varint,35,opt,name=title_is_fallback,json=titleIsFallback,proto3" json:"title_is_fallback,omitempty"`
+	// True only when title_aliases is an authoritative, complete snapshot for
+	// this provider response. Older plugins decode as false, so hosts must merge
+	// rather than delete aliases when completeness is unknown.
+	TitleAliasesComplete bool `protobuf:"varint,36,opt,name=title_aliases_complete,json=titleAliasesComplete,proto3" json:"title_aliases_complete,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *MetadataItem) Reset() {
 	*x = MetadataItem{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -535,7 +638,7 @@ func (x *MetadataItem) String() string {
 func (*MetadataItem) ProtoMessage() {}
 
 func (x *MetadataItem) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -548,7 +651,7 @@ func (x *MetadataItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetadataItem.ProtoReflect.Descriptor instead.
 func (*MetadataItem) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{5}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *MetadataItem) GetProviderId() string {
@@ -776,6 +879,34 @@ func (x *MetadataItem) GetVideos() []*VideoRecord {
 	return nil
 }
 
+func (x *MetadataItem) GetTitleAliases() []*TitleAlias {
+	if x != nil {
+		return x.TitleAliases
+	}
+	return nil
+}
+
+func (x *MetadataItem) GetTitleLanguage() string {
+	if x != nil {
+		return x.TitleLanguage
+	}
+	return ""
+}
+
+func (x *MetadataItem) GetTitleIsFallback() bool {
+	if x != nil {
+		return x.TitleIsFallback
+	}
+	return false
+}
+
+func (x *MetadataItem) GetTitleAliasesComplete() bool {
+	if x != nil {
+		return x.TitleAliasesComplete
+	}
+	return false
+}
+
 type GetMetadataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
@@ -789,7 +920,7 @@ type GetMetadataRequest struct {
 
 func (x *GetMetadataRequest) Reset() {
 	*x = GetMetadataRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -801,7 +932,7 @@ func (x *GetMetadataRequest) String() string {
 func (*GetMetadataRequest) ProtoMessage() {}
 
 func (x *GetMetadataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -814,7 +945,7 @@ func (x *GetMetadataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMetadataRequest.ProtoReflect.Descriptor instead.
 func (*GetMetadataRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{6}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetMetadataRequest) GetProviderId() string {
@@ -861,7 +992,7 @@ type GetMetadataResponse struct {
 
 func (x *GetMetadataResponse) Reset() {
 	*x = GetMetadataResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -873,7 +1004,7 @@ func (x *GetMetadataResponse) String() string {
 func (*GetMetadataResponse) ProtoMessage() {}
 
 func (x *GetMetadataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -886,7 +1017,7 @@ func (x *GetMetadataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMetadataResponse.ProtoReflect.Descriptor instead.
 func (*GetMetadataResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{7}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetMetadataResponse) GetItem() *MetadataItem {
@@ -906,7 +1037,7 @@ type GetPersonDetailRequest struct {
 
 func (x *GetPersonDetailRequest) Reset() {
 	*x = GetPersonDetailRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -918,7 +1049,7 @@ func (x *GetPersonDetailRequest) String() string {
 func (*GetPersonDetailRequest) ProtoMessage() {}
 
 func (x *GetPersonDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -931,7 +1062,7 @@ func (x *GetPersonDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPersonDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetPersonDetailRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{8}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetPersonDetailRequest) GetProviderIds() *structpb.Struct {
@@ -966,7 +1097,7 @@ type PersonDetailRecord struct {
 
 func (x *PersonDetailRecord) Reset() {
 	*x = PersonDetailRecord{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1109,7 @@ func (x *PersonDetailRecord) String() string {
 func (*PersonDetailRecord) ProtoMessage() {}
 
 func (x *PersonDetailRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1122,7 @@ func (x *PersonDetailRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PersonDetailRecord.ProtoReflect.Descriptor instead.
 func (*PersonDetailRecord) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{9}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *PersonDetailRecord) GetName() string {
@@ -1073,7 +1204,7 @@ type GetPersonDetailResponse struct {
 
 func (x *GetPersonDetailResponse) Reset() {
 	*x = GetPersonDetailResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1085,7 +1216,7 @@ func (x *GetPersonDetailResponse) String() string {
 func (*GetPersonDetailResponse) ProtoMessage() {}
 
 func (x *GetPersonDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1098,7 +1229,7 @@ func (x *GetPersonDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPersonDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetPersonDetailResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{10}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetPersonDetailResponse) GetPerson() *PersonDetailRecord {
@@ -1124,7 +1255,7 @@ type SeasonRecord struct {
 
 func (x *SeasonRecord) Reset() {
 	*x = SeasonRecord{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1136,7 +1267,7 @@ func (x *SeasonRecord) String() string {
 func (*SeasonRecord) ProtoMessage() {}
 
 func (x *SeasonRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1149,7 +1280,7 @@ func (x *SeasonRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeasonRecord.ProtoReflect.Descriptor instead.
 func (*SeasonRecord) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{11}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SeasonRecord) GetSeasonNumber() int32 {
@@ -1219,7 +1350,7 @@ type GetSeasonsRequest struct {
 
 func (x *GetSeasonsRequest) Reset() {
 	*x = GetSeasonsRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1231,7 +1362,7 @@ func (x *GetSeasonsRequest) String() string {
 func (*GetSeasonsRequest) ProtoMessage() {}
 
 func (x *GetSeasonsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1244,7 +1375,7 @@ func (x *GetSeasonsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeasonsRequest.ProtoReflect.Descriptor instead.
 func (*GetSeasonsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetSeasonsRequest) GetSeriesProviderId() string {
@@ -1277,7 +1408,7 @@ type GetSeasonsResponse struct {
 
 func (x *GetSeasonsResponse) Reset() {
 	*x = GetSeasonsResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1289,7 +1420,7 @@ func (x *GetSeasonsResponse) String() string {
 func (*GetSeasonsResponse) ProtoMessage() {}
 
 func (x *GetSeasonsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1302,7 +1433,7 @@ func (x *GetSeasonsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeasonsResponse.ProtoReflect.Descriptor instead.
 func (*GetSeasonsResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{13}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetSeasonsResponse) GetSeasons() []*SeasonRecord {
@@ -1331,7 +1462,7 @@ type EpisodeRecord struct {
 
 func (x *EpisodeRecord) Reset() {
 	*x = EpisodeRecord{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1343,7 +1474,7 @@ func (x *EpisodeRecord) String() string {
 func (*EpisodeRecord) ProtoMessage() {}
 
 func (x *EpisodeRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1356,7 +1487,7 @@ func (x *EpisodeRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EpisodeRecord.ProtoReflect.Descriptor instead.
 func (*EpisodeRecord) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{14}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *EpisodeRecord) GetSeasonNumber() int32 {
@@ -1448,7 +1579,7 @@ type GetEpisodesRequest struct {
 
 func (x *GetEpisodesRequest) Reset() {
 	*x = GetEpisodesRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1460,7 +1591,7 @@ func (x *GetEpisodesRequest) String() string {
 func (*GetEpisodesRequest) ProtoMessage() {}
 
 func (x *GetEpisodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1473,7 +1604,7 @@ func (x *GetEpisodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEpisodesRequest.ProtoReflect.Descriptor instead.
 func (*GetEpisodesRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{15}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetEpisodesRequest) GetSeriesProviderId() string {
@@ -1513,7 +1644,7 @@ type GetEpisodesResponse struct {
 
 func (x *GetEpisodesResponse) Reset() {
 	*x = GetEpisodesResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1525,7 +1656,7 @@ func (x *GetEpisodesResponse) String() string {
 func (*GetEpisodesResponse) ProtoMessage() {}
 
 func (x *GetEpisodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1538,7 +1669,7 @@ func (x *GetEpisodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEpisodesResponse.ProtoReflect.Descriptor instead.
 func (*GetEpisodesResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{16}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetEpisodesResponse) GetEpisodes() []*EpisodeRecord {
@@ -1562,7 +1693,7 @@ type ImageRecord struct {
 
 func (x *ImageRecord) Reset() {
 	*x = ImageRecord{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1574,7 +1705,7 @@ func (x *ImageRecord) String() string {
 func (*ImageRecord) ProtoMessage() {}
 
 func (x *ImageRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1587,7 +1718,7 @@ func (x *ImageRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImageRecord.ProtoReflect.Descriptor instead.
 func (*ImageRecord) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{17}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ImageRecord) GetKind() string {
@@ -1644,7 +1775,7 @@ type GetImagesRequest struct {
 
 func (x *GetImagesRequest) Reset() {
 	*x = GetImagesRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1656,7 +1787,7 @@ func (x *GetImagesRequest) String() string {
 func (*GetImagesRequest) ProtoMessage() {}
 
 func (x *GetImagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1669,7 +1800,7 @@ func (x *GetImagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetImagesRequest.ProtoReflect.Descriptor instead.
 func (*GetImagesRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{18}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetImagesRequest) GetProviderId() string {
@@ -1709,7 +1840,7 @@ type GetImagesResponse struct {
 
 func (x *GetImagesResponse) Reset() {
 	*x = GetImagesResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1721,7 +1852,7 @@ func (x *GetImagesResponse) String() string {
 func (*GetImagesResponse) ProtoMessage() {}
 
 func (x *GetImagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1734,7 +1865,7 @@ func (x *GetImagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetImagesResponse.ProtoReflect.Descriptor instead.
 func (*GetImagesResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{19}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetImagesResponse) GetImages() []*ImageRecord {
@@ -1754,7 +1885,7 @@ type ResolveImageURLRequest struct {
 
 func (x *ResolveImageURLRequest) Reset() {
 	*x = ResolveImageURLRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[20]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1766,7 +1897,7 @@ func (x *ResolveImageURLRequest) String() string {
 func (*ResolveImageURLRequest) ProtoMessage() {}
 
 func (x *ResolveImageURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[20]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1779,7 +1910,7 @@ func (x *ResolveImageURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveImageURLRequest.ProtoReflect.Descriptor instead.
 func (*ResolveImageURLRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{20}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ResolveImageURLRequest) GetPath() string {
@@ -1805,7 +1936,7 @@ type ResolveImageURLResponse struct {
 
 func (x *ResolveImageURLResponse) Reset() {
 	*x = ResolveImageURLResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[21]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1817,7 +1948,7 @@ func (x *ResolveImageURLResponse) String() string {
 func (*ResolveImageURLResponse) ProtoMessage() {}
 
 func (x *ResolveImageURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[21]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1830,7 +1961,7 @@ func (x *ResolveImageURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveImageURLResponse.ProtoReflect.Descriptor instead.
 func (*ResolveImageURLResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{21}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ResolveImageURLResponse) GetUrl() string {
@@ -1850,7 +1981,7 @@ type ResolveImageURLsRequest struct {
 
 func (x *ResolveImageURLsRequest) Reset() {
 	*x = ResolveImageURLsRequest{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[22]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1862,7 +1993,7 @@ func (x *ResolveImageURLsRequest) String() string {
 func (*ResolveImageURLsRequest) ProtoMessage() {}
 
 func (x *ResolveImageURLsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[22]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1875,7 +2006,7 @@ func (x *ResolveImageURLsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveImageURLsRequest.ProtoReflect.Descriptor instead.
 func (*ResolveImageURLsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{22}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ResolveImageURLsRequest) GetPaths() []string {
@@ -1901,7 +2032,7 @@ type ResolveImageURLsResponse struct {
 
 func (x *ResolveImageURLsResponse) Reset() {
 	*x = ResolveImageURLsResponse{}
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[23]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1913,7 +2044,7 @@ func (x *ResolveImageURLsResponse) String() string {
 func (*ResolveImageURLsResponse) ProtoMessage() {}
 
 func (x *ResolveImageURLsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[23]
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1926,7 +2057,7 @@ func (x *ResolveImageURLsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveImageURLsResponse.ProtoReflect.Descriptor instead.
 func (*ResolveImageURLsResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{23}
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ResolveImageURLsResponse) GetUrls() map[string]string {
@@ -1940,7 +2071,12 @@ var File_silo_plugin_v1_metadata_provider_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\n" +
-	"&silo/plugin/v1/metadata_provider.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"\x9a\x02\n" +
+	"&silo/plugin/v1/metadata_provider.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"R\n" +
+	"\n" +
+	"TitleAlias\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12\x1a\n" +
+	"\blanguage\x18\x02 \x01(\tR\blanguage\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\"\xdb\x03\n" +
 	"\x14ProviderSearchResult\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -1950,7 +2086,12 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\x04year\x18\x05 \x01(\x05R\x04year\x12\x1a\n" +
 	"\boverview\x18\x06 \x01(\tR\boverview\x12:\n" +
 	"\fprovider_ids\x18\a \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1b\n" +
-	"\timage_url\x18\b \x01(\tR\bimageUrl\"\xb6\x01\n" +
+	"\timage_url\x18\b \x01(\tR\bimageUrl\x12?\n" +
+	"\rtitle_aliases\x18\t \x03(\v2\x1a.silo.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
+	"\x0etitle_language\x18\n" +
+	" \x01(\tR\rtitleLanguage\x12*\n" +
+	"\x11title_is_fallback\x18\v \x01(\bR\x0ftitleIsFallback\x12+\n" +
+	"\x11original_language\x18\f \x01(\tR\x10originalLanguage\"\xb6\x01\n" +
 	"\x15SearchMetadataRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\x12\x1b\n" +
 	"\titem_type\x18\x02 \x01(\tR\bitemType\x12\x12\n" +
@@ -1983,7 +2124,8 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\vis_official\x18\a \x01(\bR\n" +
 	"isOfficial\x12\x1b\n" +
 	"\tsize_hint\x18\b \x01(\x05R\bsizeHint\x12!\n" +
-	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\x9d\t\n" +
+	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\xe7\n" +
+	"\n" +
 	"\fMetadataItem\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -2020,7 +2162,11 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\frelease_date\x18\x1d \x01(\tR\vreleaseDate\x12\x19\n" +
 	"\bair_time\x18\x1e \x01(\tR\aairTime\x12\x16\n" +
 	"\x06status\x18\x1f \x01(\tR\x06status\x123\n" +
-	"\x06videos\x18  \x03(\v2\x1b.silo.plugin.v1.VideoRecordR\x06videos\"\xc7\x01\n" +
+	"\x06videos\x18  \x03(\v2\x1b.silo.plugin.v1.VideoRecordR\x06videos\x12?\n" +
+	"\rtitle_aliases\x18! \x03(\v2\x1a.silo.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
+	"\x0etitle_language\x18\" \x01(\tR\rtitleLanguage\x12*\n" +
+	"\x11title_is_fallback\x18# \x01(\bR\x0ftitleIsFallback\x124\n" +
+	"\x16title_aliases_complete\x18$ \x01(\bR\x14titleAliasesComplete\"\xc7\x01\n" +
 	"\x12GetMetadataRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -2145,88 +2291,91 @@ func file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_metadata_provider_proto_rawDescData
 }
 
-var file_silo_plugin_v1_metadata_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_silo_plugin_v1_metadata_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_silo_plugin_v1_metadata_provider_proto_goTypes = []any{
-	(*ProviderSearchResult)(nil),     // 0: silo.plugin.v1.ProviderSearchResult
-	(*SearchMetadataRequest)(nil),    // 1: silo.plugin.v1.SearchMetadataRequest
-	(*SearchMetadataResponse)(nil),   // 2: silo.plugin.v1.SearchMetadataResponse
-	(*PersonRecord)(nil),             // 3: silo.plugin.v1.PersonRecord
-	(*VideoRecord)(nil),              // 4: silo.plugin.v1.VideoRecord
-	(*MetadataItem)(nil),             // 5: silo.plugin.v1.MetadataItem
-	(*GetMetadataRequest)(nil),       // 6: silo.plugin.v1.GetMetadataRequest
-	(*GetMetadataResponse)(nil),      // 7: silo.plugin.v1.GetMetadataResponse
-	(*GetPersonDetailRequest)(nil),   // 8: silo.plugin.v1.GetPersonDetailRequest
-	(*PersonDetailRecord)(nil),       // 9: silo.plugin.v1.PersonDetailRecord
-	(*GetPersonDetailResponse)(nil),  // 10: silo.plugin.v1.GetPersonDetailResponse
-	(*SeasonRecord)(nil),             // 11: silo.plugin.v1.SeasonRecord
-	(*GetSeasonsRequest)(nil),        // 12: silo.plugin.v1.GetSeasonsRequest
-	(*GetSeasonsResponse)(nil),       // 13: silo.plugin.v1.GetSeasonsResponse
-	(*EpisodeRecord)(nil),            // 14: silo.plugin.v1.EpisodeRecord
-	(*GetEpisodesRequest)(nil),       // 15: silo.plugin.v1.GetEpisodesRequest
-	(*GetEpisodesResponse)(nil),      // 16: silo.plugin.v1.GetEpisodesResponse
-	(*ImageRecord)(nil),              // 17: silo.plugin.v1.ImageRecord
-	(*GetImagesRequest)(nil),         // 18: silo.plugin.v1.GetImagesRequest
-	(*GetImagesResponse)(nil),        // 19: silo.plugin.v1.GetImagesResponse
-	(*ResolveImageURLRequest)(nil),   // 20: silo.plugin.v1.ResolveImageURLRequest
-	(*ResolveImageURLResponse)(nil),  // 21: silo.plugin.v1.ResolveImageURLResponse
-	(*ResolveImageURLsRequest)(nil),  // 22: silo.plugin.v1.ResolveImageURLsRequest
-	(*ResolveImageURLsResponse)(nil), // 23: silo.plugin.v1.ResolveImageURLsResponse
-	nil,                              // 24: silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
-	(*structpb.Struct)(nil),          // 25: google.protobuf.Struct
+	(*TitleAlias)(nil),               // 0: silo.plugin.v1.TitleAlias
+	(*ProviderSearchResult)(nil),     // 1: silo.plugin.v1.ProviderSearchResult
+	(*SearchMetadataRequest)(nil),    // 2: silo.plugin.v1.SearchMetadataRequest
+	(*SearchMetadataResponse)(nil),   // 3: silo.plugin.v1.SearchMetadataResponse
+	(*PersonRecord)(nil),             // 4: silo.plugin.v1.PersonRecord
+	(*VideoRecord)(nil),              // 5: silo.plugin.v1.VideoRecord
+	(*MetadataItem)(nil),             // 6: silo.plugin.v1.MetadataItem
+	(*GetMetadataRequest)(nil),       // 7: silo.plugin.v1.GetMetadataRequest
+	(*GetMetadataResponse)(nil),      // 8: silo.plugin.v1.GetMetadataResponse
+	(*GetPersonDetailRequest)(nil),   // 9: silo.plugin.v1.GetPersonDetailRequest
+	(*PersonDetailRecord)(nil),       // 10: silo.plugin.v1.PersonDetailRecord
+	(*GetPersonDetailResponse)(nil),  // 11: silo.plugin.v1.GetPersonDetailResponse
+	(*SeasonRecord)(nil),             // 12: silo.plugin.v1.SeasonRecord
+	(*GetSeasonsRequest)(nil),        // 13: silo.plugin.v1.GetSeasonsRequest
+	(*GetSeasonsResponse)(nil),       // 14: silo.plugin.v1.GetSeasonsResponse
+	(*EpisodeRecord)(nil),            // 15: silo.plugin.v1.EpisodeRecord
+	(*GetEpisodesRequest)(nil),       // 16: silo.plugin.v1.GetEpisodesRequest
+	(*GetEpisodesResponse)(nil),      // 17: silo.plugin.v1.GetEpisodesResponse
+	(*ImageRecord)(nil),              // 18: silo.plugin.v1.ImageRecord
+	(*GetImagesRequest)(nil),         // 19: silo.plugin.v1.GetImagesRequest
+	(*GetImagesResponse)(nil),        // 20: silo.plugin.v1.GetImagesResponse
+	(*ResolveImageURLRequest)(nil),   // 21: silo.plugin.v1.ResolveImageURLRequest
+	(*ResolveImageURLResponse)(nil),  // 22: silo.plugin.v1.ResolveImageURLResponse
+	(*ResolveImageURLsRequest)(nil),  // 23: silo.plugin.v1.ResolveImageURLsRequest
+	(*ResolveImageURLsResponse)(nil), // 24: silo.plugin.v1.ResolveImageURLsResponse
+	nil,                              // 25: silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
+	(*structpb.Struct)(nil),          // 26: google.protobuf.Struct
 }
 var file_silo_plugin_v1_metadata_provider_proto_depIdxs = []int32{
-	25, // 0: silo.plugin.v1.ProviderSearchResult.provider_ids:type_name -> google.protobuf.Struct
-	25, // 1: silo.plugin.v1.SearchMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
-	0,  // 2: silo.plugin.v1.SearchMetadataResponse.results:type_name -> silo.plugin.v1.ProviderSearchResult
-	25, // 3: silo.plugin.v1.MetadataItem.provider_ids:type_name -> google.protobuf.Struct
-	25, // 4: silo.plugin.v1.MetadataItem.ratings:type_name -> google.protobuf.Struct
-	25, // 5: silo.plugin.v1.MetadataItem.legacy_people:type_name -> google.protobuf.Struct
-	25, // 6: silo.plugin.v1.MetadataItem.metadata:type_name -> google.protobuf.Struct
-	3,  // 7: silo.plugin.v1.MetadataItem.people:type_name -> silo.plugin.v1.PersonRecord
-	4,  // 8: silo.plugin.v1.MetadataItem.videos:type_name -> silo.plugin.v1.VideoRecord
-	25, // 9: silo.plugin.v1.GetMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
-	5,  // 10: silo.plugin.v1.GetMetadataResponse.item:type_name -> silo.plugin.v1.MetadataItem
-	25, // 11: silo.plugin.v1.GetPersonDetailRequest.provider_ids:type_name -> google.protobuf.Struct
-	25, // 12: silo.plugin.v1.PersonDetailRecord.provider_ids:type_name -> google.protobuf.Struct
-	9,  // 13: silo.plugin.v1.GetPersonDetailResponse.person:type_name -> silo.plugin.v1.PersonDetailRecord
-	25, // 14: silo.plugin.v1.SeasonRecord.metadata:type_name -> google.protobuf.Struct
-	25, // 15: silo.plugin.v1.SeasonRecord.provider_ids:type_name -> google.protobuf.Struct
-	25, // 16: silo.plugin.v1.GetSeasonsRequest.provider_ids:type_name -> google.protobuf.Struct
-	11, // 17: silo.plugin.v1.GetSeasonsResponse.seasons:type_name -> silo.plugin.v1.SeasonRecord
-	25, // 18: silo.plugin.v1.EpisodeRecord.provider_ids:type_name -> google.protobuf.Struct
-	25, // 19: silo.plugin.v1.EpisodeRecord.ratings:type_name -> google.protobuf.Struct
-	25, // 20: silo.plugin.v1.EpisodeRecord.metadata:type_name -> google.protobuf.Struct
-	25, // 21: silo.plugin.v1.GetEpisodesRequest.provider_ids:type_name -> google.protobuf.Struct
-	14, // 22: silo.plugin.v1.GetEpisodesResponse.episodes:type_name -> silo.plugin.v1.EpisodeRecord
-	25, // 23: silo.plugin.v1.ImageRecord.metadata:type_name -> google.protobuf.Struct
-	25, // 24: silo.plugin.v1.GetImagesRequest.provider_ids:type_name -> google.protobuf.Struct
-	17, // 25: silo.plugin.v1.GetImagesResponse.images:type_name -> silo.plugin.v1.ImageRecord
-	24, // 26: silo.plugin.v1.ResolveImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
-	1,  // 27: silo.plugin.v1.MetadataProvider.Search:input_type -> silo.plugin.v1.SearchMetadataRequest
-	6,  // 28: silo.plugin.v1.MetadataProvider.GetMetadata:input_type -> silo.plugin.v1.GetMetadataRequest
-	8,  // 29: silo.plugin.v1.MetadataProvider.GetPersonDetail:input_type -> silo.plugin.v1.GetPersonDetailRequest
-	12, // 30: silo.plugin.v1.MetadataProvider.GetSeasons:input_type -> silo.plugin.v1.GetSeasonsRequest
-	15, // 31: silo.plugin.v1.MetadataProvider.GetEpisodes:input_type -> silo.plugin.v1.GetEpisodesRequest
-	18, // 32: silo.plugin.v1.MetadataProvider.GetImages:input_type -> silo.plugin.v1.GetImagesRequest
-	20, // 33: silo.plugin.v1.MetadataProvider.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
-	22, // 34: silo.plugin.v1.MetadataProvider.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
-	20, // 35: silo.plugin.v1.ImageResolver.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
-	22, // 36: silo.plugin.v1.ImageResolver.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
-	2,  // 37: silo.plugin.v1.MetadataProvider.Search:output_type -> silo.plugin.v1.SearchMetadataResponse
-	7,  // 38: silo.plugin.v1.MetadataProvider.GetMetadata:output_type -> silo.plugin.v1.GetMetadataResponse
-	10, // 39: silo.plugin.v1.MetadataProvider.GetPersonDetail:output_type -> silo.plugin.v1.GetPersonDetailResponse
-	13, // 40: silo.plugin.v1.MetadataProvider.GetSeasons:output_type -> silo.plugin.v1.GetSeasonsResponse
-	16, // 41: silo.plugin.v1.MetadataProvider.GetEpisodes:output_type -> silo.plugin.v1.GetEpisodesResponse
-	19, // 42: silo.plugin.v1.MetadataProvider.GetImages:output_type -> silo.plugin.v1.GetImagesResponse
-	21, // 43: silo.plugin.v1.MetadataProvider.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
-	23, // 44: silo.plugin.v1.MetadataProvider.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
-	21, // 45: silo.plugin.v1.ImageResolver.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
-	23, // 46: silo.plugin.v1.ImageResolver.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
-	37, // [37:47] is the sub-list for method output_type
-	27, // [27:37] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	26, // 0: silo.plugin.v1.ProviderSearchResult.provider_ids:type_name -> google.protobuf.Struct
+	0,  // 1: silo.plugin.v1.ProviderSearchResult.title_aliases:type_name -> silo.plugin.v1.TitleAlias
+	26, // 2: silo.plugin.v1.SearchMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
+	1,  // 3: silo.plugin.v1.SearchMetadataResponse.results:type_name -> silo.plugin.v1.ProviderSearchResult
+	26, // 4: silo.plugin.v1.MetadataItem.provider_ids:type_name -> google.protobuf.Struct
+	26, // 5: silo.plugin.v1.MetadataItem.ratings:type_name -> google.protobuf.Struct
+	26, // 6: silo.plugin.v1.MetadataItem.legacy_people:type_name -> google.protobuf.Struct
+	26, // 7: silo.plugin.v1.MetadataItem.metadata:type_name -> google.protobuf.Struct
+	4,  // 8: silo.plugin.v1.MetadataItem.people:type_name -> silo.plugin.v1.PersonRecord
+	5,  // 9: silo.plugin.v1.MetadataItem.videos:type_name -> silo.plugin.v1.VideoRecord
+	0,  // 10: silo.plugin.v1.MetadataItem.title_aliases:type_name -> silo.plugin.v1.TitleAlias
+	26, // 11: silo.plugin.v1.GetMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
+	6,  // 12: silo.plugin.v1.GetMetadataResponse.item:type_name -> silo.plugin.v1.MetadataItem
+	26, // 13: silo.plugin.v1.GetPersonDetailRequest.provider_ids:type_name -> google.protobuf.Struct
+	26, // 14: silo.plugin.v1.PersonDetailRecord.provider_ids:type_name -> google.protobuf.Struct
+	10, // 15: silo.plugin.v1.GetPersonDetailResponse.person:type_name -> silo.plugin.v1.PersonDetailRecord
+	26, // 16: silo.plugin.v1.SeasonRecord.metadata:type_name -> google.protobuf.Struct
+	26, // 17: silo.plugin.v1.SeasonRecord.provider_ids:type_name -> google.protobuf.Struct
+	26, // 18: silo.plugin.v1.GetSeasonsRequest.provider_ids:type_name -> google.protobuf.Struct
+	12, // 19: silo.plugin.v1.GetSeasonsResponse.seasons:type_name -> silo.plugin.v1.SeasonRecord
+	26, // 20: silo.plugin.v1.EpisodeRecord.provider_ids:type_name -> google.protobuf.Struct
+	26, // 21: silo.plugin.v1.EpisodeRecord.ratings:type_name -> google.protobuf.Struct
+	26, // 22: silo.plugin.v1.EpisodeRecord.metadata:type_name -> google.protobuf.Struct
+	26, // 23: silo.plugin.v1.GetEpisodesRequest.provider_ids:type_name -> google.protobuf.Struct
+	15, // 24: silo.plugin.v1.GetEpisodesResponse.episodes:type_name -> silo.plugin.v1.EpisodeRecord
+	26, // 25: silo.plugin.v1.ImageRecord.metadata:type_name -> google.protobuf.Struct
+	26, // 26: silo.plugin.v1.GetImagesRequest.provider_ids:type_name -> google.protobuf.Struct
+	18, // 27: silo.plugin.v1.GetImagesResponse.images:type_name -> silo.plugin.v1.ImageRecord
+	25, // 28: silo.plugin.v1.ResolveImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
+	2,  // 29: silo.plugin.v1.MetadataProvider.Search:input_type -> silo.plugin.v1.SearchMetadataRequest
+	7,  // 30: silo.plugin.v1.MetadataProvider.GetMetadata:input_type -> silo.plugin.v1.GetMetadataRequest
+	9,  // 31: silo.plugin.v1.MetadataProvider.GetPersonDetail:input_type -> silo.plugin.v1.GetPersonDetailRequest
+	13, // 32: silo.plugin.v1.MetadataProvider.GetSeasons:input_type -> silo.plugin.v1.GetSeasonsRequest
+	16, // 33: silo.plugin.v1.MetadataProvider.GetEpisodes:input_type -> silo.plugin.v1.GetEpisodesRequest
+	19, // 34: silo.plugin.v1.MetadataProvider.GetImages:input_type -> silo.plugin.v1.GetImagesRequest
+	21, // 35: silo.plugin.v1.MetadataProvider.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
+	23, // 36: silo.plugin.v1.MetadataProvider.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
+	21, // 37: silo.plugin.v1.ImageResolver.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
+	23, // 38: silo.plugin.v1.ImageResolver.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
+	3,  // 39: silo.plugin.v1.MetadataProvider.Search:output_type -> silo.plugin.v1.SearchMetadataResponse
+	8,  // 40: silo.plugin.v1.MetadataProvider.GetMetadata:output_type -> silo.plugin.v1.GetMetadataResponse
+	11, // 41: silo.plugin.v1.MetadataProvider.GetPersonDetail:output_type -> silo.plugin.v1.GetPersonDetailResponse
+	14, // 42: silo.plugin.v1.MetadataProvider.GetSeasons:output_type -> silo.plugin.v1.GetSeasonsResponse
+	17, // 43: silo.plugin.v1.MetadataProvider.GetEpisodes:output_type -> silo.plugin.v1.GetEpisodesResponse
+	20, // 44: silo.plugin.v1.MetadataProvider.GetImages:output_type -> silo.plugin.v1.GetImagesResponse
+	22, // 45: silo.plugin.v1.MetadataProvider.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
+	24, // 46: silo.plugin.v1.MetadataProvider.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
+	22, // 47: silo.plugin.v1.ImageResolver.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
+	24, // 48: silo.plugin.v1.ImageResolver.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
+	39, // [39:49] is the sub-list for method output_type
+	29, // [29:39] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_metadata_provider_proto_init() }
@@ -2240,7 +2389,7 @@ func file_silo_plugin_v1_metadata_provider_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_metadata_provider_proto_rawDesc), len(file_silo_plugin_v1_metadata_provider_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   25,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
