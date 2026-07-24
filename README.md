@@ -28,6 +28,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `http_routes.v1`
 - `request_router.v1`
 - `scan_source.v1`
+- `watch_sync_provider.v1`
 - `audiobook_backend.v1`
 - `ebook_backend.v1`
 
@@ -120,6 +121,43 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 ```
 
 The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
+
+## Watch sync providers
+
+`watch_sync_provider.v1` lets external plugins participate in Silo's host-owned
+watch-provider pipeline. The host owns encrypted per-profile credentials,
+OAuth state, durable desired-state events, retries, ordering, and
+reconciliation. Plugins are stateless protocol adapters: they receive secrets
+only for the duration of an RPC, map rich movie/episode identity to an upstream
+service, and return typed apply or retry outcomes.
+
+Watch-sync plugins must not persist or log credentials, authorization codes,
+provider flow state, or secret configuration. `ApplyEvents` is an at-least-once
+contract; plugins must treat `event_id` as stable across retries and implement
+convergent desired-state updates rather than increments.
+
+Authenticated RPCs receive the same host-owned capability, configuration, and
+credential data through `WatchSyncAuthenticatedContext`. The context exists
+only for one invocation and is never plugin configuration or plugin state.
+Credentials returned by any RPC are complete authoritative replacements, not
+patches. The host validates and persists them before consuming results, pages,
+or faults—even when the response contains a fault. If credential persistence
+fails, the host commits no other response data.
+
+Descriptors and events use the shared `WatchSyncMediaType` enum so advertised
+support and delivered media cannot drift between string conventions. Apply
+results pair their delivery status with a typed fault: successful results omit
+the fault, temporary retries use `TEMPORARY`, rate limits use `RATE_LIMITED`
+with an optional delay, and rejected events use a non-retryable fault code.
+Connection-wide faults such as invalid credentials belong on the RPC response.
+
+`ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
+play count and last-watched time; `progress` carries a fractional percentage and
+paused time. An item may contain either or both. The host keeps the request
+`cursor` fixed while following ephemeral page tokens, commits each successful
+page, and only then persists the final `next_cursor`. `complete_snapshot=true`
+means the traversal is authoritative; when false, missing items are not
+deletions.
 
 ## Scan sources
 

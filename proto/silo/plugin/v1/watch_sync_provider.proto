@@ -1,0 +1,300 @@
+syntax = "proto3";
+
+package silo.plugin.v1;
+
+option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// WatchSyncProvider adapts an external watch-tracking service to Silo's
+// host-owned credential, outbox, retry, and reconciliation pipeline. Plugins
+// must treat credentials and provider secrets as transient request data and
+// must not persist or log them.
+service WatchSyncProvider {
+  rpc InitAuthorize(WatchSyncInitAuthorizeRequest) returns (WatchSyncInitAuthorizeResponse);
+  rpc ExchangeCode(WatchSyncExchangeCodeRequest) returns (WatchSyncCredentialResponse);
+  rpc ExchangeAPIKey(WatchSyncExchangeAPIKeyRequest) returns (WatchSyncCredentialResponse);
+  rpc RefreshCredentials(WatchSyncRefreshCredentialsRequest) returns (WatchSyncCredentialResponse);
+  rpc GetAccount(WatchSyncGetAccountRequest) returns (WatchSyncGetAccountResponse);
+  rpc ApplyEvents(WatchSyncApplyEventsRequest) returns (WatchSyncApplyEventsResponse);
+  rpc ListRemoteState(WatchSyncListRemoteStateRequest) returns (WatchSyncListRemoteStateResponse);
+}
+
+enum WatchSyncAuthMethod {
+  WATCH_SYNC_AUTH_METHOD_UNSPECIFIED = 0;
+  WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE = 1;
+  WATCH_SYNC_AUTH_METHOD_API_KEY = 2;
+}
+
+enum WatchSyncMediaType {
+  WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED = 0;
+  WATCH_SYNC_MEDIA_TYPE_MOVIE = 1;
+  WATCH_SYNC_MEDIA_TYPE_EPISODE = 2;
+}
+
+enum WatchSyncOperation {
+  WATCH_SYNC_OPERATION_UNSPECIFIED = 0;
+  WATCH_SYNC_OPERATION_MARK_WATCHED = 1;
+  WATCH_SYNC_OPERATION_MARK_UNWATCHED = 2;
+}
+
+enum WatchSyncOrigin {
+  WATCH_SYNC_ORIGIN_UNSPECIFIED = 0;
+  WATCH_SYNC_ORIGIN_PLAYBACK_COMPLETION = 1;
+  WATCH_SYNC_ORIGIN_MANUAL = 2;
+  WATCH_SYNC_ORIGIN_RECONCILIATION = 3;
+}
+
+enum WatchSyncApplyStatus {
+  WATCH_SYNC_APPLY_STATUS_UNSPECIFIED = 0;
+  WATCH_SYNC_APPLY_STATUS_APPLIED = 1;
+  WATCH_SYNC_APPLY_STATUS_NO_CHANGE = 2;
+  WATCH_SYNC_APPLY_STATUS_RETRY = 3;
+  WATCH_SYNC_APPLY_STATUS_REJECTED = 4;
+}
+
+enum WatchSyncFaultCode {
+  WATCH_SYNC_FAULT_CODE_UNSPECIFIED = 0;
+  WATCH_SYNC_FAULT_CODE_TEMPORARY = 1;
+  WATCH_SYNC_FAULT_CODE_RATE_LIMITED = 2;
+  WATCH_SYNC_FAULT_CODE_INVALID_CREDENTIAL = 3;
+  WATCH_SYNC_FAULT_CODE_PERMISSION_DENIED = 4;
+  WATCH_SYNC_FAULT_CODE_INVALID_REQUEST = 5;
+  WATCH_SYNC_FAULT_CODE_PERMANENT = 6;
+}
+
+message WatchSyncProviderDescriptor {
+  repeated WatchSyncAuthMethod auth_methods = 1;
+  bool export_watched = 2;
+  bool export_unwatched = 3;
+  bool import_watched = 4;
+  bool import_progress = 5;
+  repeated WatchSyncMediaType supported_media_types = 6;
+  repeated string external_id_namespaces = 7;
+  int32 max_batch_size = 8;
+}
+
+message WatchSyncProviderConfig {
+  map<string, string> values = 1;
+  // The host encrypts these values at rest and includes them only in RPCs that
+  // need them. They are never Runtime.Configure entries.
+  map<string, string> secret_values = 2;
+}
+
+// When returned by a plugin, this message is a complete authoritative
+// replacement, not a patch. The plugin must omit it unless it is valid for the
+// next RPC. The host validates and persists it before consuming any other
+// response field, including a fault. If persistence fails, the host treats the
+// RPC as failed and commits no other response data.
+message WatchSyncCredentials {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  string token_type = 4;
+  repeated string scopes = 5;
+  // Provider-specific token fields. The host encrypts the credential as one
+  // opaque record and does not interpret these values.
+  map<string, string> secret_attributes = 6;
+}
+
+// Host-owned context shared by RPCs after a profile connection is established.
+// Plugins must treat provider_config and credentials as transient request data.
+message WatchSyncAuthenticatedContext {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  WatchSyncCredentials credentials = 3;
+}
+
+message WatchSyncAccount {
+  string external_subject = 1;
+  string username = 2;
+  string display_name = 3;
+  string avatar_url = 4;
+  string profile_url = 5;
+}
+
+message WatchSyncFault {
+  WatchSyncFaultCode code = 1;
+  // Safe for persistence and operator display. Must not contain credentials,
+  // authorization codes, provider response bodies, or other secrets.
+  string safe_message = 2;
+  // Optional retry delay for TEMPORARY and RATE_LIMITED faults. Only
+  // RATE_LIMITED tells the host to defer the whole provider connection.
+  google.protobuf.Duration retry_after = 3;
+}
+
+message WatchSyncInitAuthorizeRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  string redirect_uri = 3;
+  // Generated, stored, and validated by the host.
+  string state = 4;
+}
+
+message WatchSyncInitAuthorizeResponse {
+  string authorization_url = 1;
+  // Plugin-defined flow data. The host encrypts it until callback completion
+  // and never returns it through the public HTTP API.
+  bytes provider_state = 2;
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncExchangeCodeRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  string redirect_uri = 3;
+  string authorization_code = 4;
+  bytes provider_state = 5;
+}
+
+message WatchSyncExchangeAPIKeyRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  // API key or manually-issued bearer token. The host does not persist this
+  // request field unless the plugin validates and returns it as credentials.
+  string api_key = 3;
+}
+
+message WatchSyncRefreshCredentialsRequest {
+  WatchSyncAuthenticatedContext context = 1;
+}
+
+message WatchSyncCredentialResponse {
+  // Follows the WatchSyncCredentials response commit rule, even when fault is
+  // also set.
+  WatchSyncCredentials credentials = 1;
+  // Consumed only after credentials are persisted and fault is absent.
+  WatchSyncAccount account = 2;
+  // Surfaced after credentials are persisted. When set, account is ignored.
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncGetAccountRequest {
+  WatchSyncAuthenticatedContext context = 1;
+}
+
+message WatchSyncGetAccountResponse {
+  WatchSyncAccount account = 1;
+  WatchSyncFault fault = 2;
+}
+
+message WatchSyncMedia {
+  string media_item_id = 1;
+  WatchSyncMediaType media_type = 2;
+  string title = 3;
+  string original_title = 4;
+  int32 year = 5;
+  map<string, string> external_ids = 6;
+  string series_media_item_id = 7;
+  string series_title = 8;
+  int32 series_year = 9;
+  map<string, string> series_external_ids = 10;
+  int32 season_number = 11;
+  int32 episode_number = 12;
+  int32 absolute_episode_number = 13;
+  int32 series_episode_count = 14;
+  google.protobuf.Struct metadata = 15;
+}
+
+message WatchSyncEvent {
+  // Stable across retries and unique within one provider connection.
+  string event_id = 1;
+  WatchSyncOperation operation = 2;
+  WatchSyncOrigin origin = 3;
+  google.protobuf.Timestamp occurred_at = 4;
+  WatchSyncMedia media = 5;
+  string watch_history_id = 6;
+  string playback_session_id = 7;
+  double position_seconds = 8;
+  double duration_seconds = 9;
+  double completion_percent = 10;
+  int32 play_count = 11;
+}
+
+message WatchSyncApplyEventsRequest {
+  WatchSyncAuthenticatedContext context = 1;
+  // Ordered desired-state events. Duplicate event IDs must not be interpreted
+  // as increments; ApplyEvents is an at-least-once delivery contract.
+  repeated WatchSyncEvent events = 2;
+}
+
+message WatchSyncApplyResult {
+  string event_id = 1;
+  WatchSyncApplyStatus status = 2;
+  // APPLIED and NO_CHANGE omit fault. RETRY uses TEMPORARY or RATE_LIMITED;
+  // retry_after is an account-wide deferral only when the code is RATE_LIMITED.
+  // REJECTED uses a non-retryable code such as INVALID_REQUEST or PERMANENT.
+  // Connection-wide faults such as INVALID_CREDENTIAL belong on the response.
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncApplyEventsResponse {
+  repeated WatchSyncApplyResult results = 1;
+  // Complete authoritative replacement. The host persists it before consuming
+  // results or fault; a persistence failure leaves every event uncommitted.
+  WatchSyncCredentials updated_credentials = 2;
+  // Batch-level failure. After successfully persisting updated_credentials,
+  // the host ignores results and applies the fault to the entire request.
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncListRemoteStateRequest {
+  WatchSyncAuthenticatedContext context = 1;
+  // Opaque durable checkpoint from the last traversal whose items the host
+  // committed successfully. The host keeps this value unchanged across every
+  // page in one traversal and persists only next_cursor from the final page.
+  string cursor = 2;
+  // Opaque continuation for the traversal identified by cursor. It is used
+  // only for the immediately following page and is never persisted or reused
+  // after the traversal completes or fails.
+  string page_token = 3;
+  // Requested maximum number of items. Plugins may return fewer.
+  int32 page_size = 4;
+}
+
+message WatchSyncRemoteWatchedState {
+  // Number of completed plays known to the provider. Must be at least one when
+  // this submessage is present.
+  int32 play_count = 1;
+  // Provider timestamp for the most recent completed play, when available.
+  google.protobuf.Timestamp last_watched_at = 2;
+}
+
+message WatchSyncRemoteProgressState {
+  // Resume progress in the range [0, 100). Completed plays belong in watched.
+  double progress_percent = 1;
+  // Provider timestamp for this resume state.
+  google.protobuf.Timestamp paused_at = 2;
+}
+
+message WatchSyncRemoteState {
+  string provider_item_key = 1;
+  WatchSyncMedia media = 2;
+  // At least one typed state must be present. Both may be present when the
+  // provider reports a completed play and a separate resume point.
+  WatchSyncRemoteWatchedState watched = 3;
+  WatchSyncRemoteProgressState progress = 4;
+}
+
+message WatchSyncListRemoteStateResponse {
+  repeated WatchSyncRemoteState items = 1;
+  // Non-empty when more pages remain. The host requests the next page with the
+  // original cursor and this token before committing next_cursor.
+  string next_page_token = 2;
+  // Durable checkpoint for the completed traversal. Plugins set this only on
+  // the final page; the host persists it only after committing every item.
+  string next_cursor = 3;
+  // True when this traversal is an authoritative full snapshot. False means an
+  // incremental delta, so an absent item must not be interpreted as deletion.
+  // The value must remain stable across every page in one traversal.
+  bool complete_snapshot = 4;
+  // Complete authoritative replacement. The host persists it before consuming
+  // this page or fault; a persistence failure discards the page and cursor.
+  WatchSyncCredentials updated_credentials = 5;
+  // Traversal-level failure. After successfully persisting
+  // updated_credentials, the host discards this page and keeps its previously
+  // committed cursor.
+  WatchSyncFault fault = 6;
+}

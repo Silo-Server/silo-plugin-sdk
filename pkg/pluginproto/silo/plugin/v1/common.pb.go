@@ -972,9 +972,13 @@ type CapabilityDescriptor struct {
 	// Optional URL to a logo for this auth provider, rendered in silo's
 	// login UI as the icon for a "Sign in with X" button. Plugin-served path
 	// (e.g., /api/v1/plugins/<install>/assets/whmcs-logo.svg).
-	IconUrl       string `protobuf:"bytes,9,opt,name=icon_url,json=iconUrl,proto3" json:"icon_url,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	IconUrl string `protobuf:"bytes,9,opt,name=icon_url,json=iconUrl,proto3" json:"icon_url,omitempty"`
+	// Typed watch-provider contract metadata. Only meaningful for capabilities
+	// of type "watch_sync_provider.v1". Keeping this typed lets the host build
+	// connection and authorization UI without launching the plugin.
+	WatchSyncProvider *WatchSyncProviderDescriptor `protobuf:"bytes,10,opt,name=watch_sync_provider,json=watchSyncProvider,proto3" json:"watch_sync_provider,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CapabilityDescriptor) Reset() {
@@ -1068,6 +1072,13 @@ func (x *CapabilityDescriptor) GetIconUrl() string {
 		return x.IconUrl
 	}
 	return ""
+}
+
+func (x *CapabilityDescriptor) GetWatchSyncProvider() *WatchSyncProviderDescriptor {
+	if x != nil {
+		return x.WatchSyncProvider
+	}
+	return nil
 }
 
 // PluginPresentation describes a plugin for server operators and links them to
@@ -1588,7 +1599,7 @@ var File_silo_plugin_v1_common_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\n" +
-	"\x1bsilo/plugin/v1/common.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"7\n" +
+	"\x1bsilo/plugin/v1/common.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a(silo/plugin/v1/watch_sync_provider.proto\"7\n" +
 	"\x11SupportedPlatform\x12\x0e\n" +
 	"\x02os\x18\x01 \x01(\tR\x02os\x12\x12\n" +
 	"\x04arch\x18\x02 \x01(\tR\x04arch\"\xd9\x01\n" +
@@ -1665,7 +1676,7 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\rPackagedAsset\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12!\n" +
 	"\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x1c\n" +
-	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\xd7\x02\n" +
+	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\xb4\x03\n" +
 	"\x14CapabilityDescriptor\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12!\n" +
@@ -1676,7 +1687,9 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1d\n" +
 	"\n" +
 	"auth_modes\x18\b \x03(\tR\tauthModes\x12\x19\n" +
-	"\bicon_url\x18\t \x01(\tR\aiconUrl\"\xa2\x03\n" +
+	"\bicon_url\x18\t \x01(\tR\aiconUrl\x12[\n" +
+	"\x13watch_sync_provider\x18\n" +
+	" \x01(\v2+.silo.plugin.v1.WatchSyncProviderDescriptorR\x11watchSyncProvider\"\xa2\x03\n" +
 	"\x12PluginPresentation\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x18\n" +
 	"\asummary\x18\x02 \x01(\tR\asummary\x121\n" +
@@ -1746,29 +1759,30 @@ func file_silo_plugin_v1_common_proto_rawDescGZIP() []byte {
 var file_silo_plugin_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_silo_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_silo_plugin_v1_common_proto_goTypes = []any{
-	(AdminFormControl)(0),          // 0: silo.plugin.v1.AdminFormControl
-	(*SupportedPlatform)(nil),      // 1: silo.plugin.v1.SupportedPlatform
-	(*ConfigSchema)(nil),           // 2: silo.plugin.v1.ConfigSchema
-	(*AdminFormOption)(nil),        // 3: silo.plugin.v1.AdminFormOption
-	(*AdminFormField)(nil),         // 4: silo.plugin.v1.AdminFormField
-	(*AdminFormCondition)(nil),     // 5: silo.plugin.v1.AdminFormCondition
-	(*AdminFormValidation)(nil),    // 6: silo.plugin.v1.AdminFormValidation
-	(*AdminFormSection)(nil),       // 7: silo.plugin.v1.AdminFormSection
-	(*AdminFormDescriptor)(nil),    // 8: silo.plugin.v1.AdminFormDescriptor
-	(*ConfigEntry)(nil),            // 9: silo.plugin.v1.ConfigEntry
-	(*HttpRouteDescriptor)(nil),    // 10: silo.plugin.v1.HttpRouteDescriptor
-	(*PackagedAsset)(nil),          // 11: silo.plugin.v1.PackagedAsset
-	(*CapabilityDescriptor)(nil),   // 12: silo.plugin.v1.CapabilityDescriptor
-	(*PluginPresentation)(nil),     // 13: silo.plugin.v1.PluginPresentation
-	(*PluginManifest)(nil),         // 14: silo.plugin.v1.PluginManifest
-	(*GetManifestRequest)(nil),     // 15: silo.plugin.v1.GetManifestRequest
-	(*GetManifestResponse)(nil),    // 16: silo.plugin.v1.GetManifestResponse
-	(*ConfigureRequest)(nil),       // 17: silo.plugin.v1.ConfigureRequest
-	(*ConfigureResponse)(nil),      // 18: silo.plugin.v1.ConfigureResponse
-	(*BindHostBrokerRequest)(nil),  // 19: silo.plugin.v1.BindHostBrokerRequest
-	(*BindHostBrokerResponse)(nil), // 20: silo.plugin.v1.BindHostBrokerResponse
-	(*structpb.Value)(nil),         // 21: google.protobuf.Value
-	(*structpb.Struct)(nil),        // 22: google.protobuf.Struct
+	(AdminFormControl)(0),               // 0: silo.plugin.v1.AdminFormControl
+	(*SupportedPlatform)(nil),           // 1: silo.plugin.v1.SupportedPlatform
+	(*ConfigSchema)(nil),                // 2: silo.plugin.v1.ConfigSchema
+	(*AdminFormOption)(nil),             // 3: silo.plugin.v1.AdminFormOption
+	(*AdminFormField)(nil),              // 4: silo.plugin.v1.AdminFormField
+	(*AdminFormCondition)(nil),          // 5: silo.plugin.v1.AdminFormCondition
+	(*AdminFormValidation)(nil),         // 6: silo.plugin.v1.AdminFormValidation
+	(*AdminFormSection)(nil),            // 7: silo.plugin.v1.AdminFormSection
+	(*AdminFormDescriptor)(nil),         // 8: silo.plugin.v1.AdminFormDescriptor
+	(*ConfigEntry)(nil),                 // 9: silo.plugin.v1.ConfigEntry
+	(*HttpRouteDescriptor)(nil),         // 10: silo.plugin.v1.HttpRouteDescriptor
+	(*PackagedAsset)(nil),               // 11: silo.plugin.v1.PackagedAsset
+	(*CapabilityDescriptor)(nil),        // 12: silo.plugin.v1.CapabilityDescriptor
+	(*PluginPresentation)(nil),          // 13: silo.plugin.v1.PluginPresentation
+	(*PluginManifest)(nil),              // 14: silo.plugin.v1.PluginManifest
+	(*GetManifestRequest)(nil),          // 15: silo.plugin.v1.GetManifestRequest
+	(*GetManifestResponse)(nil),         // 16: silo.plugin.v1.GetManifestResponse
+	(*ConfigureRequest)(nil),            // 17: silo.plugin.v1.ConfigureRequest
+	(*ConfigureResponse)(nil),           // 18: silo.plugin.v1.ConfigureResponse
+	(*BindHostBrokerRequest)(nil),       // 19: silo.plugin.v1.BindHostBrokerRequest
+	(*BindHostBrokerResponse)(nil),      // 20: silo.plugin.v1.BindHostBrokerResponse
+	(*structpb.Value)(nil),              // 21: google.protobuf.Value
+	(*structpb.Struct)(nil),             // 22: google.protobuf.Struct
+	(*WatchSyncProviderDescriptor)(nil), // 23: silo.plugin.v1.WatchSyncProviderDescriptor
 }
 var file_silo_plugin_v1_common_proto_depIdxs = []int32{
 	8,  // 0: silo.plugin.v1.ConfigSchema.admin_form:type_name -> silo.plugin.v1.AdminFormDescriptor
@@ -1783,27 +1797,28 @@ var file_silo_plugin_v1_common_proto_depIdxs = []int32{
 	22, // 9: silo.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
 	2,  // 10: silo.plugin.v1.CapabilityDescriptor.config_schema:type_name -> silo.plugin.v1.ConfigSchema
 	22, // 11: silo.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
-	1,  // 12: silo.plugin.v1.PluginManifest.supported_platforms:type_name -> silo.plugin.v1.SupportedPlatform
-	12, // 13: silo.plugin.v1.PluginManifest.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
-	2,  // 14: silo.plugin.v1.PluginManifest.global_config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	2,  // 15: silo.plugin.v1.PluginManifest.user_config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	10, // 16: silo.plugin.v1.PluginManifest.http_routes:type_name -> silo.plugin.v1.HttpRouteDescriptor
-	11, // 17: silo.plugin.v1.PluginManifest.assets:type_name -> silo.plugin.v1.PackagedAsset
-	22, // 18: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
-	13, // 19: silo.plugin.v1.PluginManifest.presentation:type_name -> silo.plugin.v1.PluginPresentation
-	14, // 20: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
-	9,  // 21: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
-	15, // 22: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
-	17, // 23: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
-	19, // 24: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
-	16, // 25: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
-	18, // 26: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
-	20, // 27: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
-	25, // [25:28] is the sub-list for method output_type
-	22, // [22:25] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	23, // 12: silo.plugin.v1.CapabilityDescriptor.watch_sync_provider:type_name -> silo.plugin.v1.WatchSyncProviderDescriptor
+	1,  // 13: silo.plugin.v1.PluginManifest.supported_platforms:type_name -> silo.plugin.v1.SupportedPlatform
+	12, // 14: silo.plugin.v1.PluginManifest.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
+	2,  // 15: silo.plugin.v1.PluginManifest.global_config_schema:type_name -> silo.plugin.v1.ConfigSchema
+	2,  // 16: silo.plugin.v1.PluginManifest.user_config_schema:type_name -> silo.plugin.v1.ConfigSchema
+	10, // 17: silo.plugin.v1.PluginManifest.http_routes:type_name -> silo.plugin.v1.HttpRouteDescriptor
+	11, // 18: silo.plugin.v1.PluginManifest.assets:type_name -> silo.plugin.v1.PackagedAsset
+	22, // 19: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
+	13, // 20: silo.plugin.v1.PluginManifest.presentation:type_name -> silo.plugin.v1.PluginPresentation
+	14, // 21: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
+	9,  // 22: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
+	15, // 23: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
+	17, // 24: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
+	19, // 25: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
+	16, // 26: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
+	18, // 27: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
+	20, // 28: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
+	26, // [26:29] is the sub-list for method output_type
+	23, // [23:26] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_common_proto_init() }
@@ -1811,6 +1826,7 @@ func file_silo_plugin_v1_common_proto_init() {
 	if File_silo_plugin_v1_common_proto != nil {
 		return
 	}
+	file_silo_plugin_v1_watch_sync_provider_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

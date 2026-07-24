@@ -5,6 +5,7 @@ package silo.plugin.v1;
 option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
 
 import "google/protobuf/struct.proto";
+import "silo/plugin/v1/watch_sync_provider.proto";
 
 message SupportedPlatform {
   string os = 1;
@@ -136,6 +137,11 @@ message CapabilityDescriptor {
   // login UI as the icon for a "Sign in with X" button. Plugin-served path
   // (e.g., /api/v1/plugins/<install>/assets/whmcs-logo.svg).
   string icon_url = 9;
+
+  // Typed watch-provider contract metadata. Only meaningful for capabilities
+  // of type "watch_sync_provider.v1". Keeping this typed lets the host build
+  // connection and authorization UI without launching the plugin.
+  WatchSyncProviderDescriptor watch_sync_provider = 10;
 }
 
 // PluginPresentation describes a plugin for server operators and links them to
