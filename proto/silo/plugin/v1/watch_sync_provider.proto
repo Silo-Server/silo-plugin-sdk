@@ -28,6 +28,12 @@ enum WatchSyncAuthMethod {
   WATCH_SYNC_AUTH_METHOD_API_KEY = 2;
 }
 
+enum WatchSyncMediaType {
+  WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED = 0;
+  WATCH_SYNC_MEDIA_TYPE_MOVIE = 1;
+  WATCH_SYNC_MEDIA_TYPE_EPISODE = 2;
+}
+
 enum WatchSyncOperation {
   WATCH_SYNC_OPERATION_UNSPECIFIED = 0;
   WATCH_SYNC_OPERATION_MARK_WATCHED = 1;
@@ -65,7 +71,7 @@ message WatchSyncProviderDescriptor {
   bool export_unwatched = 3;
   bool import_watched = 4;
   bool import_progress = 5;
-  repeated string supported_media_types = 6;
+  repeated WatchSyncMediaType supported_media_types = 6;
   repeated string external_id_namespaces = 7;
   int32 max_batch_size = 8;
 }
@@ -88,6 +94,14 @@ message WatchSyncCredentials {
   map<string, string> secret_attributes = 6;
 }
 
+// Host-owned context shared by RPCs after a profile connection is established.
+// Plugins must treat provider_config and credentials as transient request data.
+message WatchSyncAuthenticatedContext {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  WatchSyncCredentials credentials = 3;
+}
+
 message WatchSyncAccount {
   string external_subject = 1;
   string username = 2;
@@ -101,6 +115,8 @@ message WatchSyncFault {
   // Safe for persistence and operator display. Must not contain credentials,
   // authorization codes, provider response bodies, or other secrets.
   string safe_message = 2;
+  // Optional retry delay for TEMPORARY and RATE_LIMITED faults. Only
+  // RATE_LIMITED tells the host to defer the whole provider connection.
   google.protobuf.Duration retry_after = 3;
 }
 
@@ -137,9 +153,7 @@ message WatchSyncExchangeAPIKeyRequest {
 }
 
 message WatchSyncRefreshCredentialsRequest {
-  string capability_id = 1;
-  WatchSyncProviderConfig provider_config = 2;
-  WatchSyncCredentials credentials = 3;
+  WatchSyncAuthenticatedContext context = 1;
 }
 
 message WatchSyncCredentialResponse {
@@ -149,9 +163,7 @@ message WatchSyncCredentialResponse {
 }
 
 message WatchSyncGetAccountRequest {
-  string capability_id = 1;
-  WatchSyncProviderConfig provider_config = 2;
-  WatchSyncCredentials credentials = 3;
+  WatchSyncAuthenticatedContext context = 1;
 }
 
 message WatchSyncGetAccountResponse {
@@ -161,7 +173,7 @@ message WatchSyncGetAccountResponse {
 
 message WatchSyncMedia {
   string media_item_id = 1;
-  string media_type = 2;
+  WatchSyncMediaType media_type = 2;
   string title = 3;
   string original_title = 4;
   int32 year = 5;
@@ -193,49 +205,82 @@ message WatchSyncEvent {
 }
 
 message WatchSyncApplyEventsRequest {
-  string capability_id = 1;
-  WatchSyncProviderConfig provider_config = 2;
-  WatchSyncCredentials credentials = 3;
+  WatchSyncAuthenticatedContext context = 1;
   // Ordered desired-state events. Duplicate event IDs must not be interpreted
   // as increments; ApplyEvents is an at-least-once delivery contract.
-  repeated WatchSyncEvent events = 4;
+  repeated WatchSyncEvent events = 2;
 }
 
 message WatchSyncApplyResult {
   string event_id = 1;
   WatchSyncApplyStatus status = 2;
-  string safe_message = 3;
-  google.protobuf.Duration retry_after = 4;
+  // APPLIED and NO_CHANGE omit fault. RETRY uses TEMPORARY or RATE_LIMITED;
+  // retry_after is an account-wide deferral only when the code is RATE_LIMITED.
+  // REJECTED uses a non-retryable code such as INVALID_REQUEST or PERMANENT.
+  // Connection-wide faults such as INVALID_CREDENTIAL belong on the response.
+  WatchSyncFault fault = 3;
 }
 
 message WatchSyncApplyEventsResponse {
   repeated WatchSyncApplyResult results = 1;
   WatchSyncCredentials updated_credentials = 2;
+  // Batch-level failure. When set, the host ignores results and applies the
+  // fault to the entire request.
   WatchSyncFault fault = 3;
 }
 
 message WatchSyncListRemoteStateRequest {
-  string capability_id = 1;
-  WatchSyncProviderConfig provider_config = 2;
-  WatchSyncCredentials credentials = 3;
-  string cursor = 4;
-  string page_token = 5;
-  int32 page_size = 6;
+  WatchSyncAuthenticatedContext context = 1;
+  // Opaque durable checkpoint from the last traversal whose items the host
+  // committed successfully. The host keeps this value unchanged across every
+  // page in one traversal and persists only next_cursor from the final page.
+  string cursor = 2;
+  // Opaque continuation for the traversal identified by cursor. It is used
+  // only for the immediately following page and is never persisted or reused
+  // after the traversal completes or fails.
+  string page_token = 3;
+  // Requested maximum number of items. Plugins may return fewer.
+  int32 page_size = 4;
+}
+
+message WatchSyncRemoteWatchedState {
+  // Number of completed plays known to the provider. Must be at least one when
+  // this submessage is present.
+  int32 play_count = 1;
+  // Provider timestamp for the most recent completed play, when available.
+  google.protobuf.Timestamp last_watched_at = 2;
+}
+
+message WatchSyncRemoteProgressState {
+  // Resume progress in the range [0, 100). Completed plays belong in watched.
+  double progress_percent = 1;
+  // Provider timestamp for this resume state.
+  google.protobuf.Timestamp paused_at = 2;
 }
 
 message WatchSyncRemoteState {
   string provider_item_key = 1;
   WatchSyncMedia media = 2;
-  int32 progress = 3;
-  string status = 4;
-  google.protobuf.Timestamp updated_at = 5;
+  // At least one typed state must be present. Both may be present when the
+  // provider reports a completed play and a separate resume point.
+  WatchSyncRemoteWatchedState watched = 3;
+  WatchSyncRemoteProgressState progress = 4;
 }
 
 message WatchSyncListRemoteStateResponse {
   repeated WatchSyncRemoteState items = 1;
+  // Non-empty when more pages remain. The host requests the next page with the
+  // original cursor and this token before committing next_cursor.
   string next_page_token = 2;
+  // Durable checkpoint for the completed traversal. Plugins set this only on
+  // the final page; the host persists it only after committing every item.
   string next_cursor = 3;
+  // True when this traversal is an authoritative full snapshot. False means an
+  // incremental delta, so an absent item must not be interpreted as deletion.
+  // The value must remain stable across every page in one traversal.
   bool complete_snapshot = 4;
   WatchSyncCredentials updated_credentials = 5;
+  // Traversal-level failure. When set, the host discards this page and keeps
+  // its previously committed cursor.
   WatchSyncFault fault = 6;
 }

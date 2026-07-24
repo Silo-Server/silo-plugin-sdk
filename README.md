@@ -136,6 +136,24 @@ provider flow state, or secret configuration. `ApplyEvents` is an at-least-once
 contract; plugins must treat `event_id` as stable across retries and implement
 convergent desired-state updates rather than increments.
 
+Authenticated RPCs receive the same host-owned capability, configuration, and
+credential data through `WatchSyncAuthenticatedContext`. The context exists
+only for one invocation and is never plugin configuration or plugin state.
+
+Descriptors and events use the shared `WatchSyncMediaType` enum so advertised
+support and delivered media cannot drift between string conventions. Apply
+results pair their delivery status with a typed fault: successful results omit
+the fault, temporary retries use `TEMPORARY`, rate limits use `RATE_LIMITED`
+with an optional delay, and rejected events use a non-retryable fault code.
+Connection-wide faults such as invalid credentials belong on the RPC response.
+
+`ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
+play count and last-watched time; `progress` carries a fractional percentage and
+paused time. An item may contain either or both. The host keeps the request
+`cursor` fixed while following ephemeral page tokens, commits every page, and
+only then persists the final `next_cursor`. `complete_snapshot=true` means the
+traversal is authoritative; when false, missing items are not deletions.
+
 ## Scan sources
 
 The `scan_source.v1` capability is for Autoscan providers. The host owns the

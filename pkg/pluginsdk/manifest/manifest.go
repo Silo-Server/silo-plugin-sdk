@@ -166,8 +166,8 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 		return fmt.Errorf("plugin capability %q: at least one supported media type is required", descriptor.GetId())
 	}
 	for _, mediaType := range watchSync.GetSupportedMediaTypes() {
-		if mediaType != "movie" && mediaType != "episode" {
-			return fmt.Errorf("plugin capability %q: unsupported watch sync media type %q", descriptor.GetId(), mediaType)
+		if mediaType == pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED {
+			return fmt.Errorf("plugin capability %q: watch sync media type cannot be unspecified", descriptor.GetId())
 		}
 	}
 	for _, namespace := range watchSync.GetExternalIdNamespaces() {

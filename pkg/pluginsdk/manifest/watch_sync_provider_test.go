@@ -15,7 +15,7 @@ func TestLoadWatchSyncProvider(t *testing.T) {
 	    "watch_sync_provider":{
 	      "auth_methods":["WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE"],
 	      "export_watched":true,
-	      "supported_media_types":["movie","episode"],
+	      "supported_media_types":["WATCH_SYNC_MEDIA_TYPE_MOVIE","WATCH_SYNC_MEDIA_TYPE_EPISODE"],
 	      "external_id_namespaces":["anilist","tmdb","tvdb"],
 	      "max_batch_size":25
 	    }
@@ -28,6 +28,11 @@ func TestLoadWatchSyncProvider(t *testing.T) {
 	descriptor := manifest.GetCapabilities()[0].GetWatchSyncProvider()
 	if descriptor == nil || !descriptor.GetExportWatched() || descriptor.GetMaxBatchSize() != 25 {
 		t.Fatalf("watch sync descriptor = %#v", descriptor)
+	}
+	if got := descriptor.GetSupportedMediaTypes(); len(got) != 2 ||
+		got[0] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE ||
+		got[1] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE {
+		t.Fatalf("supported media types = %v", got)
 	}
 }
 
@@ -59,6 +64,29 @@ func TestValidateWatchSyncProviderRejectsEmptyMediaTypes(t *testing.T) {
 	}
 }
 
+func TestValidateWatchSyncProviderRejectsUnspecifiedMediaType(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.SupportedMediaTypes = []pluginv1.WatchSyncMediaType{
+		pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED,
+	}
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected unspecified supported media type to fail")
+	}
+}
+
+func TestValidateWatchSyncProviderAllowsUnknownFutureEnums(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.AuthMethods = []pluginv1.WatchSyncAuthMethod{
+		pluginv1.WatchSyncAuthMethod(99),
+	}
+	manifest.Capabilities[0].WatchSyncProvider.SupportedMediaTypes = []pluginv1.WatchSyncMediaType{
+		pluginv1.WatchSyncMediaType(99),
+	}
+	if err := publicmanifest.Validate(manifest); err != nil {
+		t.Fatalf("future additive enum values should remain forward compatible: %v", err)
+	}
+}
+
 func validWatchSyncManifest() *pluginv1.PluginManifest {
 	return &pluginv1.PluginManifest{
 		PluginId: "silo.valid", Version: "1.0.0",
@@ -68,9 +96,11 @@ func validWatchSyncManifest() *pluginv1.PluginManifest {
 				AuthMethods: []pluginv1.WatchSyncAuthMethod{
 					pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_API_KEY,
 				},
-				ExportWatched:       true,
-				SupportedMediaTypes: []string{"movie"},
-				MaxBatchSize:        1,
+				ExportWatched: true,
+				SupportedMediaTypes: []pluginv1.WatchSyncMediaType{
+					pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE,
+				},
+				MaxBatchSize: 1,
 			},
 		}},
 	}

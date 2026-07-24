@@ -73,6 +73,55 @@ func (WatchSyncAuthMethod) EnumDescriptor() ([]byte, []int) {
 	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{0}
 }
 
+type WatchSyncMediaType int32
+
+const (
+	WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED WatchSyncMediaType = 0
+	WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE       WatchSyncMediaType = 1
+	WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE     WatchSyncMediaType = 2
+)
+
+// Enum value maps for WatchSyncMediaType.
+var (
+	WatchSyncMediaType_name = map[int32]string{
+		0: "WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED",
+		1: "WATCH_SYNC_MEDIA_TYPE_MOVIE",
+		2: "WATCH_SYNC_MEDIA_TYPE_EPISODE",
+	}
+	WatchSyncMediaType_value = map[string]int32{
+		"WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED": 0,
+		"WATCH_SYNC_MEDIA_TYPE_MOVIE":       1,
+		"WATCH_SYNC_MEDIA_TYPE_EPISODE":     2,
+	}
+)
+
+func (x WatchSyncMediaType) Enum() *WatchSyncMediaType {
+	p := new(WatchSyncMediaType)
+	*p = x
+	return p
+}
+
+func (x WatchSyncMediaType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (WatchSyncMediaType) Descriptor() protoreflect.EnumDescriptor {
+	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[1].Descriptor()
+}
+
+func (WatchSyncMediaType) Type() protoreflect.EnumType {
+	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[1]
+}
+
+func (x WatchSyncMediaType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use WatchSyncMediaType.Descriptor instead.
+func (WatchSyncMediaType) EnumDescriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{1}
+}
+
 type WatchSyncOperation int32
 
 const (
@@ -106,11 +155,11 @@ func (x WatchSyncOperation) String() string {
 }
 
 func (WatchSyncOperation) Descriptor() protoreflect.EnumDescriptor {
-	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[1].Descriptor()
+	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[2].Descriptor()
 }
 
 func (WatchSyncOperation) Type() protoreflect.EnumType {
-	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[1]
+	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[2]
 }
 
 func (x WatchSyncOperation) Number() protoreflect.EnumNumber {
@@ -119,7 +168,7 @@ func (x WatchSyncOperation) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WatchSyncOperation.Descriptor instead.
 func (WatchSyncOperation) EnumDescriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{1}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{2}
 }
 
 type WatchSyncOrigin int32
@@ -158,11 +207,11 @@ func (x WatchSyncOrigin) String() string {
 }
 
 func (WatchSyncOrigin) Descriptor() protoreflect.EnumDescriptor {
-	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[2].Descriptor()
+	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[3].Descriptor()
 }
 
 func (WatchSyncOrigin) Type() protoreflect.EnumType {
-	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[2]
+	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[3]
 }
 
 func (x WatchSyncOrigin) Number() protoreflect.EnumNumber {
@@ -171,7 +220,7 @@ func (x WatchSyncOrigin) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WatchSyncOrigin.Descriptor instead.
 func (WatchSyncOrigin) EnumDescriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{2}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{3}
 }
 
 type WatchSyncApplyStatus int32
@@ -213,11 +262,11 @@ func (x WatchSyncApplyStatus) String() string {
 }
 
 func (WatchSyncApplyStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[3].Descriptor()
+	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[4].Descriptor()
 }
 
 func (WatchSyncApplyStatus) Type() protoreflect.EnumType {
-	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[3]
+	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[4]
 }
 
 func (x WatchSyncApplyStatus) Number() protoreflect.EnumNumber {
@@ -226,7 +275,7 @@ func (x WatchSyncApplyStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WatchSyncApplyStatus.Descriptor instead.
 func (WatchSyncApplyStatus) EnumDescriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{3}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{4}
 }
 
 type WatchSyncFaultCode int32
@@ -274,11 +323,11 @@ func (x WatchSyncFaultCode) String() string {
 }
 
 func (WatchSyncFaultCode) Descriptor() protoreflect.EnumDescriptor {
-	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[4].Descriptor()
+	return file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[5].Descriptor()
 }
 
 func (WatchSyncFaultCode) Type() protoreflect.EnumType {
-	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[4]
+	return &file_silo_plugin_v1_watch_sync_provider_proto_enumTypes[5]
 }
 
 func (x WatchSyncFaultCode) Number() protoreflect.EnumNumber {
@@ -287,7 +336,7 @@ func (x WatchSyncFaultCode) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WatchSyncFaultCode.Descriptor instead.
 func (WatchSyncFaultCode) EnumDescriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{4}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{5}
 }
 
 type WatchSyncProviderDescriptor struct {
@@ -297,7 +346,7 @@ type WatchSyncProviderDescriptor struct {
 	ExportUnwatched      bool                   `protobuf:"varint,3,opt,name=export_unwatched,json=exportUnwatched,proto3" json:"export_unwatched,omitempty"`
 	ImportWatched        bool                   `protobuf:"varint,4,opt,name=import_watched,json=importWatched,proto3" json:"import_watched,omitempty"`
 	ImportProgress       bool                   `protobuf:"varint,5,opt,name=import_progress,json=importProgress,proto3" json:"import_progress,omitempty"`
-	SupportedMediaTypes  []string               `protobuf:"bytes,6,rep,name=supported_media_types,json=supportedMediaTypes,proto3" json:"supported_media_types,omitempty"`
+	SupportedMediaTypes  []WatchSyncMediaType   `protobuf:"varint,6,rep,packed,name=supported_media_types,json=supportedMediaTypes,proto3,enum=silo.plugin.v1.WatchSyncMediaType" json:"supported_media_types,omitempty"`
 	ExternalIdNamespaces []string               `protobuf:"bytes,7,rep,name=external_id_namespaces,json=externalIdNamespaces,proto3" json:"external_id_namespaces,omitempty"`
 	MaxBatchSize         int32                  `protobuf:"varint,8,opt,name=max_batch_size,json=maxBatchSize,proto3" json:"max_batch_size,omitempty"`
 	unknownFields        protoimpl.UnknownFields
@@ -369,7 +418,7 @@ func (x *WatchSyncProviderDescriptor) GetImportProgress() bool {
 	return false
 }
 
-func (x *WatchSyncProviderDescriptor) GetSupportedMediaTypes() []string {
+func (x *WatchSyncProviderDescriptor) GetSupportedMediaTypes() []WatchSyncMediaType {
 	if x != nil {
 		return x.SupportedMediaTypes
 	}
@@ -530,6 +579,68 @@ func (x *WatchSyncCredentials) GetSecretAttributes() map[string]string {
 	return nil
 }
 
+// Host-owned context shared by RPCs after a profile connection is established.
+// Plugins must treat provider_config and credentials as transient request data.
+type WatchSyncAuthenticatedContext struct {
+	state          protoimpl.MessageState   `protogen:"open.v1"`
+	CapabilityId   string                   `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
+	ProviderConfig *WatchSyncProviderConfig `protobuf:"bytes,2,opt,name=provider_config,json=providerConfig,proto3" json:"provider_config,omitempty"`
+	Credentials    *WatchSyncCredentials    `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *WatchSyncAuthenticatedContext) Reset() {
+	*x = WatchSyncAuthenticatedContext{}
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchSyncAuthenticatedContext) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchSyncAuthenticatedContext) ProtoMessage() {}
+
+func (x *WatchSyncAuthenticatedContext) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchSyncAuthenticatedContext.ProtoReflect.Descriptor instead.
+func (*WatchSyncAuthenticatedContext) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *WatchSyncAuthenticatedContext) GetCapabilityId() string {
+	if x != nil {
+		return x.CapabilityId
+	}
+	return ""
+}
+
+func (x *WatchSyncAuthenticatedContext) GetProviderConfig() *WatchSyncProviderConfig {
+	if x != nil {
+		return x.ProviderConfig
+	}
+	return nil
+}
+
+func (x *WatchSyncAuthenticatedContext) GetCredentials() *WatchSyncCredentials {
+	if x != nil {
+		return x.Credentials
+	}
+	return nil
+}
+
 type WatchSyncAccount struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ExternalSubject string                 `protobuf:"bytes,1,opt,name=external_subject,json=externalSubject,proto3" json:"external_subject,omitempty"`
@@ -543,7 +654,7 @@ type WatchSyncAccount struct {
 
 func (x *WatchSyncAccount) Reset() {
 	*x = WatchSyncAccount{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -555,7 +666,7 @@ func (x *WatchSyncAccount) String() string {
 func (*WatchSyncAccount) ProtoMessage() {}
 
 func (x *WatchSyncAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -568,7 +679,7 @@ func (x *WatchSyncAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncAccount.ProtoReflect.Descriptor instead.
 func (*WatchSyncAccount) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{3}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *WatchSyncAccount) GetExternalSubject() string {
@@ -611,7 +722,9 @@ type WatchSyncFault struct {
 	Code  WatchSyncFaultCode     `protobuf:"varint,1,opt,name=code,proto3,enum=silo.plugin.v1.WatchSyncFaultCode" json:"code,omitempty"`
 	// Safe for persistence and operator display. Must not contain credentials,
 	// authorization codes, provider response bodies, or other secrets.
-	SafeMessage   string               `protobuf:"bytes,2,opt,name=safe_message,json=safeMessage,proto3" json:"safe_message,omitempty"`
+	SafeMessage string `protobuf:"bytes,2,opt,name=safe_message,json=safeMessage,proto3" json:"safe_message,omitempty"`
+	// Optional retry delay for TEMPORARY and RATE_LIMITED faults. Only
+	// RATE_LIMITED tells the host to defer the whole provider connection.
 	RetryAfter    *durationpb.Duration `protobuf:"bytes,3,opt,name=retry_after,json=retryAfter,proto3" json:"retry_after,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -619,7 +732,7 @@ type WatchSyncFault struct {
 
 func (x *WatchSyncFault) Reset() {
 	*x = WatchSyncFault{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -631,7 +744,7 @@ func (x *WatchSyncFault) String() string {
 func (*WatchSyncFault) ProtoMessage() {}
 
 func (x *WatchSyncFault) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -644,7 +757,7 @@ func (x *WatchSyncFault) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncFault.ProtoReflect.Descriptor instead.
 func (*WatchSyncFault) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{4}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *WatchSyncFault) GetCode() WatchSyncFaultCode {
@@ -681,7 +794,7 @@ type WatchSyncInitAuthorizeRequest struct {
 
 func (x *WatchSyncInitAuthorizeRequest) Reset() {
 	*x = WatchSyncInitAuthorizeRequest{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -693,7 +806,7 @@ func (x *WatchSyncInitAuthorizeRequest) String() string {
 func (*WatchSyncInitAuthorizeRequest) ProtoMessage() {}
 
 func (x *WatchSyncInitAuthorizeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -706,7 +819,7 @@ func (x *WatchSyncInitAuthorizeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncInitAuthorizeRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncInitAuthorizeRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{5}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *WatchSyncInitAuthorizeRequest) GetCapabilityId() string {
@@ -750,7 +863,7 @@ type WatchSyncInitAuthorizeResponse struct {
 
 func (x *WatchSyncInitAuthorizeResponse) Reset() {
 	*x = WatchSyncInitAuthorizeResponse{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -762,7 +875,7 @@ func (x *WatchSyncInitAuthorizeResponse) String() string {
 func (*WatchSyncInitAuthorizeResponse) ProtoMessage() {}
 
 func (x *WatchSyncInitAuthorizeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -775,7 +888,7 @@ func (x *WatchSyncInitAuthorizeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncInitAuthorizeResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncInitAuthorizeResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{6}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *WatchSyncInitAuthorizeResponse) GetAuthorizationUrl() string {
@@ -812,7 +925,7 @@ type WatchSyncExchangeCodeRequest struct {
 
 func (x *WatchSyncExchangeCodeRequest) Reset() {
 	*x = WatchSyncExchangeCodeRequest{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -824,7 +937,7 @@ func (x *WatchSyncExchangeCodeRequest) String() string {
 func (*WatchSyncExchangeCodeRequest) ProtoMessage() {}
 
 func (x *WatchSyncExchangeCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -837,7 +950,7 @@ func (x *WatchSyncExchangeCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncExchangeCodeRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncExchangeCodeRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{7}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *WatchSyncExchangeCodeRequest) GetCapabilityId() string {
@@ -888,7 +1001,7 @@ type WatchSyncExchangeAPIKeyRequest struct {
 
 func (x *WatchSyncExchangeAPIKeyRequest) Reset() {
 	*x = WatchSyncExchangeAPIKeyRequest{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -900,7 +1013,7 @@ func (x *WatchSyncExchangeAPIKeyRequest) String() string {
 func (*WatchSyncExchangeAPIKeyRequest) ProtoMessage() {}
 
 func (x *WatchSyncExchangeAPIKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -913,7 +1026,7 @@ func (x *WatchSyncExchangeAPIKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncExchangeAPIKeyRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncExchangeAPIKeyRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{8}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WatchSyncExchangeAPIKeyRequest) GetCapabilityId() string {
@@ -938,17 +1051,15 @@ func (x *WatchSyncExchangeAPIKeyRequest) GetApiKey() string {
 }
 
 type WatchSyncRefreshCredentialsRequest struct {
-	state          protoimpl.MessageState   `protogen:"open.v1"`
-	CapabilityId   string                   `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
-	ProviderConfig *WatchSyncProviderConfig `protobuf:"bytes,2,opt,name=provider_config,json=providerConfig,proto3" json:"provider_config,omitempty"`
-	Credentials    *WatchSyncCredentials    `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Context       *WatchSyncAuthenticatedContext `protobuf:"bytes,1,opt,name=context,proto3" json:"context,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncRefreshCredentialsRequest) Reset() {
 	*x = WatchSyncRefreshCredentialsRequest{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -960,7 +1071,7 @@ func (x *WatchSyncRefreshCredentialsRequest) String() string {
 func (*WatchSyncRefreshCredentialsRequest) ProtoMessage() {}
 
 func (x *WatchSyncRefreshCredentialsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,26 +1084,12 @@ func (x *WatchSyncRefreshCredentialsRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use WatchSyncRefreshCredentialsRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncRefreshCredentialsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{9}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *WatchSyncRefreshCredentialsRequest) GetCapabilityId() string {
+func (x *WatchSyncRefreshCredentialsRequest) GetContext() *WatchSyncAuthenticatedContext {
 	if x != nil {
-		return x.CapabilityId
-	}
-	return ""
-}
-
-func (x *WatchSyncRefreshCredentialsRequest) GetProviderConfig() *WatchSyncProviderConfig {
-	if x != nil {
-		return x.ProviderConfig
-	}
-	return nil
-}
-
-func (x *WatchSyncRefreshCredentialsRequest) GetCredentials() *WatchSyncCredentials {
-	if x != nil {
-		return x.Credentials
+		return x.Context
 	}
 	return nil
 }
@@ -1008,7 +1105,7 @@ type WatchSyncCredentialResponse struct {
 
 func (x *WatchSyncCredentialResponse) Reset() {
 	*x = WatchSyncCredentialResponse{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1020,7 +1117,7 @@ func (x *WatchSyncCredentialResponse) String() string {
 func (*WatchSyncCredentialResponse) ProtoMessage() {}
 
 func (x *WatchSyncCredentialResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1033,7 +1130,7 @@ func (x *WatchSyncCredentialResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncCredentialResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncCredentialResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{10}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WatchSyncCredentialResponse) GetCredentials() *WatchSyncCredentials {
@@ -1058,17 +1155,15 @@ func (x *WatchSyncCredentialResponse) GetFault() *WatchSyncFault {
 }
 
 type WatchSyncGetAccountRequest struct {
-	state          protoimpl.MessageState   `protogen:"open.v1"`
-	CapabilityId   string                   `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
-	ProviderConfig *WatchSyncProviderConfig `protobuf:"bytes,2,opt,name=provider_config,json=providerConfig,proto3" json:"provider_config,omitempty"`
-	Credentials    *WatchSyncCredentials    `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Context       *WatchSyncAuthenticatedContext `protobuf:"bytes,1,opt,name=context,proto3" json:"context,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncGetAccountRequest) Reset() {
 	*x = WatchSyncGetAccountRequest{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1080,7 +1175,7 @@ func (x *WatchSyncGetAccountRequest) String() string {
 func (*WatchSyncGetAccountRequest) ProtoMessage() {}
 
 func (x *WatchSyncGetAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1093,26 +1188,12 @@ func (x *WatchSyncGetAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncGetAccountRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncGetAccountRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{11}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *WatchSyncGetAccountRequest) GetCapabilityId() string {
+func (x *WatchSyncGetAccountRequest) GetContext() *WatchSyncAuthenticatedContext {
 	if x != nil {
-		return x.CapabilityId
-	}
-	return ""
-}
-
-func (x *WatchSyncGetAccountRequest) GetProviderConfig() *WatchSyncProviderConfig {
-	if x != nil {
-		return x.ProviderConfig
-	}
-	return nil
-}
-
-func (x *WatchSyncGetAccountRequest) GetCredentials() *WatchSyncCredentials {
-	if x != nil {
-		return x.Credentials
+		return x.Context
 	}
 	return nil
 }
@@ -1127,7 +1208,7 @@ type WatchSyncGetAccountResponse struct {
 
 func (x *WatchSyncGetAccountResponse) Reset() {
 	*x = WatchSyncGetAccountResponse{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1139,7 +1220,7 @@ func (x *WatchSyncGetAccountResponse) String() string {
 func (*WatchSyncGetAccountResponse) ProtoMessage() {}
 
 func (x *WatchSyncGetAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1152,7 +1233,7 @@ func (x *WatchSyncGetAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncGetAccountResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncGetAccountResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *WatchSyncGetAccountResponse) GetAccount() *WatchSyncAccount {
@@ -1172,7 +1253,7 @@ func (x *WatchSyncGetAccountResponse) GetFault() *WatchSyncFault {
 type WatchSyncMedia struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	MediaItemId           string                 `protobuf:"bytes,1,opt,name=media_item_id,json=mediaItemId,proto3" json:"media_item_id,omitempty"`
-	MediaType             string                 `protobuf:"bytes,2,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	MediaType             WatchSyncMediaType     `protobuf:"varint,2,opt,name=media_type,json=mediaType,proto3,enum=silo.plugin.v1.WatchSyncMediaType" json:"media_type,omitempty"`
 	Title                 string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	OriginalTitle         string                 `protobuf:"bytes,4,opt,name=original_title,json=originalTitle,proto3" json:"original_title,omitempty"`
 	Year                  int32                  `protobuf:"varint,5,opt,name=year,proto3" json:"year,omitempty"`
@@ -1192,7 +1273,7 @@ type WatchSyncMedia struct {
 
 func (x *WatchSyncMedia) Reset() {
 	*x = WatchSyncMedia{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1204,7 +1285,7 @@ func (x *WatchSyncMedia) String() string {
 func (*WatchSyncMedia) ProtoMessage() {}
 
 func (x *WatchSyncMedia) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1217,7 +1298,7 @@ func (x *WatchSyncMedia) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncMedia.ProtoReflect.Descriptor instead.
 func (*WatchSyncMedia) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{13}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *WatchSyncMedia) GetMediaItemId() string {
@@ -1227,11 +1308,11 @@ func (x *WatchSyncMedia) GetMediaItemId() string {
 	return ""
 }
 
-func (x *WatchSyncMedia) GetMediaType() string {
+func (x *WatchSyncMedia) GetMediaType() WatchSyncMediaType {
 	if x != nil {
 		return x.MediaType
 	}
-	return ""
+	return WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED
 }
 
 func (x *WatchSyncMedia) GetTitle() string {
@@ -1345,7 +1426,7 @@ type WatchSyncEvent struct {
 
 func (x *WatchSyncEvent) Reset() {
 	*x = WatchSyncEvent{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1357,7 +1438,7 @@ func (x *WatchSyncEvent) String() string {
 func (*WatchSyncEvent) ProtoMessage() {}
 
 func (x *WatchSyncEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1370,7 +1451,7 @@ func (x *WatchSyncEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncEvent.ProtoReflect.Descriptor instead.
 func (*WatchSyncEvent) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{14}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WatchSyncEvent) GetEventId() string {
@@ -1451,20 +1532,18 @@ func (x *WatchSyncEvent) GetPlayCount() int32 {
 }
 
 type WatchSyncApplyEventsRequest struct {
-	state          protoimpl.MessageState   `protogen:"open.v1"`
-	CapabilityId   string                   `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
-	ProviderConfig *WatchSyncProviderConfig `protobuf:"bytes,2,opt,name=provider_config,json=providerConfig,proto3" json:"provider_config,omitempty"`
-	Credentials    *WatchSyncCredentials    `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	state   protoimpl.MessageState         `protogen:"open.v1"`
+	Context *WatchSyncAuthenticatedContext `protobuf:"bytes,1,opt,name=context,proto3" json:"context,omitempty"`
 	// Ordered desired-state events. Duplicate event IDs must not be interpreted
 	// as increments; ApplyEvents is an at-least-once delivery contract.
-	Events        []*WatchSyncEvent `protobuf:"bytes,4,rep,name=events,proto3" json:"events,omitempty"`
+	Events        []*WatchSyncEvent `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncApplyEventsRequest) Reset() {
 	*x = WatchSyncApplyEventsRequest{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1476,7 +1555,7 @@ func (x *WatchSyncApplyEventsRequest) String() string {
 func (*WatchSyncApplyEventsRequest) ProtoMessage() {}
 
 func (x *WatchSyncApplyEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1489,26 +1568,12 @@ func (x *WatchSyncApplyEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncApplyEventsRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncApplyEventsRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{15}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *WatchSyncApplyEventsRequest) GetCapabilityId() string {
+func (x *WatchSyncApplyEventsRequest) GetContext() *WatchSyncAuthenticatedContext {
 	if x != nil {
-		return x.CapabilityId
-	}
-	return ""
-}
-
-func (x *WatchSyncApplyEventsRequest) GetProviderConfig() *WatchSyncProviderConfig {
-	if x != nil {
-		return x.ProviderConfig
-	}
-	return nil
-}
-
-func (x *WatchSyncApplyEventsRequest) GetCredentials() *WatchSyncCredentials {
-	if x != nil {
-		return x.Credentials
+		return x.Context
 	}
 	return nil
 }
@@ -1521,18 +1586,21 @@ func (x *WatchSyncApplyEventsRequest) GetEvents() []*WatchSyncEvent {
 }
 
 type WatchSyncApplyResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EventId       string                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
-	Status        WatchSyncApplyStatus   `protobuf:"varint,2,opt,name=status,proto3,enum=silo.plugin.v1.WatchSyncApplyStatus" json:"status,omitempty"`
-	SafeMessage   string                 `protobuf:"bytes,3,opt,name=safe_message,json=safeMessage,proto3" json:"safe_message,omitempty"`
-	RetryAfter    *durationpb.Duration   `protobuf:"bytes,4,opt,name=retry_after,json=retryAfter,proto3" json:"retry_after,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	EventId string                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	Status  WatchSyncApplyStatus   `protobuf:"varint,2,opt,name=status,proto3,enum=silo.plugin.v1.WatchSyncApplyStatus" json:"status,omitempty"`
+	// APPLIED and NO_CHANGE omit fault. RETRY uses TEMPORARY or RATE_LIMITED;
+	// retry_after is an account-wide deferral only when the code is RATE_LIMITED.
+	// REJECTED uses a non-retryable code such as INVALID_REQUEST or PERMANENT.
+	// Connection-wide faults such as INVALID_CREDENTIAL belong on the response.
+	Fault         *WatchSyncFault `protobuf:"bytes,3,opt,name=fault,proto3" json:"fault,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncApplyResult) Reset() {
 	*x = WatchSyncApplyResult{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1544,7 +1612,7 @@ func (x *WatchSyncApplyResult) String() string {
 func (*WatchSyncApplyResult) ProtoMessage() {}
 
 func (x *WatchSyncApplyResult) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1557,7 +1625,7 @@ func (x *WatchSyncApplyResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncApplyResult.ProtoReflect.Descriptor instead.
 func (*WatchSyncApplyResult) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{16}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *WatchSyncApplyResult) GetEventId() string {
@@ -1574,16 +1642,9 @@ func (x *WatchSyncApplyResult) GetStatus() WatchSyncApplyStatus {
 	return WatchSyncApplyStatus_WATCH_SYNC_APPLY_STATUS_UNSPECIFIED
 }
 
-func (x *WatchSyncApplyResult) GetSafeMessage() string {
+func (x *WatchSyncApplyResult) GetFault() *WatchSyncFault {
 	if x != nil {
-		return x.SafeMessage
-	}
-	return ""
-}
-
-func (x *WatchSyncApplyResult) GetRetryAfter() *durationpb.Duration {
-	if x != nil {
-		return x.RetryAfter
+		return x.Fault
 	}
 	return nil
 }
@@ -1592,14 +1653,16 @@ type WatchSyncApplyEventsResponse struct {
 	state              protoimpl.MessageState  `protogen:"open.v1"`
 	Results            []*WatchSyncApplyResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 	UpdatedCredentials *WatchSyncCredentials   `protobuf:"bytes,2,opt,name=updated_credentials,json=updatedCredentials,proto3" json:"updated_credentials,omitempty"`
-	Fault              *WatchSyncFault         `protobuf:"bytes,3,opt,name=fault,proto3" json:"fault,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Batch-level failure. When set, the host ignores results and applies the
+	// fault to the entire request.
+	Fault         *WatchSyncFault `protobuf:"bytes,3,opt,name=fault,proto3" json:"fault,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncApplyEventsResponse) Reset() {
 	*x = WatchSyncApplyEventsResponse{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1611,7 +1674,7 @@ func (x *WatchSyncApplyEventsResponse) String() string {
 func (*WatchSyncApplyEventsResponse) ProtoMessage() {}
 
 func (x *WatchSyncApplyEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1624,7 +1687,7 @@ func (x *WatchSyncApplyEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncApplyEventsResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncApplyEventsResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{17}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *WatchSyncApplyEventsResponse) GetResults() []*WatchSyncApplyResult {
@@ -1649,20 +1712,25 @@ func (x *WatchSyncApplyEventsResponse) GetFault() *WatchSyncFault {
 }
 
 type WatchSyncListRemoteStateRequest struct {
-	state          protoimpl.MessageState   `protogen:"open.v1"`
-	CapabilityId   string                   `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
-	ProviderConfig *WatchSyncProviderConfig `protobuf:"bytes,2,opt,name=provider_config,json=providerConfig,proto3" json:"provider_config,omitempty"`
-	Credentials    *WatchSyncCredentials    `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
-	Cursor         string                   `protobuf:"bytes,4,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	PageToken      string                   `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	PageSize       int32                    `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state   protoimpl.MessageState         `protogen:"open.v1"`
+	Context *WatchSyncAuthenticatedContext `protobuf:"bytes,1,opt,name=context,proto3" json:"context,omitempty"`
+	// Opaque durable checkpoint from the last traversal whose items the host
+	// committed successfully. The host keeps this value unchanged across every
+	// page in one traversal and persists only next_cursor from the final page.
+	Cursor string `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	// Opaque continuation for the traversal identified by cursor. It is used
+	// only for the immediately following page and is never persisted or reused
+	// after the traversal completes or fails.
+	PageToken string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// Requested maximum number of items. Plugins may return fewer.
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncListRemoteStateRequest) Reset() {
 	*x = WatchSyncListRemoteStateRequest{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1674,7 +1742,7 @@ func (x *WatchSyncListRemoteStateRequest) String() string {
 func (*WatchSyncListRemoteStateRequest) ProtoMessage() {}
 
 func (x *WatchSyncListRemoteStateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1687,26 +1755,12 @@ func (x *WatchSyncListRemoteStateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncListRemoteStateRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncListRemoteStateRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{18}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{19}
 }
 
-func (x *WatchSyncListRemoteStateRequest) GetCapabilityId() string {
+func (x *WatchSyncListRemoteStateRequest) GetContext() *WatchSyncAuthenticatedContext {
 	if x != nil {
-		return x.CapabilityId
-	}
-	return ""
-}
-
-func (x *WatchSyncListRemoteStateRequest) GetProviderConfig() *WatchSyncProviderConfig {
-	if x != nil {
-		return x.ProviderConfig
-	}
-	return nil
-}
-
-func (x *WatchSyncListRemoteStateRequest) GetCredentials() *WatchSyncCredentials {
-	if x != nil {
-		return x.Credentials
+		return x.Context
 	}
 	return nil
 }
@@ -1732,20 +1786,130 @@ func (x *WatchSyncListRemoteStateRequest) GetPageSize() int32 {
 	return 0
 }
 
+type WatchSyncRemoteWatchedState struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Number of completed plays known to the provider. Must be at least one when
+	// this submessage is present.
+	PlayCount int32 `protobuf:"varint,1,opt,name=play_count,json=playCount,proto3" json:"play_count,omitempty"`
+	// Provider timestamp for the most recent completed play, when available.
+	LastWatchedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=last_watched_at,json=lastWatchedAt,proto3" json:"last_watched_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchSyncRemoteWatchedState) Reset() {
+	*x = WatchSyncRemoteWatchedState{}
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchSyncRemoteWatchedState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchSyncRemoteWatchedState) ProtoMessage() {}
+
+func (x *WatchSyncRemoteWatchedState) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchSyncRemoteWatchedState.ProtoReflect.Descriptor instead.
+func (*WatchSyncRemoteWatchedState) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *WatchSyncRemoteWatchedState) GetPlayCount() int32 {
+	if x != nil {
+		return x.PlayCount
+	}
+	return 0
+}
+
+func (x *WatchSyncRemoteWatchedState) GetLastWatchedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastWatchedAt
+	}
+	return nil
+}
+
+type WatchSyncRemoteProgressState struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Resume progress in the range [0, 100). Completed plays belong in watched.
+	ProgressPercent float64 `protobuf:"fixed64,1,opt,name=progress_percent,json=progressPercent,proto3" json:"progress_percent,omitempty"`
+	// Provider timestamp for this resume state.
+	PausedAt      *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=paused_at,json=pausedAt,proto3" json:"paused_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchSyncRemoteProgressState) Reset() {
+	*x = WatchSyncRemoteProgressState{}
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchSyncRemoteProgressState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchSyncRemoteProgressState) ProtoMessage() {}
+
+func (x *WatchSyncRemoteProgressState) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchSyncRemoteProgressState.ProtoReflect.Descriptor instead.
+func (*WatchSyncRemoteProgressState) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *WatchSyncRemoteProgressState) GetProgressPercent() float64 {
+	if x != nil {
+		return x.ProgressPercent
+	}
+	return 0
+}
+
+func (x *WatchSyncRemoteProgressState) GetPausedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.PausedAt
+	}
+	return nil
+}
+
 type WatchSyncRemoteState struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ProviderItemKey string                 `protobuf:"bytes,1,opt,name=provider_item_key,json=providerItemKey,proto3" json:"provider_item_key,omitempty"`
 	Media           *WatchSyncMedia        `protobuf:"bytes,2,opt,name=media,proto3" json:"media,omitempty"`
-	Progress        int32                  `protobuf:"varint,3,opt,name=progress,proto3" json:"progress,omitempty"`
-	Status          string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// At least one typed state must be present. Both may be present when the
+	// provider reports a completed play and a separate resume point.
+	Watched       *WatchSyncRemoteWatchedState  `protobuf:"bytes,3,opt,name=watched,proto3" json:"watched,omitempty"`
+	Progress      *WatchSyncRemoteProgressState `protobuf:"bytes,4,opt,name=progress,proto3" json:"progress,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncRemoteState) Reset() {
 	*x = WatchSyncRemoteState{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1757,7 +1921,7 @@ func (x *WatchSyncRemoteState) String() string {
 func (*WatchSyncRemoteState) ProtoMessage() {}
 
 func (x *WatchSyncRemoteState) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1770,7 +1934,7 @@ func (x *WatchSyncRemoteState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncRemoteState.ProtoReflect.Descriptor instead.
 func (*WatchSyncRemoteState) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{19}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *WatchSyncRemoteState) GetProviderItemKey() string {
@@ -1787,42 +1951,44 @@ func (x *WatchSyncRemoteState) GetMedia() *WatchSyncMedia {
 	return nil
 }
 
-func (x *WatchSyncRemoteState) GetProgress() int32 {
+func (x *WatchSyncRemoteState) GetWatched() *WatchSyncRemoteWatchedState {
+	if x != nil {
+		return x.Watched
+	}
+	return nil
+}
+
+func (x *WatchSyncRemoteState) GetProgress() *WatchSyncRemoteProgressState {
 	if x != nil {
 		return x.Progress
-	}
-	return 0
-}
-
-func (x *WatchSyncRemoteState) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *WatchSyncRemoteState) GetUpdatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedAt
 	}
 	return nil
 }
 
 type WatchSyncListRemoteStateResponse struct {
-	state              protoimpl.MessageState  `protogen:"open.v1"`
-	Items              []*WatchSyncRemoteState `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	NextPageToken      string                  `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
-	NextCursor         string                  `protobuf:"bytes,3,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
-	CompleteSnapshot   bool                    `protobuf:"varint,4,opt,name=complete_snapshot,json=completeSnapshot,proto3" json:"complete_snapshot,omitempty"`
-	UpdatedCredentials *WatchSyncCredentials   `protobuf:"bytes,5,opt,name=updated_credentials,json=updatedCredentials,proto3" json:"updated_credentials,omitempty"`
-	Fault              *WatchSyncFault         `protobuf:"bytes,6,opt,name=fault,proto3" json:"fault,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state protoimpl.MessageState  `protogen:"open.v1"`
+	Items []*WatchSyncRemoteState `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// Non-empty when more pages remain. The host requests the next page with the
+	// original cursor and this token before committing next_cursor.
+	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	// Durable checkpoint for the completed traversal. Plugins set this only on
+	// the final page; the host persists it only after committing every item.
+	NextCursor string `protobuf:"bytes,3,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	// True when this traversal is an authoritative full snapshot. False means an
+	// incremental delta, so an absent item must not be interpreted as deletion.
+	// The value must remain stable across every page in one traversal.
+	CompleteSnapshot   bool                  `protobuf:"varint,4,opt,name=complete_snapshot,json=completeSnapshot,proto3" json:"complete_snapshot,omitempty"`
+	UpdatedCredentials *WatchSyncCredentials `protobuf:"bytes,5,opt,name=updated_credentials,json=updatedCredentials,proto3" json:"updated_credentials,omitempty"`
+	// Traversal-level failure. When set, the host discards this page and keeps
+	// its previously committed cursor.
+	Fault         *WatchSyncFault `protobuf:"bytes,6,opt,name=fault,proto3" json:"fault,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncListRemoteStateResponse) Reset() {
 	*x = WatchSyncListRemoteStateResponse{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[20]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1834,7 +2000,7 @@ func (x *WatchSyncListRemoteStateResponse) String() string {
 func (*WatchSyncListRemoteStateResponse) ProtoMessage() {}
 
 func (x *WatchSyncListRemoteStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[20]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1847,7 +2013,7 @@ func (x *WatchSyncListRemoteStateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncListRemoteStateResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncListRemoteStateResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{20}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *WatchSyncListRemoteStateResponse) GetItems() []*WatchSyncRemoteState {
@@ -1896,14 +2062,14 @@ var File_silo_plugin_v1_watch_sync_provider_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\n" +
-	"(silo/plugin/v1/watch_sync_provider.proto\x12\x0esilo.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x97\x03\n" +
+	"(silo/plugin/v1/watch_sync_provider.proto\x12\x0esilo.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbb\x03\n" +
 	"\x1bWatchSyncProviderDescriptor\x12F\n" +
 	"\fauth_methods\x18\x01 \x03(\x0e2#.silo.plugin.v1.WatchSyncAuthMethodR\vauthMethods\x12%\n" +
 	"\x0eexport_watched\x18\x02 \x01(\bR\rexportWatched\x12)\n" +
 	"\x10export_unwatched\x18\x03 \x01(\bR\x0fexportUnwatched\x12%\n" +
 	"\x0eimport_watched\x18\x04 \x01(\bR\rimportWatched\x12'\n" +
-	"\x0fimport_progress\x18\x05 \x01(\bR\x0eimportProgress\x122\n" +
-	"\x15supported_media_types\x18\x06 \x03(\tR\x13supportedMediaTypes\x124\n" +
+	"\x0fimport_progress\x18\x05 \x01(\bR\x0eimportProgress\x12V\n" +
+	"\x15supported_media_types\x18\x06 \x03(\x0e2\".silo.plugin.v1.WatchSyncMediaTypeR\x13supportedMediaTypes\x124\n" +
 	"\x16external_id_namespaces\x18\a \x03(\tR\x14externalIdNamespaces\x12$\n" +
 	"\x0emax_batch_size\x18\b \x01(\x05R\fmaxBatchSize\"\xc2\x02\n" +
 	"\x17WatchSyncProviderConfig\x12K\n" +
@@ -1926,7 +2092,11 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x11secret_attributes\x18\x06 \x03(\v2:.silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntryR\x10secretAttributes\x1aC\n" +
 	"\x15SecretAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbc\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xde\x01\n" +
+	"\x1dWatchSyncAuthenticatedContext\x12#\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2'.silo.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12F\n" +
+	"\vcredentials\x18\x03 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\vcredentials\"\xbc\x01\n" +
 	"\x10WatchSyncAccount\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -1958,26 +2128,22 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x1eWatchSyncExchangeAPIKeyRequest\x12#\n" +
 	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
 	"\x0fprovider_config\x18\x02 \x01(\v2'.silo.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12\x17\n" +
-	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\"\xe3\x01\n" +
-	"\"WatchSyncRefreshCredentialsRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.silo.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12F\n" +
-	"\vcredentials\x18\x03 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\vcredentials\"\xd7\x01\n" +
+	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\"m\n" +
+	"\"WatchSyncRefreshCredentialsRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.silo.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\xd7\x01\n" +
 	"\x1bWatchSyncCredentialResponse\x12F\n" +
 	"\vcredentials\x18\x01 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\vcredentials\x12:\n" +
 	"\aaccount\x18\x02 \x01(\v2 .silo.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
-	"\x05fault\x18\x03 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\"\xdb\x01\n" +
-	"\x1aWatchSyncGetAccountRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.silo.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12F\n" +
-	"\vcredentials\x18\x03 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\vcredentials\"\x8f\x01\n" +
+	"\x05fault\x18\x03 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\"e\n" +
+	"\x1aWatchSyncGetAccountRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.silo.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\x8f\x01\n" +
 	"\x1bWatchSyncGetAccountResponse\x12:\n" +
 	"\aaccount\x18\x01 \x01(\v2 .silo.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
-	"\x05fault\x18\x02 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\"\xc5\x06\n" +
+	"\x05fault\x18\x02 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\"\xe9\x06\n" +
 	"\x0eWatchSyncMedia\x12\"\n" +
-	"\rmedia_item_id\x18\x01 \x01(\tR\vmediaItemId\x12\x1d\n" +
+	"\rmedia_item_id\x18\x01 \x01(\tR\vmediaItemId\x12A\n" +
 	"\n" +
-	"media_type\x18\x02 \x01(\tR\tmediaType\x12\x14\n" +
+	"media_type\x18\x02 \x01(\x0e2\".silo.plugin.v1.WatchSyncMediaTypeR\tmediaType\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12%\n" +
 	"\x0eoriginal_title\x18\x04 \x01(\tR\roriginalTitle\x12\x12\n" +
 	"\x04year\x18\x05 \x01(\x05R\x04year\x12R\n" +
@@ -2013,37 +2179,36 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x12completion_percent\x18\n" +
 	" \x01(\x01R\x11completionPercent\x12\x1d\n" +
 	"\n" +
-	"play_count\x18\v \x01(\x05R\tplayCount\"\x94\x02\n" +
-	"\x1bWatchSyncApplyEventsRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.silo.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12F\n" +
-	"\vcredentials\x18\x03 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\vcredentials\x126\n" +
-	"\x06events\x18\x04 \x03(\v2\x1e.silo.plugin.v1.WatchSyncEventR\x06events\"\xce\x01\n" +
+	"play_count\x18\v \x01(\x05R\tplayCount\"\x9e\x01\n" +
+	"\x1bWatchSyncApplyEventsRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.silo.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x126\n" +
+	"\x06events\x18\x02 \x03(\v2\x1e.silo.plugin.v1.WatchSyncEventR\x06events\"\xa5\x01\n" +
 	"\x14WatchSyncApplyResult\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12<\n" +
-	"\x06status\x18\x02 \x01(\x0e2$.silo.plugin.v1.WatchSyncApplyStatusR\x06status\x12!\n" +
-	"\fsafe_message\x18\x03 \x01(\tR\vsafeMessage\x12:\n" +
-	"\vretry_after\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\n" +
-	"retryAfter\"\xeb\x01\n" +
+	"\x06status\x18\x02 \x01(\x0e2$.silo.plugin.v1.WatchSyncApplyStatusR\x06status\x124\n" +
+	"\x05fault\x18\x03 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\"\xeb\x01\n" +
 	"\x1cWatchSyncApplyEventsResponse\x12>\n" +
 	"\aresults\x18\x01 \x03(\v2$.silo.plugin.v1.WatchSyncApplyResultR\aresults\x12U\n" +
 	"\x13updated_credentials\x18\x02 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x124\n" +
-	"\x05fault\x18\x03 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\"\xb4\x02\n" +
-	"\x1fWatchSyncListRemoteStateRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.silo.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12F\n" +
-	"\vcredentials\x18\x03 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\vcredentials\x12\x16\n" +
-	"\x06cursor\x18\x04 \x01(\tR\x06cursor\x12\x1d\n" +
+	"\x05fault\x18\x03 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\"\xbe\x01\n" +
+	"\x1fWatchSyncListRemoteStateRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.silo.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x12\x16\n" +
+	"\x06cursor\x18\x02 \x01(\tR\x06cursor\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x05 \x01(\tR\tpageToken\x12\x1b\n" +
-	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\"\xe7\x01\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x80\x01\n" +
+	"\x1bWatchSyncRemoteWatchedState\x12\x1d\n" +
+	"\n" +
+	"play_count\x18\x01 \x01(\x05R\tplayCount\x12B\n" +
+	"\x0flast_watched_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\rlastWatchedAt\"\x82\x01\n" +
+	"\x1cWatchSyncRemoteProgressState\x12)\n" +
+	"\x10progress_percent\x18\x01 \x01(\x01R\x0fprogressPercent\x127\n" +
+	"\tpaused_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\bpausedAt\"\x89\x02\n" +
 	"\x14WatchSyncRemoteState\x12*\n" +
 	"\x11provider_item_key\x18\x01 \x01(\tR\x0fproviderItemKey\x124\n" +
-	"\x05media\x18\x02 \x01(\v2\x1e.silo.plugin.v1.WatchSyncMediaR\x05media\x12\x1a\n" +
-	"\bprogress\x18\x03 \x01(\x05R\bprogress\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06status\x129\n" +
-	"\n" +
-	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xe1\x02\n" +
+	"\x05media\x18\x02 \x01(\v2\x1e.silo.plugin.v1.WatchSyncMediaR\x05media\x12E\n" +
+	"\awatched\x18\x03 \x01(\v2+.silo.plugin.v1.WatchSyncRemoteWatchedStateR\awatched\x12H\n" +
+	"\bprogress\x18\x04 \x01(\v2,.silo.plugin.v1.WatchSyncRemoteProgressStateR\bprogress\"\xe1\x02\n" +
 	" WatchSyncListRemoteStateResponse\x12:\n" +
 	"\x05items\x18\x01 \x03(\v2$.silo.plugin.v1.WatchSyncRemoteStateR\x05items\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x1f\n" +
@@ -2055,7 +2220,11 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x13WatchSyncAuthMethod\x12&\n" +
 	"\"WATCH_SYNC_AUTH_METHOD_UNSPECIFIED\x10\x00\x12-\n" +
 	")WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE\x10\x01\x12\"\n" +
-	"\x1eWATCH_SYNC_AUTH_METHOD_API_KEY\x10\x02*\x8a\x01\n" +
+	"\x1eWATCH_SYNC_AUTH_METHOD_API_KEY\x10\x02*\x7f\n" +
+	"\x12WatchSyncMediaType\x12%\n" +
+	"!WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bWATCH_SYNC_MEDIA_TYPE_MOVIE\x10\x01\x12!\n" +
+	"\x1dWATCH_SYNC_MEDIA_TYPE_EPISODE\x10\x02*\x8a\x01\n" +
 	"\x12WatchSyncOperation\x12$\n" +
 	" WATCH_SYNC_OPERATION_UNSPECIFIED\x10\x00\x12%\n" +
 	"!WATCH_SYNC_OPERATION_MARK_WATCHED\x10\x01\x12'\n" +
@@ -2101,106 +2270,113 @@ func file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescData
 }
 
-var file_silo_plugin_v1_watch_sync_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_silo_plugin_v1_watch_sync_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_silo_plugin_v1_watch_sync_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_silo_plugin_v1_watch_sync_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_silo_plugin_v1_watch_sync_provider_proto_goTypes = []any{
 	(WatchSyncAuthMethod)(0),                   // 0: silo.plugin.v1.WatchSyncAuthMethod
-	(WatchSyncOperation)(0),                    // 1: silo.plugin.v1.WatchSyncOperation
-	(WatchSyncOrigin)(0),                       // 2: silo.plugin.v1.WatchSyncOrigin
-	(WatchSyncApplyStatus)(0),                  // 3: silo.plugin.v1.WatchSyncApplyStatus
-	(WatchSyncFaultCode)(0),                    // 4: silo.plugin.v1.WatchSyncFaultCode
-	(*WatchSyncProviderDescriptor)(nil),        // 5: silo.plugin.v1.WatchSyncProviderDescriptor
-	(*WatchSyncProviderConfig)(nil),            // 6: silo.plugin.v1.WatchSyncProviderConfig
-	(*WatchSyncCredentials)(nil),               // 7: silo.plugin.v1.WatchSyncCredentials
-	(*WatchSyncAccount)(nil),                   // 8: silo.plugin.v1.WatchSyncAccount
-	(*WatchSyncFault)(nil),                     // 9: silo.plugin.v1.WatchSyncFault
-	(*WatchSyncInitAuthorizeRequest)(nil),      // 10: silo.plugin.v1.WatchSyncInitAuthorizeRequest
-	(*WatchSyncInitAuthorizeResponse)(nil),     // 11: silo.plugin.v1.WatchSyncInitAuthorizeResponse
-	(*WatchSyncExchangeCodeRequest)(nil),       // 12: silo.plugin.v1.WatchSyncExchangeCodeRequest
-	(*WatchSyncExchangeAPIKeyRequest)(nil),     // 13: silo.plugin.v1.WatchSyncExchangeAPIKeyRequest
-	(*WatchSyncRefreshCredentialsRequest)(nil), // 14: silo.plugin.v1.WatchSyncRefreshCredentialsRequest
-	(*WatchSyncCredentialResponse)(nil),        // 15: silo.plugin.v1.WatchSyncCredentialResponse
-	(*WatchSyncGetAccountRequest)(nil),         // 16: silo.plugin.v1.WatchSyncGetAccountRequest
-	(*WatchSyncGetAccountResponse)(nil),        // 17: silo.plugin.v1.WatchSyncGetAccountResponse
-	(*WatchSyncMedia)(nil),                     // 18: silo.plugin.v1.WatchSyncMedia
-	(*WatchSyncEvent)(nil),                     // 19: silo.plugin.v1.WatchSyncEvent
-	(*WatchSyncApplyEventsRequest)(nil),        // 20: silo.plugin.v1.WatchSyncApplyEventsRequest
-	(*WatchSyncApplyResult)(nil),               // 21: silo.plugin.v1.WatchSyncApplyResult
-	(*WatchSyncApplyEventsResponse)(nil),       // 22: silo.plugin.v1.WatchSyncApplyEventsResponse
-	(*WatchSyncListRemoteStateRequest)(nil),    // 23: silo.plugin.v1.WatchSyncListRemoteStateRequest
-	(*WatchSyncRemoteState)(nil),               // 24: silo.plugin.v1.WatchSyncRemoteState
-	(*WatchSyncListRemoteStateResponse)(nil),   // 25: silo.plugin.v1.WatchSyncListRemoteStateResponse
-	nil,                                        // 26: silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
-	nil,                                        // 27: silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
-	nil,                                        // 28: silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
-	nil,                                        // 29: silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
-	nil,                                        // 30: silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
-	(*timestamppb.Timestamp)(nil),              // 31: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),                // 32: google.protobuf.Duration
-	(*structpb.Struct)(nil),                    // 33: google.protobuf.Struct
+	(WatchSyncMediaType)(0),                    // 1: silo.plugin.v1.WatchSyncMediaType
+	(WatchSyncOperation)(0),                    // 2: silo.plugin.v1.WatchSyncOperation
+	(WatchSyncOrigin)(0),                       // 3: silo.plugin.v1.WatchSyncOrigin
+	(WatchSyncApplyStatus)(0),                  // 4: silo.plugin.v1.WatchSyncApplyStatus
+	(WatchSyncFaultCode)(0),                    // 5: silo.plugin.v1.WatchSyncFaultCode
+	(*WatchSyncProviderDescriptor)(nil),        // 6: silo.plugin.v1.WatchSyncProviderDescriptor
+	(*WatchSyncProviderConfig)(nil),            // 7: silo.plugin.v1.WatchSyncProviderConfig
+	(*WatchSyncCredentials)(nil),               // 8: silo.plugin.v1.WatchSyncCredentials
+	(*WatchSyncAuthenticatedContext)(nil),      // 9: silo.plugin.v1.WatchSyncAuthenticatedContext
+	(*WatchSyncAccount)(nil),                   // 10: silo.plugin.v1.WatchSyncAccount
+	(*WatchSyncFault)(nil),                     // 11: silo.plugin.v1.WatchSyncFault
+	(*WatchSyncInitAuthorizeRequest)(nil),      // 12: silo.plugin.v1.WatchSyncInitAuthorizeRequest
+	(*WatchSyncInitAuthorizeResponse)(nil),     // 13: silo.plugin.v1.WatchSyncInitAuthorizeResponse
+	(*WatchSyncExchangeCodeRequest)(nil),       // 14: silo.plugin.v1.WatchSyncExchangeCodeRequest
+	(*WatchSyncExchangeAPIKeyRequest)(nil),     // 15: silo.plugin.v1.WatchSyncExchangeAPIKeyRequest
+	(*WatchSyncRefreshCredentialsRequest)(nil), // 16: silo.plugin.v1.WatchSyncRefreshCredentialsRequest
+	(*WatchSyncCredentialResponse)(nil),        // 17: silo.plugin.v1.WatchSyncCredentialResponse
+	(*WatchSyncGetAccountRequest)(nil),         // 18: silo.plugin.v1.WatchSyncGetAccountRequest
+	(*WatchSyncGetAccountResponse)(nil),        // 19: silo.plugin.v1.WatchSyncGetAccountResponse
+	(*WatchSyncMedia)(nil),                     // 20: silo.plugin.v1.WatchSyncMedia
+	(*WatchSyncEvent)(nil),                     // 21: silo.plugin.v1.WatchSyncEvent
+	(*WatchSyncApplyEventsRequest)(nil),        // 22: silo.plugin.v1.WatchSyncApplyEventsRequest
+	(*WatchSyncApplyResult)(nil),               // 23: silo.plugin.v1.WatchSyncApplyResult
+	(*WatchSyncApplyEventsResponse)(nil),       // 24: silo.plugin.v1.WatchSyncApplyEventsResponse
+	(*WatchSyncListRemoteStateRequest)(nil),    // 25: silo.plugin.v1.WatchSyncListRemoteStateRequest
+	(*WatchSyncRemoteWatchedState)(nil),        // 26: silo.plugin.v1.WatchSyncRemoteWatchedState
+	(*WatchSyncRemoteProgressState)(nil),       // 27: silo.plugin.v1.WatchSyncRemoteProgressState
+	(*WatchSyncRemoteState)(nil),               // 28: silo.plugin.v1.WatchSyncRemoteState
+	(*WatchSyncListRemoteStateResponse)(nil),   // 29: silo.plugin.v1.WatchSyncListRemoteStateResponse
+	nil,                                        // 30: silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
+	nil,                                        // 31: silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
+	nil,                                        // 32: silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
+	nil,                                        // 33: silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
+	nil,                                        // 34: silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
+	(*timestamppb.Timestamp)(nil),              // 35: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),                // 36: google.protobuf.Duration
+	(*structpb.Struct)(nil),                    // 37: google.protobuf.Struct
 }
 var file_silo_plugin_v1_watch_sync_provider_proto_depIdxs = []int32{
 	0,  // 0: silo.plugin.v1.WatchSyncProviderDescriptor.auth_methods:type_name -> silo.plugin.v1.WatchSyncAuthMethod
-	26, // 1: silo.plugin.v1.WatchSyncProviderConfig.values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
-	27, // 2: silo.plugin.v1.WatchSyncProviderConfig.secret_values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
-	31, // 3: silo.plugin.v1.WatchSyncCredentials.expires_at:type_name -> google.protobuf.Timestamp
-	28, // 4: silo.plugin.v1.WatchSyncCredentials.secret_attributes:type_name -> silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
-	4,  // 5: silo.plugin.v1.WatchSyncFault.code:type_name -> silo.plugin.v1.WatchSyncFaultCode
-	32, // 6: silo.plugin.v1.WatchSyncFault.retry_after:type_name -> google.protobuf.Duration
-	6,  // 7: silo.plugin.v1.WatchSyncInitAuthorizeRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	9,  // 8: silo.plugin.v1.WatchSyncInitAuthorizeResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
-	6,  // 9: silo.plugin.v1.WatchSyncExchangeCodeRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	6,  // 10: silo.plugin.v1.WatchSyncExchangeAPIKeyRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	6,  // 11: silo.plugin.v1.WatchSyncRefreshCredentialsRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	7,  // 12: silo.plugin.v1.WatchSyncRefreshCredentialsRequest.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	7,  // 13: silo.plugin.v1.WatchSyncCredentialResponse.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	8,  // 14: silo.plugin.v1.WatchSyncCredentialResponse.account:type_name -> silo.plugin.v1.WatchSyncAccount
-	9,  // 15: silo.plugin.v1.WatchSyncCredentialResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
-	6,  // 16: silo.plugin.v1.WatchSyncGetAccountRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	7,  // 17: silo.plugin.v1.WatchSyncGetAccountRequest.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	8,  // 18: silo.plugin.v1.WatchSyncGetAccountResponse.account:type_name -> silo.plugin.v1.WatchSyncAccount
-	9,  // 19: silo.plugin.v1.WatchSyncGetAccountResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
-	29, // 20: silo.plugin.v1.WatchSyncMedia.external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
-	30, // 21: silo.plugin.v1.WatchSyncMedia.series_external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
-	33, // 22: silo.plugin.v1.WatchSyncMedia.metadata:type_name -> google.protobuf.Struct
-	1,  // 23: silo.plugin.v1.WatchSyncEvent.operation:type_name -> silo.plugin.v1.WatchSyncOperation
-	2,  // 24: silo.plugin.v1.WatchSyncEvent.origin:type_name -> silo.plugin.v1.WatchSyncOrigin
-	31, // 25: silo.plugin.v1.WatchSyncEvent.occurred_at:type_name -> google.protobuf.Timestamp
-	18, // 26: silo.plugin.v1.WatchSyncEvent.media:type_name -> silo.plugin.v1.WatchSyncMedia
-	6,  // 27: silo.plugin.v1.WatchSyncApplyEventsRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	7,  // 28: silo.plugin.v1.WatchSyncApplyEventsRequest.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	19, // 29: silo.plugin.v1.WatchSyncApplyEventsRequest.events:type_name -> silo.plugin.v1.WatchSyncEvent
-	3,  // 30: silo.plugin.v1.WatchSyncApplyResult.status:type_name -> silo.plugin.v1.WatchSyncApplyStatus
-	32, // 31: silo.plugin.v1.WatchSyncApplyResult.retry_after:type_name -> google.protobuf.Duration
-	21, // 32: silo.plugin.v1.WatchSyncApplyEventsResponse.results:type_name -> silo.plugin.v1.WatchSyncApplyResult
-	7,  // 33: silo.plugin.v1.WatchSyncApplyEventsResponse.updated_credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	9,  // 34: silo.plugin.v1.WatchSyncApplyEventsResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
-	6,  // 35: silo.plugin.v1.WatchSyncListRemoteStateRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	7,  // 36: silo.plugin.v1.WatchSyncListRemoteStateRequest.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	18, // 37: silo.plugin.v1.WatchSyncRemoteState.media:type_name -> silo.plugin.v1.WatchSyncMedia
-	31, // 38: silo.plugin.v1.WatchSyncRemoteState.updated_at:type_name -> google.protobuf.Timestamp
-	24, // 39: silo.plugin.v1.WatchSyncListRemoteStateResponse.items:type_name -> silo.plugin.v1.WatchSyncRemoteState
-	7,  // 40: silo.plugin.v1.WatchSyncListRemoteStateResponse.updated_credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	9,  // 41: silo.plugin.v1.WatchSyncListRemoteStateResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
-	10, // 42: silo.plugin.v1.WatchSyncProvider.InitAuthorize:input_type -> silo.plugin.v1.WatchSyncInitAuthorizeRequest
-	12, // 43: silo.plugin.v1.WatchSyncProvider.ExchangeCode:input_type -> silo.plugin.v1.WatchSyncExchangeCodeRequest
-	13, // 44: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:input_type -> silo.plugin.v1.WatchSyncExchangeAPIKeyRequest
-	14, // 45: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:input_type -> silo.plugin.v1.WatchSyncRefreshCredentialsRequest
-	16, // 46: silo.plugin.v1.WatchSyncProvider.GetAccount:input_type -> silo.plugin.v1.WatchSyncGetAccountRequest
-	20, // 47: silo.plugin.v1.WatchSyncProvider.ApplyEvents:input_type -> silo.plugin.v1.WatchSyncApplyEventsRequest
-	23, // 48: silo.plugin.v1.WatchSyncProvider.ListRemoteState:input_type -> silo.plugin.v1.WatchSyncListRemoteStateRequest
-	11, // 49: silo.plugin.v1.WatchSyncProvider.InitAuthorize:output_type -> silo.plugin.v1.WatchSyncInitAuthorizeResponse
-	15, // 50: silo.plugin.v1.WatchSyncProvider.ExchangeCode:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
-	15, // 51: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
-	15, // 52: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
-	17, // 53: silo.plugin.v1.WatchSyncProvider.GetAccount:output_type -> silo.plugin.v1.WatchSyncGetAccountResponse
-	22, // 54: silo.plugin.v1.WatchSyncProvider.ApplyEvents:output_type -> silo.plugin.v1.WatchSyncApplyEventsResponse
-	25, // 55: silo.plugin.v1.WatchSyncProvider.ListRemoteState:output_type -> silo.plugin.v1.WatchSyncListRemoteStateResponse
-	49, // [49:56] is the sub-list for method output_type
-	42, // [42:49] is the sub-list for method input_type
-	42, // [42:42] is the sub-list for extension type_name
-	42, // [42:42] is the sub-list for extension extendee
-	0,  // [0:42] is the sub-list for field type_name
+	1,  // 1: silo.plugin.v1.WatchSyncProviderDescriptor.supported_media_types:type_name -> silo.plugin.v1.WatchSyncMediaType
+	30, // 2: silo.plugin.v1.WatchSyncProviderConfig.values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
+	31, // 3: silo.plugin.v1.WatchSyncProviderConfig.secret_values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
+	35, // 4: silo.plugin.v1.WatchSyncCredentials.expires_at:type_name -> google.protobuf.Timestamp
+	32, // 5: silo.plugin.v1.WatchSyncCredentials.secret_attributes:type_name -> silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
+	7,  // 6: silo.plugin.v1.WatchSyncAuthenticatedContext.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
+	8,  // 7: silo.plugin.v1.WatchSyncAuthenticatedContext.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
+	5,  // 8: silo.plugin.v1.WatchSyncFault.code:type_name -> silo.plugin.v1.WatchSyncFaultCode
+	36, // 9: silo.plugin.v1.WatchSyncFault.retry_after:type_name -> google.protobuf.Duration
+	7,  // 10: silo.plugin.v1.WatchSyncInitAuthorizeRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
+	11, // 11: silo.plugin.v1.WatchSyncInitAuthorizeResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
+	7,  // 12: silo.plugin.v1.WatchSyncExchangeCodeRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
+	7,  // 13: silo.plugin.v1.WatchSyncExchangeAPIKeyRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
+	9,  // 14: silo.plugin.v1.WatchSyncRefreshCredentialsRequest.context:type_name -> silo.plugin.v1.WatchSyncAuthenticatedContext
+	8,  // 15: silo.plugin.v1.WatchSyncCredentialResponse.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
+	10, // 16: silo.plugin.v1.WatchSyncCredentialResponse.account:type_name -> silo.plugin.v1.WatchSyncAccount
+	11, // 17: silo.plugin.v1.WatchSyncCredentialResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
+	9,  // 18: silo.plugin.v1.WatchSyncGetAccountRequest.context:type_name -> silo.plugin.v1.WatchSyncAuthenticatedContext
+	10, // 19: silo.plugin.v1.WatchSyncGetAccountResponse.account:type_name -> silo.plugin.v1.WatchSyncAccount
+	11, // 20: silo.plugin.v1.WatchSyncGetAccountResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
+	1,  // 21: silo.plugin.v1.WatchSyncMedia.media_type:type_name -> silo.plugin.v1.WatchSyncMediaType
+	33, // 22: silo.plugin.v1.WatchSyncMedia.external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
+	34, // 23: silo.plugin.v1.WatchSyncMedia.series_external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
+	37, // 24: silo.plugin.v1.WatchSyncMedia.metadata:type_name -> google.protobuf.Struct
+	2,  // 25: silo.plugin.v1.WatchSyncEvent.operation:type_name -> silo.plugin.v1.WatchSyncOperation
+	3,  // 26: silo.plugin.v1.WatchSyncEvent.origin:type_name -> silo.plugin.v1.WatchSyncOrigin
+	35, // 27: silo.plugin.v1.WatchSyncEvent.occurred_at:type_name -> google.protobuf.Timestamp
+	20, // 28: silo.plugin.v1.WatchSyncEvent.media:type_name -> silo.plugin.v1.WatchSyncMedia
+	9,  // 29: silo.plugin.v1.WatchSyncApplyEventsRequest.context:type_name -> silo.plugin.v1.WatchSyncAuthenticatedContext
+	21, // 30: silo.plugin.v1.WatchSyncApplyEventsRequest.events:type_name -> silo.plugin.v1.WatchSyncEvent
+	4,  // 31: silo.plugin.v1.WatchSyncApplyResult.status:type_name -> silo.plugin.v1.WatchSyncApplyStatus
+	11, // 32: silo.plugin.v1.WatchSyncApplyResult.fault:type_name -> silo.plugin.v1.WatchSyncFault
+	23, // 33: silo.plugin.v1.WatchSyncApplyEventsResponse.results:type_name -> silo.plugin.v1.WatchSyncApplyResult
+	8,  // 34: silo.plugin.v1.WatchSyncApplyEventsResponse.updated_credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
+	11, // 35: silo.plugin.v1.WatchSyncApplyEventsResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
+	9,  // 36: silo.plugin.v1.WatchSyncListRemoteStateRequest.context:type_name -> silo.plugin.v1.WatchSyncAuthenticatedContext
+	35, // 37: silo.plugin.v1.WatchSyncRemoteWatchedState.last_watched_at:type_name -> google.protobuf.Timestamp
+	35, // 38: silo.plugin.v1.WatchSyncRemoteProgressState.paused_at:type_name -> google.protobuf.Timestamp
+	20, // 39: silo.plugin.v1.WatchSyncRemoteState.media:type_name -> silo.plugin.v1.WatchSyncMedia
+	26, // 40: silo.plugin.v1.WatchSyncRemoteState.watched:type_name -> silo.plugin.v1.WatchSyncRemoteWatchedState
+	27, // 41: silo.plugin.v1.WatchSyncRemoteState.progress:type_name -> silo.plugin.v1.WatchSyncRemoteProgressState
+	28, // 42: silo.plugin.v1.WatchSyncListRemoteStateResponse.items:type_name -> silo.plugin.v1.WatchSyncRemoteState
+	8,  // 43: silo.plugin.v1.WatchSyncListRemoteStateResponse.updated_credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
+	11, // 44: silo.plugin.v1.WatchSyncListRemoteStateResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
+	12, // 45: silo.plugin.v1.WatchSyncProvider.InitAuthorize:input_type -> silo.plugin.v1.WatchSyncInitAuthorizeRequest
+	14, // 46: silo.plugin.v1.WatchSyncProvider.ExchangeCode:input_type -> silo.plugin.v1.WatchSyncExchangeCodeRequest
+	15, // 47: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:input_type -> silo.plugin.v1.WatchSyncExchangeAPIKeyRequest
+	16, // 48: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:input_type -> silo.plugin.v1.WatchSyncRefreshCredentialsRequest
+	18, // 49: silo.plugin.v1.WatchSyncProvider.GetAccount:input_type -> silo.plugin.v1.WatchSyncGetAccountRequest
+	22, // 50: silo.plugin.v1.WatchSyncProvider.ApplyEvents:input_type -> silo.plugin.v1.WatchSyncApplyEventsRequest
+	25, // 51: silo.plugin.v1.WatchSyncProvider.ListRemoteState:input_type -> silo.plugin.v1.WatchSyncListRemoteStateRequest
+	13, // 52: silo.plugin.v1.WatchSyncProvider.InitAuthorize:output_type -> silo.plugin.v1.WatchSyncInitAuthorizeResponse
+	17, // 53: silo.plugin.v1.WatchSyncProvider.ExchangeCode:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
+	17, // 54: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
+	17, // 55: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
+	19, // 56: silo.plugin.v1.WatchSyncProvider.GetAccount:output_type -> silo.plugin.v1.WatchSyncGetAccountResponse
+	24, // 57: silo.plugin.v1.WatchSyncProvider.ApplyEvents:output_type -> silo.plugin.v1.WatchSyncApplyEventsResponse
+	29, // 58: silo.plugin.v1.WatchSyncProvider.ListRemoteState:output_type -> silo.plugin.v1.WatchSyncListRemoteStateResponse
+	52, // [52:59] is the sub-list for method output_type
+	45, // [45:52] is the sub-list for method input_type
+	45, // [45:45] is the sub-list for extension type_name
+	45, // [45:45] is the sub-list for extension extendee
+	0,  // [0:45] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_watch_sync_provider_proto_init() }
@@ -2213,8 +2389,8 @@ func file_silo_plugin_v1_watch_sync_provider_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_watch_sync_provider_proto_rawDesc), len(file_silo_plugin_v1_watch_sync_provider_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   26,
+			NumEnums:      6,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
