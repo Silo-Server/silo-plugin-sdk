@@ -150,9 +150,10 @@ Connection-wide faults such as invalid credentials belong on the RPC response.
 `ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
 play count and last-watched time; `progress` carries a fractional percentage and
 paused time. An item may contain either or both. The host keeps the request
-`cursor` fixed while following ephemeral page tokens, commits every page, and
-only then persists the final `next_cursor`. `complete_snapshot=true` means the
-traversal is authoritative; when false, missing items are not deletions.
+`cursor` fixed while following ephemeral page tokens, commits each successful
+page, and only then persists the final `next_cursor`. `complete_snapshot=true`
+means the traversal is authoritative; when false, missing items are not
+deletions.
 
 ## Scan sources
 

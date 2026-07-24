@@ -69,9 +69,21 @@ func TestWatchSyncApplyResultCarriesTypedRateLimit(t *testing.T) {
 		},
 	}
 
+	data, err := proto.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncApplyResult
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+
 	if request.GetContext().GetCapabilityId() != "anilist" ||
-		result.GetFault().GetCode() != WatchSyncFaultCode_WATCH_SYNC_FAULT_CODE_RATE_LIMITED ||
-		result.GetFault().GetRetryAfter().AsDuration() != retryAfter {
-		t.Fatalf("request=%#v result=%#v", request, result)
+		output.GetEventId() != "event-1" ||
+		output.GetStatus() != WatchSyncApplyStatus_WATCH_SYNC_APPLY_STATUS_RETRY ||
+		output.GetFault().GetCode() != WatchSyncFaultCode_WATCH_SYNC_FAULT_CODE_RATE_LIMITED ||
+		output.GetFault().GetSafeMessage() != "provider rate limit reached" ||
+		output.GetFault().GetRetryAfter().AsDuration() != retryAfter {
+		t.Fatalf("request=%#v result=%#v", request, &output)
 	}
 }
