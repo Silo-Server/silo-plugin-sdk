@@ -16,6 +16,8 @@ service WatchSyncProvider {
   rpc InitAuthorize(WatchSyncInitAuthorizeRequest) returns (WatchSyncInitAuthorizeResponse);
   rpc ExchangeCode(WatchSyncExchangeCodeRequest) returns (WatchSyncCredentialResponse);
   rpc ExchangeAPIKey(WatchSyncExchangeAPIKeyRequest) returns (WatchSyncCredentialResponse);
+  rpc StartDeviceAuthorization(WatchSyncStartDeviceAuthorizationRequest) returns (WatchSyncStartDeviceAuthorizationResponse);
+  rpc PollDeviceAuthorization(WatchSyncPollDeviceAuthorizationRequest) returns (WatchSyncPollDeviceAuthorizationResponse);
   rpc RefreshCredentials(WatchSyncRefreshCredentialsRequest) returns (WatchSyncCredentialResponse);
   rpc GetAccount(WatchSyncGetAccountRequest) returns (WatchSyncGetAccountResponse);
   rpc ApplyEvents(WatchSyncApplyEventsRequest) returns (WatchSyncApplyEventsResponse);
@@ -26,6 +28,7 @@ enum WatchSyncAuthMethod {
   WATCH_SYNC_AUTH_METHOD_UNSPECIFIED = 0;
   WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE = 1;
   WATCH_SYNC_AUTH_METHOD_API_KEY = 2;
+  WATCH_SYNC_AUTH_METHOD_DEVICE_CODE = 3;
 }
 
 enum WatchSyncMediaType {
@@ -38,6 +41,29 @@ enum WatchSyncOperation {
   WATCH_SYNC_OPERATION_UNSPECIFIED = 0;
   WATCH_SYNC_OPERATION_MARK_WATCHED = 1;
   WATCH_SYNC_OPERATION_MARK_UNWATCHED = 2;
+  WATCH_SYNC_OPERATION_ADD_FAVORITE = 3;
+  WATCH_SYNC_OPERATION_REMOVE_FAVORITE = 4;
+  WATCH_SYNC_OPERATION_ADD_TO_WATCHLIST = 5;
+  WATCH_SYNC_OPERATION_REMOVE_FROM_WATCHLIST = 6;
+  WATCH_SYNC_OPERATION_SCROBBLE_START = 7;
+  WATCH_SYNC_OPERATION_SCROBBLE_PAUSE = 8;
+  WATCH_SYNC_OPERATION_SCROBBLE_STOP = 9;
+}
+
+enum WatchSyncRemoteStateKind {
+  WATCH_SYNC_REMOTE_STATE_KIND_UNSPECIFIED = 0;
+  WATCH_SYNC_REMOTE_STATE_KIND_WATCHED = 1;
+  WATCH_SYNC_REMOTE_STATE_KIND_PROGRESS = 2;
+  WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE = 3;
+  WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST = 4;
+}
+
+enum WatchSyncDeviceAuthorizationStatus {
+  WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_UNSPECIFIED = 0;
+  WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_PENDING = 1;
+  WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_AUTHORIZED = 2;
+  WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_DENIED = 3;
+  WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_EXPIRED = 4;
 }
 
 enum WatchSyncOrigin {
@@ -74,6 +100,15 @@ message WatchSyncProviderDescriptor {
   repeated WatchSyncMediaType supported_media_types = 6;
   repeated string external_id_namespaces = 7;
   int32 max_batch_size = 8;
+  bool import_favorites = 9;
+  bool export_favorites = 10;
+  bool remove_favorites = 11;
+  bool import_watchlist = 12;
+  bool export_watchlist = 13;
+  bool remove_watchlist = 14;
+  // The order of WATCHLIST states returned by ListRemoteState is meaningful.
+  bool provides_watchlist_order = 15;
+  bool scrobble_playback = 16;
 }
 
 message WatchSyncProviderConfig {
@@ -157,6 +192,40 @@ message WatchSyncExchangeAPIKeyRequest {
   string api_key = 3;
 }
 
+message WatchSyncStartDeviceAuthorizationRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+}
+
+message WatchSyncStartDeviceAuthorizationResponse {
+  string user_code = 1;
+  string verification_url = 2;
+  string verification_url_complete = 3;
+  // Plugin-defined flow data. The host encrypts it until authorization
+  // completes and never returns it through the public HTTP API.
+  bytes provider_state = 4;
+  google.protobuf.Duration polling_interval = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  WatchSyncFault fault = 7;
+}
+
+message WatchSyncPollDeviceAuthorizationRequest {
+  string capability_id = 1;
+  WatchSyncProviderConfig provider_config = 2;
+  bytes provider_state = 3;
+}
+
+message WatchSyncPollDeviceAuthorizationResponse {
+  WatchSyncDeviceAuthorizationStatus status = 1;
+  // Complete authoritative replacement when status is AUTHORIZED. The host
+  // persists it before consuming account or fault.
+  WatchSyncCredentials credentials = 2;
+  WatchSyncAccount account = 3;
+  // PENDING normally omits fault. DENIED and EXPIRED may use a safe,
+  // non-retryable fault. Connection-wide and transport failures use fault.
+  WatchSyncFault fault = 4;
+}
+
 message WatchSyncRefreshCredentialsRequest {
   WatchSyncAuthenticatedContext context = 1;
 }
@@ -211,6 +280,13 @@ message WatchSyncEvent {
   double duration_seconds = 9;
   double completion_percent = 10;
   int32 play_count = 11;
+  // Optional zero-based position for list providers that accept explicit
+  // ordering. Providers may ignore it unless their API supports order writes.
+  int32 list_position = 12;
+  // Provider-native key previously returned by ListRemoteState. It lets a
+  // removal address the exact upstream record when external IDs are absent or
+  // no longer resolve.
+  string provider_item_key = 13;
 }
 
 message WatchSyncApplyEventsRequest {
@@ -252,6 +328,9 @@ message WatchSyncListRemoteStateRequest {
   string page_token = 3;
   // Requested maximum number of items. Plugins may return fewer.
   int32 page_size = 4;
+  // State families requested by the host. Empty means every family advertised
+  // by the descriptor, preserving compatibility with v0.12 hosts and plugins.
+  repeated WatchSyncRemoteStateKind state_kinds = 5;
 }
 
 message WatchSyncRemoteWatchedState {
@@ -269,6 +348,11 @@ message WatchSyncRemoteProgressState {
   google.protobuf.Timestamp paused_at = 2;
 }
 
+message WatchSyncRemoteListState {
+  // Provider timestamp for when the item was added, when available.
+  google.protobuf.Timestamp listed_at = 1;
+}
+
 message WatchSyncRemoteState {
   string provider_item_key = 1;
   WatchSyncMedia media = 2;
@@ -276,6 +360,8 @@ message WatchSyncRemoteState {
   // provider reports a completed play and a separate resume point.
   WatchSyncRemoteWatchedState watched = 3;
   WatchSyncRemoteProgressState progress = 4;
+  WatchSyncRemoteListState favorite = 5;
+  WatchSyncRemoteListState watchlist = 6;
 }
 
 message WatchSyncListRemoteStateResponse {

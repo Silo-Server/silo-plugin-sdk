@@ -26,6 +26,7 @@ func TestWatchSyncTypedRemoteStateRoundTrip(t *testing.T) {
 				ProgressPercent: 42.5,
 				PausedAt:        timestamppb.New(pausedAt),
 			},
+			Watchlist: &WatchSyncRemoteListState{ListedAt: timestamppb.New(pausedAt.Add(-2 * time.Hour))},
 		}},
 		NextCursor:       "checkpoint-2",
 		CompleteSnapshot: true,
@@ -44,8 +45,34 @@ func TestWatchSyncTypedRemoteStateRoundTrip(t *testing.T) {
 	if item.GetMedia().GetMediaType() != WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE ||
 		item.GetWatched().GetPlayCount() != 2 ||
 		item.GetProgress().GetProgressPercent() != 42.5 ||
-		!item.GetProgress().GetPausedAt().AsTime().Equal(pausedAt) {
+		!item.GetProgress().GetPausedAt().AsTime().Equal(pausedAt) ||
+		!item.GetWatchlist().GetListedAt().AsTime().Equal(pausedAt.Add(-2*time.Hour)) {
 		t.Fatalf("remote state = %#v", item)
+	}
+}
+
+func TestWatchSyncDeviceAuthorizationRoundTrip(t *testing.T) {
+	expiresAt := time.Unix(1_800_000_000, 0).UTC()
+	input := &WatchSyncStartDeviceAuthorizationResponse{
+		UserCode:                "ABCD-1234",
+		VerificationUrl:         "https://provider.example/activate",
+		VerificationUrlComplete: "https://provider.example/activate?code=ABCD-1234",
+		ProviderState:           []byte(`{"device_code":"secret"}`),
+		PollingInterval:         durationpb.New(5 * time.Second),
+		ExpiresAt:               timestamppb.New(expiresAt),
+	}
+	data, err := proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncStartDeviceAuthorizationResponse
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.GetUserCode() != input.GetUserCode() ||
+		output.GetPollingInterval().AsDuration() != 5*time.Second ||
+		!output.GetExpiresAt().AsTime().Equal(expiresAt) {
+		t.Fatalf("device authorization = %#v", &output)
 	}
 }
 

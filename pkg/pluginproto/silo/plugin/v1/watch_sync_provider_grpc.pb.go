@@ -19,13 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WatchSyncProvider_InitAuthorize_FullMethodName      = "/silo.plugin.v1.WatchSyncProvider/InitAuthorize"
-	WatchSyncProvider_ExchangeCode_FullMethodName       = "/silo.plugin.v1.WatchSyncProvider/ExchangeCode"
-	WatchSyncProvider_ExchangeAPIKey_FullMethodName     = "/silo.plugin.v1.WatchSyncProvider/ExchangeAPIKey"
-	WatchSyncProvider_RefreshCredentials_FullMethodName = "/silo.plugin.v1.WatchSyncProvider/RefreshCredentials"
-	WatchSyncProvider_GetAccount_FullMethodName         = "/silo.plugin.v1.WatchSyncProvider/GetAccount"
-	WatchSyncProvider_ApplyEvents_FullMethodName        = "/silo.plugin.v1.WatchSyncProvider/ApplyEvents"
-	WatchSyncProvider_ListRemoteState_FullMethodName    = "/silo.plugin.v1.WatchSyncProvider/ListRemoteState"
+	WatchSyncProvider_InitAuthorize_FullMethodName            = "/silo.plugin.v1.WatchSyncProvider/InitAuthorize"
+	WatchSyncProvider_ExchangeCode_FullMethodName             = "/silo.plugin.v1.WatchSyncProvider/ExchangeCode"
+	WatchSyncProvider_ExchangeAPIKey_FullMethodName           = "/silo.plugin.v1.WatchSyncProvider/ExchangeAPIKey"
+	WatchSyncProvider_StartDeviceAuthorization_FullMethodName = "/silo.plugin.v1.WatchSyncProvider/StartDeviceAuthorization"
+	WatchSyncProvider_PollDeviceAuthorization_FullMethodName  = "/silo.plugin.v1.WatchSyncProvider/PollDeviceAuthorization"
+	WatchSyncProvider_RefreshCredentials_FullMethodName       = "/silo.plugin.v1.WatchSyncProvider/RefreshCredentials"
+	WatchSyncProvider_GetAccount_FullMethodName               = "/silo.plugin.v1.WatchSyncProvider/GetAccount"
+	WatchSyncProvider_ApplyEvents_FullMethodName              = "/silo.plugin.v1.WatchSyncProvider/ApplyEvents"
+	WatchSyncProvider_ListRemoteState_FullMethodName          = "/silo.plugin.v1.WatchSyncProvider/ListRemoteState"
 )
 
 // WatchSyncProviderClient is the client API for WatchSyncProvider service.
@@ -40,6 +42,8 @@ type WatchSyncProviderClient interface {
 	InitAuthorize(ctx context.Context, in *WatchSyncInitAuthorizeRequest, opts ...grpc.CallOption) (*WatchSyncInitAuthorizeResponse, error)
 	ExchangeCode(ctx context.Context, in *WatchSyncExchangeCodeRequest, opts ...grpc.CallOption) (*WatchSyncCredentialResponse, error)
 	ExchangeAPIKey(ctx context.Context, in *WatchSyncExchangeAPIKeyRequest, opts ...grpc.CallOption) (*WatchSyncCredentialResponse, error)
+	StartDeviceAuthorization(ctx context.Context, in *WatchSyncStartDeviceAuthorizationRequest, opts ...grpc.CallOption) (*WatchSyncStartDeviceAuthorizationResponse, error)
+	PollDeviceAuthorization(ctx context.Context, in *WatchSyncPollDeviceAuthorizationRequest, opts ...grpc.CallOption) (*WatchSyncPollDeviceAuthorizationResponse, error)
 	RefreshCredentials(ctx context.Context, in *WatchSyncRefreshCredentialsRequest, opts ...grpc.CallOption) (*WatchSyncCredentialResponse, error)
 	GetAccount(ctx context.Context, in *WatchSyncGetAccountRequest, opts ...grpc.CallOption) (*WatchSyncGetAccountResponse, error)
 	ApplyEvents(ctx context.Context, in *WatchSyncApplyEventsRequest, opts ...grpc.CallOption) (*WatchSyncApplyEventsResponse, error)
@@ -78,6 +82,26 @@ func (c *watchSyncProviderClient) ExchangeAPIKey(ctx context.Context, in *WatchS
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(WatchSyncCredentialResponse)
 	err := c.cc.Invoke(ctx, WatchSyncProvider_ExchangeAPIKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *watchSyncProviderClient) StartDeviceAuthorization(ctx context.Context, in *WatchSyncStartDeviceAuthorizationRequest, opts ...grpc.CallOption) (*WatchSyncStartDeviceAuthorizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WatchSyncStartDeviceAuthorizationResponse)
+	err := c.cc.Invoke(ctx, WatchSyncProvider_StartDeviceAuthorization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *watchSyncProviderClient) PollDeviceAuthorization(ctx context.Context, in *WatchSyncPollDeviceAuthorizationRequest, opts ...grpc.CallOption) (*WatchSyncPollDeviceAuthorizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WatchSyncPollDeviceAuthorizationResponse)
+	err := c.cc.Invoke(ctx, WatchSyncProvider_PollDeviceAuthorization_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +160,8 @@ type WatchSyncProviderServer interface {
 	InitAuthorize(context.Context, *WatchSyncInitAuthorizeRequest) (*WatchSyncInitAuthorizeResponse, error)
 	ExchangeCode(context.Context, *WatchSyncExchangeCodeRequest) (*WatchSyncCredentialResponse, error)
 	ExchangeAPIKey(context.Context, *WatchSyncExchangeAPIKeyRequest) (*WatchSyncCredentialResponse, error)
+	StartDeviceAuthorization(context.Context, *WatchSyncStartDeviceAuthorizationRequest) (*WatchSyncStartDeviceAuthorizationResponse, error)
+	PollDeviceAuthorization(context.Context, *WatchSyncPollDeviceAuthorizationRequest) (*WatchSyncPollDeviceAuthorizationResponse, error)
 	RefreshCredentials(context.Context, *WatchSyncRefreshCredentialsRequest) (*WatchSyncCredentialResponse, error)
 	GetAccount(context.Context, *WatchSyncGetAccountRequest) (*WatchSyncGetAccountResponse, error)
 	ApplyEvents(context.Context, *WatchSyncApplyEventsRequest) (*WatchSyncApplyEventsResponse, error)
@@ -157,6 +183,12 @@ func (UnimplementedWatchSyncProviderServer) ExchangeCode(context.Context, *Watch
 }
 func (UnimplementedWatchSyncProviderServer) ExchangeAPIKey(context.Context, *WatchSyncExchangeAPIKeyRequest) (*WatchSyncCredentialResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExchangeAPIKey not implemented")
+}
+func (UnimplementedWatchSyncProviderServer) StartDeviceAuthorization(context.Context, *WatchSyncStartDeviceAuthorizationRequest) (*WatchSyncStartDeviceAuthorizationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartDeviceAuthorization not implemented")
+}
+func (UnimplementedWatchSyncProviderServer) PollDeviceAuthorization(context.Context, *WatchSyncPollDeviceAuthorizationRequest) (*WatchSyncPollDeviceAuthorizationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PollDeviceAuthorization not implemented")
 }
 func (UnimplementedWatchSyncProviderServer) RefreshCredentials(context.Context, *WatchSyncRefreshCredentialsRequest) (*WatchSyncCredentialResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RefreshCredentials not implemented")
@@ -240,6 +272,42 @@ func _WatchSyncProvider_ExchangeAPIKey_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(WatchSyncProviderServer).ExchangeAPIKey(ctx, req.(*WatchSyncExchangeAPIKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WatchSyncProvider_StartDeviceAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WatchSyncStartDeviceAuthorizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WatchSyncProviderServer).StartDeviceAuthorization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WatchSyncProvider_StartDeviceAuthorization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WatchSyncProviderServer).StartDeviceAuthorization(ctx, req.(*WatchSyncStartDeviceAuthorizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WatchSyncProvider_PollDeviceAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WatchSyncPollDeviceAuthorizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WatchSyncProviderServer).PollDeviceAuthorization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WatchSyncProvider_PollDeviceAuthorization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WatchSyncProviderServer).PollDeviceAuthorization(ctx, req.(*WatchSyncPollDeviceAuthorizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -334,6 +402,14 @@ var WatchSyncProvider_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExchangeAPIKey",
 			Handler:    _WatchSyncProvider_ExchangeAPIKey_Handler,
+		},
+		{
+			MethodName: "StartDeviceAuthorization",
+			Handler:    _WatchSyncProvider_StartDeviceAuthorization_Handler,
+		},
+		{
+			MethodName: "PollDeviceAuthorization",
+			Handler:    _WatchSyncProvider_PollDeviceAuthorization_Handler,
 		},
 		{
 			MethodName: "RefreshCredentials",

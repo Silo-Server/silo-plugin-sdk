@@ -156,8 +156,16 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 			return fmt.Errorf("plugin capability %q: watch sync auth method cannot be unspecified", descriptor.GetId())
 		}
 	}
-	if !watchSync.GetExportWatched() && !watchSync.GetExportUnwatched() && !watchSync.GetImportWatched() && !watchSync.GetImportProgress() {
+	if !watchSync.GetExportWatched() && !watchSync.GetExportUnwatched() &&
+		!watchSync.GetImportWatched() && !watchSync.GetImportProgress() &&
+		!watchSync.GetImportFavorites() && !watchSync.GetExportFavorites() &&
+		!watchSync.GetRemoveFavorites() && !watchSync.GetImportWatchlist() &&
+		!watchSync.GetExportWatchlist() && !watchSync.GetRemoveWatchlist() &&
+		!watchSync.GetScrobblePlayback() {
 		return fmt.Errorf("plugin capability %q: at least one watch sync operation is required", descriptor.GetId())
+	}
+	if watchSync.GetProvidesWatchlistOrder() && !watchSync.GetImportWatchlist() {
+		return fmt.Errorf("plugin capability %q: watchlist order requires watchlist import", descriptor.GetId())
 	}
 	if watchSync.GetMaxBatchSize() < 1 || watchSync.GetMaxBatchSize() > 100 {
 		return fmt.Errorf("plugin capability %q: watch sync max_batch_size must be between 1 and 100", descriptor.GetId())

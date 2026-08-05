@@ -87,6 +87,28 @@ func TestValidateWatchSyncProviderAllowsUnknownFutureEnums(t *testing.T) {
 	}
 }
 
+func TestValidateWatchSyncProviderAllowsDeviceCodeAndListOnly(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	descriptor := manifest.Capabilities[0].WatchSyncProvider
+	descriptor.AuthMethods = []pluginv1.WatchSyncAuthMethod{
+		pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_DEVICE_CODE,
+	}
+	descriptor.ExportWatched = false
+	descriptor.ImportWatchlist = true
+	descriptor.ProvidesWatchlistOrder = true
+	if err := publicmanifest.Validate(manifest); err != nil {
+		t.Fatalf("device-code list provider should be valid: %v", err)
+	}
+}
+
+func TestValidateWatchSyncProviderRejectsOrderWithoutImport(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.ProvidesWatchlistOrder = true
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected watchlist order without import to fail")
+	}
+}
+
 func validWatchSyncManifest() *pluginv1.PluginManifest {
 	return &pluginv1.PluginManifest{
 		PluginId: "silo.valid", Version: "1.0.0",

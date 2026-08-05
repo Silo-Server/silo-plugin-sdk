@@ -12,8 +12,10 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 		Type: "watch_sync_provider.v1",
 		Id:   "anilist",
 		WatchSyncProvider: &pluginv1.WatchSyncProviderDescriptor{
-			AuthMethods:   []pluginv1.WatchSyncAuthMethod{pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE},
-			ExportWatched: true,
+			AuthMethods:      []pluginv1.WatchSyncAuthMethod{pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_DEVICE_CODE},
+			ExportWatched:    true,
+			ImportWatchlist:  true,
+			ScrobblePlayback: true,
 			SupportedMediaTypes: []pluginv1.WatchSyncMediaType{
 				pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE,
 				pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE,
@@ -30,7 +32,7 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := decoded.GetWatchSyncProvider()
-	if got == nil || !got.GetExportWatched() || got.GetMaxBatchSize() != 25 ||
+	if got == nil || !got.GetExportWatched() || !got.GetImportWatchlist() || !got.GetScrobblePlayback() || got.GetMaxBatchSize() != 25 ||
 		len(got.GetAuthMethods()) != 1 || len(got.GetSupportedMediaTypes()) != 2 ||
 		got.GetSupportedMediaTypes()[1] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE {
 		t.Fatalf("decoded descriptor = %#v", got)
