@@ -16,12 +16,18 @@ service WatchSyncProvider {
   rpc InitAuthorize(WatchSyncInitAuthorizeRequest) returns (WatchSyncInitAuthorizeResponse);
   rpc ExchangeCode(WatchSyncExchangeCodeRequest) returns (WatchSyncCredentialResponse);
   rpc ExchangeAPIKey(WatchSyncExchangeAPIKeyRequest) returns (WatchSyncCredentialResponse);
-  rpc StartDeviceAuthorization(WatchSyncStartDeviceAuthorizationRequest) returns (WatchSyncStartDeviceAuthorizationResponse);
-  rpc PollDeviceAuthorization(WatchSyncPollDeviceAuthorizationRequest) returns (WatchSyncPollDeviceAuthorizationResponse);
   rpc RefreshCredentials(WatchSyncRefreshCredentialsRequest) returns (WatchSyncCredentialResponse);
   rpc GetAccount(WatchSyncGetAccountRequest) returns (WatchSyncGetAccountResponse);
   rpc ApplyEvents(WatchSyncApplyEventsRequest) returns (WatchSyncApplyEventsResponse);
   rpc ListRemoteState(WatchSyncListRemoteStateRequest) returns (WatchSyncListRemoteStateResponse);
+}
+
+// WatchSyncDeviceAuthorizationService is separate from WatchSyncProvider so adding
+// device authorization does not add methods to the released v0.12 Go server
+// interface. A plugin advertising DEVICE_CODE registers both services.
+service WatchSyncDeviceAuthorizationService {
+  rpc Start(WatchSyncDeviceAuthorizationServiceStartRequest) returns (WatchSyncDeviceAuthorizationServiceStartResponse);
+  rpc Poll(WatchSyncDeviceAuthorizationServicePollRequest) returns (WatchSyncDeviceAuthorizationServicePollResponse);
 }
 
 enum WatchSyncAuthMethod {
@@ -192,12 +198,12 @@ message WatchSyncExchangeAPIKeyRequest {
   string api_key = 3;
 }
 
-message WatchSyncStartDeviceAuthorizationRequest {
+message WatchSyncDeviceAuthorizationServiceStartRequest {
   string capability_id = 1;
   WatchSyncProviderConfig provider_config = 2;
 }
 
-message WatchSyncStartDeviceAuthorizationResponse {
+message WatchSyncDeviceAuthorizationServiceStartResponse {
   string user_code = 1;
   string verification_url = 2;
   string verification_url_complete = 3;
@@ -209,13 +215,13 @@ message WatchSyncStartDeviceAuthorizationResponse {
   WatchSyncFault fault = 7;
 }
 
-message WatchSyncPollDeviceAuthorizationRequest {
+message WatchSyncDeviceAuthorizationServicePollRequest {
   string capability_id = 1;
   WatchSyncProviderConfig provider_config = 2;
   bytes provider_state = 3;
 }
 
-message WatchSyncPollDeviceAuthorizationResponse {
+message WatchSyncDeviceAuthorizationServicePollResponse {
   WatchSyncDeviceAuthorizationStatus status = 1;
   // Complete authoritative replacement when status is AUTHORIZED. The host
   // persists it before consuming account or fault.
@@ -224,6 +230,14 @@ message WatchSyncPollDeviceAuthorizationResponse {
   // PENDING normally omits fault. DENIED and EXPIRED may use a safe,
   // non-retryable fault. Connection-wide and transport failures use fault.
   WatchSyncFault fault = 4;
+  // Optional authoritative replacement for provider_state while PENDING. The
+  // host encrypts and uses it for the next poll.
+  bytes provider_state = 5;
+  // Optional replacement polling interval while PENDING, for example after an
+  // OAuth device-flow slow_down response.
+  google.protobuf.Duration polling_interval = 6;
+  // Optional replacement expiry for a rotated provider challenge.
+  google.protobuf.Timestamp expires_at = 7;
 }
 
 message WatchSyncRefreshCredentialsRequest {
@@ -282,7 +296,7 @@ message WatchSyncEvent {
   int32 play_count = 11;
   // Optional zero-based position for list providers that accept explicit
   // ordering. Providers may ignore it unless their API supports order writes.
-  int32 list_position = 12;
+  optional int32 list_position = 12;
   // Provider-native key previously returned by ListRemoteState. It lets a
   // removal address the exact upstream record when external IDs are absent or
   // no longer resolve.
@@ -351,6 +365,9 @@ message WatchSyncRemoteProgressState {
 message WatchSyncRemoteListState {
   // Provider timestamp for when the item was added, when available.
   google.protobuf.Timestamp listed_at = 1;
+  // True is an explicit tombstone. It is meaningful for incremental
+  // traversals, where omitting an item is not a deletion.
+  bool removed = 2;
 }
 
 message WatchSyncRemoteState {

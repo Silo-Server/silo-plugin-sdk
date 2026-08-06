@@ -35,6 +35,9 @@ type CapabilityServers struct {
 	AuthProvider      pluginv1.AuthProviderServer
 	HttpRoutes        pluginv1.HttpRoutesServer
 	WatchSyncProvider pluginv1.WatchSyncProviderServer
+	// WatchSyncDeviceAuthorization is registered alongside WatchSyncProvider
+	// when the capability advertises device-code authentication.
+	WatchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
 }
 
 // Client wraps the gRPC connection to a plugin and provides typed accessors
@@ -133,6 +136,10 @@ func (c *Client) WatchSyncProvider() pluginv1.WatchSyncProviderClient {
 	return pluginv1.NewWatchSyncProviderClient(c.conn)
 }
 
+func (c *Client) WatchSyncDeviceAuthorization() pluginv1.WatchSyncDeviceAuthorizationServiceClient {
+	return pluginv1.NewWatchSyncDeviceAuthorizationServiceClient(c.conn)
+}
+
 type GRPCPlugin struct {
 	plugin.Plugin
 	Servers CapabilityServers
@@ -177,6 +184,9 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	}
 	if p.Servers.WatchSyncProvider != nil {
 		pluginv1.RegisterWatchSyncProviderServer(server, p.Servers.WatchSyncProvider)
+	}
+	if p.Servers.WatchSyncDeviceAuthorization != nil {
+		pluginv1.RegisterWatchSyncDeviceAuthorizationServiceServer(server, p.Servers.WatchSyncDeviceAuthorization)
 	}
 	return nil
 }

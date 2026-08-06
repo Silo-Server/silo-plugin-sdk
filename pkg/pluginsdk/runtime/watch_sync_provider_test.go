@@ -12,16 +12,24 @@ type stubWatchSyncProvider struct {
 	pluginv1.UnimplementedWatchSyncProviderServer
 }
 
-func TestGRPCServerRegistersWatchSyncProvider(t *testing.T) {
+type stubWatchSyncDeviceAuthorization struct {
+	pluginv1.UnimplementedWatchSyncDeviceAuthorizationServiceServer
+}
+
+func TestGRPCServerRegistersWatchSyncServices(t *testing.T) {
 	p := &runtime.GRPCPlugin{Servers: runtime.CapabilityServers{
-		Runtime:           stubRuntime{},
-		WatchSyncProvider: stubWatchSyncProvider{},
+		Runtime:                      stubRuntime{},
+		WatchSyncProvider:            stubWatchSyncProvider{},
+		WatchSyncDeviceAuthorization: stubWatchSyncDeviceAuthorization{},
 	}}
 	srv := grpc.NewServer()
 	if err := p.GRPCServer(nil, srv); err != nil {
-		t.Fatalf("GRPCServer with WatchSyncProvider = %v, want nil", err)
+		t.Fatalf("GRPCServer with watch-sync services = %v, want nil", err)
 	}
 	if _, ok := srv.GetServiceInfo()["silo.plugin.v1.WatchSyncProvider"]; !ok {
 		t.Fatalf("WatchSyncProvider service not registered; got %v", srv.GetServiceInfo())
+	}
+	if _, ok := srv.GetServiceInfo()["silo.plugin.v1.WatchSyncDeviceAuthorizationService"]; !ok {
+		t.Fatalf("WatchSyncDeviceAuthorization service not registered; got %v", srv.GetServiceInfo())
 	}
 }

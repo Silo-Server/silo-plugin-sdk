@@ -145,6 +145,13 @@ patches. The host validates and persists them before consuming results, pages,
 or faults—even when the response contains a fault. If credential persistence
 fails, the host commits no other response data.
 
+Device-code plugins register both `WatchSyncProvider` and the separate
+`WatchSyncDeviceAuthorizationService`. Keeping device authorization in a
+second service preserves source compatibility for v0.12 Go providers that
+implemented `WatchSyncProviderServer` directly. A pending poll may replace its
+opaque provider state, polling interval, and expiry; the host encrypts and
+persists those values before the next poll.
+
 `WatchSyncProviderConfig` is keyed by manifest config key and field, for example
 `provider.client_id`. Scalar values are sent as strings and structured values
 as JSON. Fields marked secret in the manifest are sent through `secret_values`;
@@ -165,9 +172,12 @@ contain multiple state families. The host requests only the state families a
 sync phase needs, keeps that phase's `cursor` fixed while following ephemeral
 page tokens, commits each successful page, and only then persists the final
 `next_cursor`. `complete_snapshot=true` means the traversal is authoritative;
-when false, missing items are not deletions. When
+when false, missing items are not deletions. An incremental favorite or
+watchlist removal is an item whose corresponding list state has `removed=true`.
+When
 `provides_watchlist_order=true`, the order of returned watchlist states is the
-remote list order.
+remote list order. Event `list_position` is presence-aware: an explicit zero
+means the first position, while omission means no requested ordering.
 
 ## Scan sources
 

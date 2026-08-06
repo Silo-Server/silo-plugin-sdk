@@ -33,7 +33,8 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 	}
 	got := decoded.GetWatchSyncProvider()
 	if got == nil || !got.GetExportWatched() || !got.GetImportWatchlist() || !got.GetScrobblePlayback() || got.GetMaxBatchSize() != 25 ||
-		len(got.GetAuthMethods()) != 1 || len(got.GetSupportedMediaTypes()) != 2 ||
+		len(got.GetAuthMethods()) != 1 || got.GetAuthMethods()[0] != pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_DEVICE_CODE ||
+		len(got.GetSupportedMediaTypes()) != 2 ||
 		got.GetSupportedMediaTypes()[1] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE {
 		t.Fatalf("decoded descriptor = %#v", got)
 	}

@@ -26,7 +26,7 @@ func TestWatchSyncTypedRemoteStateRoundTrip(t *testing.T) {
 				ProgressPercent: 42.5,
 				PausedAt:        timestamppb.New(pausedAt),
 			},
-			Watchlist: &WatchSyncRemoteListState{ListedAt: timestamppb.New(pausedAt.Add(-2 * time.Hour))},
+			Watchlist: &WatchSyncRemoteListState{ListedAt: timestamppb.New(pausedAt.Add(-2 * time.Hour)), Removed: true},
 		}},
 		NextCursor:       "checkpoint-2",
 		CompleteSnapshot: true,
@@ -46,14 +46,15 @@ func TestWatchSyncTypedRemoteStateRoundTrip(t *testing.T) {
 		item.GetWatched().GetPlayCount() != 2 ||
 		item.GetProgress().GetProgressPercent() != 42.5 ||
 		!item.GetProgress().GetPausedAt().AsTime().Equal(pausedAt) ||
-		!item.GetWatchlist().GetListedAt().AsTime().Equal(pausedAt.Add(-2*time.Hour)) {
+		!item.GetWatchlist().GetListedAt().AsTime().Equal(pausedAt.Add(-2*time.Hour)) ||
+		!item.GetWatchlist().GetRemoved() {
 		t.Fatalf("remote state = %#v", item)
 	}
 }
 
 func TestWatchSyncDeviceAuthorizationRoundTrip(t *testing.T) {
 	expiresAt := time.Unix(1_800_000_000, 0).UTC()
-	input := &WatchSyncStartDeviceAuthorizationResponse{
+	input := &WatchSyncDeviceAuthorizationServiceStartResponse{
 		UserCode:                "ABCD-1234",
 		VerificationUrl:         "https://provider.example/activate",
 		VerificationUrlComplete: "https://provider.example/activate?code=ABCD-1234",
@@ -65,14 +66,58 @@ func TestWatchSyncDeviceAuthorizationRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var output WatchSyncStartDeviceAuthorizationResponse
+	var output WatchSyncDeviceAuthorizationServiceStartResponse
 	if err := proto.Unmarshal(data, &output); err != nil {
 		t.Fatal(err)
 	}
 	if output.GetUserCode() != input.GetUserCode() ||
+		output.GetVerificationUrl() != input.GetVerificationUrl() ||
+		output.GetVerificationUrlComplete() != input.GetVerificationUrlComplete() ||
+		!proto.Equal(&output, input) ||
+		string(output.GetProviderState()) != string(input.GetProviderState()) ||
 		output.GetPollingInterval().AsDuration() != 5*time.Second ||
 		!output.GetExpiresAt().AsTime().Equal(expiresAt) {
 		t.Fatalf("device authorization = %#v", &output)
+	}
+}
+
+func TestWatchSyncDeviceAuthorizationPendingStateRoundTrip(t *testing.T) {
+	expiresAt := time.Unix(1_800_000_100, 0).UTC()
+	input := &WatchSyncDeviceAuthorizationServicePollResponse{
+		Status:          WatchSyncDeviceAuthorizationStatus_WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_PENDING,
+		ProviderState:   []byte("rotated-state"),
+		PollingInterval: durationpb.New(10 * time.Second),
+		ExpiresAt:       timestamppb.New(expiresAt),
+	}
+	data, err := proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncDeviceAuthorizationServicePollResponse
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if !proto.Equal(input, &output) {
+		t.Fatalf("pending device authorization = %#v", &output)
+	}
+}
+
+func TestWatchSyncListPositionPreservesPresence(t *testing.T) {
+	zero := int32(0)
+	withZero := &WatchSyncEvent{ListPosition: &zero}
+	data, err := proto.Marshal(withZero)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncEvent
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.ListPosition == nil || output.GetListPosition() != 0 {
+		t.Fatalf("explicit zero list position = %#v", output.ListPosition)
+	}
+	if (&WatchSyncEvent{}).ListPosition != nil {
+		t.Fatal("omitted list position unexpectedly has presence")
 	}
 }
 
