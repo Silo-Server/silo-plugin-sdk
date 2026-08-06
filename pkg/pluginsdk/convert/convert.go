@@ -137,6 +137,15 @@ func capabilityMetadata(descriptor *pluginv1.CapabilityDescriptor) (map[string]a
 			if err := json.Unmarshal(data, &value); err != nil {
 				return nil, fmt.Errorf("decode capability config schema JSON: %w", err)
 			}
+			// CapabilityRecord.Metadata is a public compatibility boundary. The
+			// original scalar-only encoding always emitted these keys, including
+			// required=false; protojson omits default-valued fields unless they are
+			// restored explicitly.
+			value["key"] = schema.GetKey()
+			value["title"] = schema.GetTitle()
+			value["description"] = schema.GetDescription()
+			value["json_schema"] = schema.GetJsonSchema()
+			value["required"] = schema.GetRequired()
 			schemas = append(schemas, value)
 		}
 		metadata["config_schema"] = schemas

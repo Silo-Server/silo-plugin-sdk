@@ -35,7 +35,7 @@ func TestCapabilityRecordsFromManifestRoundTrips(t *testing.T) {
 						Title:       "Connection",
 						Description: "API key",
 						JsonSchema:  `{"type":"object"}`,
-						Required:    true,
+						Required:    false,
 						AdminForm: &pluginv1.AdminFormDescriptor{
 							SubmitLabel: "Connect",
 							Fields: []*pluginv1.AdminFormField{{
@@ -58,7 +58,19 @@ func TestCapabilityRecordsFromManifestRoundTrips(t *testing.T) {
 	if len(records) != 1 {
 		t.Fatalf("record count = %d, want 1", len(records))
 	}
-	records[0].Metadata["config_schema"].([]map[string]any)[0]["future_field"] = true
+	recordedSchema := records[0].Metadata["config_schema"].([]map[string]any)[0]
+	for key, want := range map[string]any{
+		"key":         "connection",
+		"title":       "Connection",
+		"description": "API key",
+		"json_schema": `{"type":"object"}`,
+		"required":    false,
+	} {
+		if got, present := recordedSchema[key]; !present || got != want {
+			t.Fatalf("config_schema[%q] = %#v, present=%v, want %#v", key, got, present, want)
+		}
+	}
+	recordedSchema["future_field"] = true
 
 	decoded, err := convert.DecodeCapability(records[0])
 	if err != nil {
