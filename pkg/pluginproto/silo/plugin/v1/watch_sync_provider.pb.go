@@ -490,6 +490,8 @@ type WatchSyncProviderDescriptor struct {
 	ExportWatchlist      bool                   `protobuf:"varint,13,opt,name=export_watchlist,json=exportWatchlist,proto3" json:"export_watchlist,omitempty"`
 	RemoveWatchlist      bool                   `protobuf:"varint,14,opt,name=remove_watchlist,json=removeWatchlist,proto3" json:"remove_watchlist,omitempty"`
 	// The order of WATCHLIST states returned by ListRemoteState is meaningful.
+	// WATCHLIST traversals must set complete_snapshot=true when this is enabled;
+	// an incremental subset cannot define positions relative to omitted items.
 	ProvidesWatchlistOrder bool `protobuf:"varint,15,opt,name=provides_watchlist_order,json=providesWatchlistOrder,proto3" json:"provides_watchlist_order,omitempty"`
 	ScrobblePlayback       bool `protobuf:"varint,16,opt,name=scrobble_playback,json=scrobblePlayback,proto3" json:"scrobble_playback,omitempty"`
 	unknownFields          protoimpl.UnknownFields
@@ -2597,7 +2599,9 @@ type WatchSyncListRemoteStateResponse struct {
 	NextCursor string `protobuf:"bytes,3,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
 	// True when this traversal is an authoritative full snapshot. False means an
 	// incremental delta, so an absent item must not be interpreted as deletion.
-	// The value must remain stable across every page in one traversal.
+	// The value must remain stable across every page in one traversal. A provider
+	// advertising provides_watchlist_order must set this true for WATCHLIST
+	// traversals so the returned order is unambiguous.
 	CompleteSnapshot bool `protobuf:"varint,4,opt,name=complete_snapshot,json=completeSnapshot,proto3" json:"complete_snapshot,omitempty"`
 	// Complete authoritative replacement. The host persists it before consuming
 	// this page or fault; a persistence failure discards the page and cursor.

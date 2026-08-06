@@ -116,7 +116,15 @@ func TestWatchSyncListPositionPreservesPresence(t *testing.T) {
 	if output.ListPosition == nil || output.GetListPosition() != 0 {
 		t.Fatalf("explicit zero list position = %#v", output.ListPosition)
 	}
-	if (&WatchSyncEvent{}).ListPosition != nil {
+	omittedData, err := proto.Marshal(&WatchSyncEvent{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var omittedOutput WatchSyncEvent
+	if err := proto.Unmarshal(omittedData, &omittedOutput); err != nil {
+		t.Fatal(err)
+	}
+	if omittedOutput.ListPosition != nil {
 		t.Fatal("omitted list position unexpectedly has presence")
 	}
 }

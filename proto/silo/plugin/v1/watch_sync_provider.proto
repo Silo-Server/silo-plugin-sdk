@@ -113,6 +113,8 @@ message WatchSyncProviderDescriptor {
   bool export_watchlist = 13;
   bool remove_watchlist = 14;
   // The order of WATCHLIST states returned by ListRemoteState is meaningful.
+  // WATCHLIST traversals must set complete_snapshot=true when this is enabled;
+  // an incremental subset cannot define positions relative to omitted items.
   bool provides_watchlist_order = 15;
   bool scrobble_playback = 16;
 }
@@ -393,7 +395,9 @@ message WatchSyncListRemoteStateResponse {
   string next_cursor = 3;
   // True when this traversal is an authoritative full snapshot. False means an
   // incremental delta, so an absent item must not be interpreted as deletion.
-  // The value must remain stable across every page in one traversal.
+  // The value must remain stable across every page in one traversal. A provider
+  // advertising provides_watchlist_order must set this true for WATCHLIST
+  // traversals so the returned order is unambiguous.
   bool complete_snapshot = 4;
   // Complete authoritative replacement. The host persists it before consuming
   // this page or fault; a persistence failure discards the page and cursor.
