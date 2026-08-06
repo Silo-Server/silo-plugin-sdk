@@ -3,6 +3,7 @@ package convert_test
 import (
 	"testing"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
@@ -35,6 +36,14 @@ func TestCapabilityRecordsFromManifestRoundTrips(t *testing.T) {
 						Description: "API key",
 						JsonSchema:  `{"type":"object"}`,
 						Required:    true,
+						AdminForm: &pluginv1.AdminFormDescriptor{
+							SubmitLabel: "Connect",
+							Fields: []*pluginv1.AdminFormField{{
+								Key: "base_url", Label: "Server URL",
+								Control:  pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_TEXT,
+								Required: true,
+							}},
+						},
 					},
 				},
 				Metadata: metadata,
@@ -49,6 +58,7 @@ func TestCapabilityRecordsFromManifestRoundTrips(t *testing.T) {
 	if len(records) != 1 {
 		t.Fatalf("record count = %d, want 1", len(records))
 	}
+	records[0].Metadata["config_schema"].([]map[string]any)[0]["future_field"] = true
 
 	decoded, err := convert.DecodeCapability(records[0])
 	if err != nil {
@@ -59,6 +69,9 @@ func TestCapabilityRecordsFromManifestRoundTrips(t *testing.T) {
 	}
 	if got := decoded.GetConfigSchema()[0].GetKey(); got != "connection" {
 		t.Fatalf("config_schema key = %q, want connection", got)
+	}
+	if !proto.Equal(decoded.GetConfigSchema()[0], manifest.GetCapabilities()[0].GetConfigSchema()[0]) {
+		t.Fatalf("config_schema round trip = %#v, want %#v", decoded.GetConfigSchema()[0], manifest.GetCapabilities()[0].GetConfigSchema()[0])
 	}
 	if got := decoded.GetMetadata().AsMap()["provider"]; got != "example" {
 		t.Fatalf("metadata provider = %#v, want example", got)

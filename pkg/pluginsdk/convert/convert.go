@@ -125,13 +125,19 @@ func capabilityMetadata(descriptor *pluginv1.CapabilityDescriptor) (map[string]a
 	if len(descriptor.GetConfigSchema()) > 0 {
 		schemas := make([]map[string]any, 0, len(descriptor.GetConfigSchema()))
 		for _, schema := range descriptor.GetConfigSchema() {
-			schemas = append(schemas, map[string]any{
-				"key":         schema.GetKey(),
-				"title":       schema.GetTitle(),
-				"description": schema.GetDescription(),
-				"json_schema": schema.GetJsonSchema(),
-				"required":    schema.GetRequired(),
-			})
+			if schema == nil {
+				schemas = append(schemas, map[string]any{})
+				continue
+			}
+			data, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(schema)
+			if err != nil {
+				return nil, fmt.Errorf("encode capability config schema: %w", err)
+			}
+			var value map[string]any
+			if err := json.Unmarshal(data, &value); err != nil {
+				return nil, fmt.Errorf("decode capability config schema JSON: %w", err)
+			}
+			schemas = append(schemas, value)
 		}
 		metadata["config_schema"] = schemas
 	}
@@ -157,19 +163,13 @@ func decodeConfigSchemas(value any) ([]*pluginv1.ConfigSchema, error) {
 	schemas := make([]*pluginv1.ConfigSchema, 0, len(entries))
 	for _, entry := range entries {
 		rawSchema := toStringAnyMap(entry)
-		jsonData, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(&pluginv1.ConfigSchema{
-			Key:         stringValue(rawSchema["key"]),
-			Title:       stringValue(rawSchema["title"]),
-			Description: stringValue(rawSchema["description"]),
-			JsonSchema:  stringValue(rawSchema["json_schema"]),
-			Required:    boolValue(rawSchema["required"]),
-		})
+		jsonData, err := json.Marshal(rawSchema)
 		if err != nil {
-			return nil, fmt.Errorf("encode config schema: %w", err)
+			return nil, fmt.Errorf("encode capability config schema: %w", err)
 		}
 		var schema pluginv1.ConfigSchema
-		if err := protojson.Unmarshal(jsonData, &schema); err != nil {
-			return nil, fmt.Errorf("decode config schema: %w", err)
+		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(jsonData, &schema); err != nil {
+			return nil, fmt.Errorf("decode capability config schema: %w", err)
 		}
 		schemas = append(schemas, &schema)
 	}
@@ -205,14 +205,4 @@ func toStringAnyMap(value any) map[string]any {
 	default:
 		return map[string]any{}
 	}
-}
-
-func stringValue(value any) string {
-	text, _ := value.(string)
-	return text
-}
-
-func boolValue(value any) bool {
-	flag, _ := value.(bool)
-	return flag
 }
