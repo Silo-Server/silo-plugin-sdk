@@ -309,6 +309,10 @@ message WatchSyncEvent {
   // removal address the exact upstream record when external IDs are absent or
   // no longer resolve.
   string provider_item_key = 13;
+  // Authoritative host completion state for playback events. A history ID can
+  // exist for incomplete playback, and completion_percent may be below 100
+  // when the host's configured watched threshold has been reached.
+  bool completed = 14;
 }
 
 message WatchSyncApplyEventsRequest {

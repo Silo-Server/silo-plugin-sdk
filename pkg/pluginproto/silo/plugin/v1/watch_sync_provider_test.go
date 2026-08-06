@@ -212,3 +212,35 @@ func TestWatchSyncApplyResultCarriesTypedRateLimit(t *testing.T) {
 		t.Fatalf("request=%#v result=%#v", request, &output)
 	}
 }
+
+func TestWatchSyncEventCarriesAuthoritativeCompletionState(t *testing.T) {
+	input := &WatchSyncEvent{
+		EventId:           "playback-stop-1",
+		WatchHistoryId:    "incomplete-history-row",
+		CompletionPercent: 5.5,
+		Completed:         false,
+	}
+	data, err := proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncEvent
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.GetCompleted() {
+		t.Fatal("completed = true, want false")
+	}
+
+	input.Completed = true
+	data, err = proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if !output.GetCompleted() {
+		t.Fatal("completed = false, want true")
+	}
+}

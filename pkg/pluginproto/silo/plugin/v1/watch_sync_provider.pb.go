@@ -1950,8 +1950,12 @@ type WatchSyncEvent struct {
 	// removal address the exact upstream record when external IDs are absent or
 	// no longer resolve.
 	ProviderItemKey string `protobuf:"bytes,13,opt,name=provider_item_key,json=providerItemKey,proto3" json:"provider_item_key,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Authoritative host completion state for playback events. A history ID can
+	// exist for incomplete playback, and completion_percent may be below 100
+	// when the host's configured watched threshold has been reached.
+	Completed     bool `protobuf:"varint,14,opt,name=completed,proto3" json:"completed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncEvent) Reset() {
@@ -2073,6 +2077,13 @@ func (x *WatchSyncEvent) GetProviderItemKey() string {
 		return x.ProviderItemKey
 	}
 	return ""
+}
+
+func (x *WatchSyncEvent) GetCompleted() bool {
+	if x != nil {
+		return x.Completed
+	}
+	return false
 }
 
 type WatchSyncApplyEventsRequest struct {
@@ -2833,7 +2844,7 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aD\n" +
 	"\x16SeriesExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xff\x04\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9d\x05\n" +
 	"\x0eWatchSyncEvent\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12@\n" +
 	"\toperation\x18\x02 \x01(\x0e2\".silo.plugin.v1.WatchSyncOperationR\toperation\x127\n" +
@@ -2850,7 +2861,8 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\n" +
 	"play_count\x18\v \x01(\x05R\tplayCount\x12(\n" +
 	"\rlist_position\x18\f \x01(\x05H\x00R\flistPosition\x88\x01\x01\x12*\n" +
-	"\x11provider_item_key\x18\r \x01(\tR\x0fproviderItemKeyB\x10\n" +
+	"\x11provider_item_key\x18\r \x01(\tR\x0fproviderItemKey\x12\x1c\n" +
+	"\tcompleted\x18\x0e \x01(\bR\tcompletedB\x10\n" +
 	"\x0e_list_position\"\x9e\x01\n" +
 	"\x1bWatchSyncApplyEventsRequest\x12G\n" +
 	"\acontext\x18\x01 \x01(\v2-.silo.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x126\n" +

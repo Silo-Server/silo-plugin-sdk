@@ -136,6 +136,8 @@ provider flow state, or secret configuration. `ApplyEvents` is an at-least-once
 contract; plugins must treat `event_id` as stable across retries and implement
 convergent desired-state updates rather than increments. That rule also applies
 to scrobble stops: replaying the same event ID must not create another play.
+For playback events, `completed` is the host's authoritative watched decision;
+plugins must not infer completion from `watch_history_id` or percentage alone.
 
 Authenticated RPCs receive the same host-owned capability, configuration, and
 credential data through `WatchSyncAuthenticatedContext`. The context exists
