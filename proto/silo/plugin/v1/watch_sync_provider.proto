@@ -372,6 +372,8 @@ message WatchSyncRemoteListState {
 
 message WatchSyncRemoteState {
   string provider_item_key = 1;
+  // Required except on an explicit favorite/watchlist tombstone whose
+  // provider_item_key identifies a record returned previously.
   WatchSyncMedia media = 2;
   // At least one typed state must be present. Both may be present when the
   // provider reports a completed play and a separate resume point.

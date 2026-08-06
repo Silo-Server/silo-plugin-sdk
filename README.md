@@ -173,8 +173,9 @@ sync phase needs, keeps that phase's `cursor` fixed while following ephemeral
 page tokens, commits each successful page, and only then persists the final
 `next_cursor`. `complete_snapshot=true` means the traversal is authoritative;
 when false, missing items are not deletions. An incremental favorite or
-watchlist removal is an item whose corresponding list state has `removed=true`.
-When
+watchlist removal is an item whose corresponding list state has `removed=true`;
+it may omit `media` when `provider_item_key` identifies a record previously
+returned to the host. When
 `provides_watchlist_order=true`, the order of returned watchlist states is the
 remote list order. Event `list_position` is presence-aware: an explicit zero
 means the first position, while omission means no requested ordering.

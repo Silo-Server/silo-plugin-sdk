@@ -121,6 +121,24 @@ func TestWatchSyncListPositionPreservesPresence(t *testing.T) {
 	}
 }
 
+func TestWatchSyncListTombstoneDoesNotRequireMedia(t *testing.T) {
+	input := &WatchSyncRemoteState{
+		ProviderItemKey: "remote-1",
+		Favorite:        &WatchSyncRemoteListState{Removed: true},
+	}
+	data, err := proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncRemoteState
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if !proto.Equal(input, &output) || output.GetMedia() != nil || !output.GetFavorite().GetRemoved() {
+		t.Fatalf("list tombstone = %#v", &output)
+	}
+}
+
 func TestWatchSyncApplyResultCarriesTypedRateLimit(t *testing.T) {
 	retryAfter := 45 * time.Second
 	request := &WatchSyncApplyEventsRequest{

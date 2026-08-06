@@ -365,7 +365,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// WatchSyncDeviceAuthorization is separate from WatchSyncProvider so adding
+// WatchSyncDeviceAuthorizationService is separate from WatchSyncProvider so adding
 // device authorization does not add methods to the released v0.12 Go server
 // interface. A plugin advertising DEVICE_CODE registers both services.
 type WatchSyncDeviceAuthorizationServiceClient interface {
@@ -405,7 +405,7 @@ func (c *watchSyncDeviceAuthorizationServiceClient) Poll(ctx context.Context, in
 // All implementations should embed UnimplementedWatchSyncDeviceAuthorizationServiceServer
 // for forward compatibility.
 //
-// WatchSyncDeviceAuthorization is separate from WatchSyncProvider so adding
+// WatchSyncDeviceAuthorizationService is separate from WatchSyncProvider so adding
 // device authorization does not add methods to the released v0.12 Go server
 // interface. A plugin advertising DEVICE_CODE registers both services.
 type WatchSyncDeviceAuthorizationServiceServer interface {
