@@ -35,9 +35,6 @@ type CapabilityServers struct {
 	AuthProvider      pluginv1.AuthProviderServer
 	HttpRoutes        pluginv1.HttpRoutesServer
 	WatchSyncProvider pluginv1.WatchSyncProviderServer
-	// WatchSyncDeviceAuthorization is registered alongside WatchSyncProvider
-	// when the capability advertises device-code authentication.
-	WatchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
 }
 
 // Client wraps the gRPC connection to a plugin and provides typed accessors
@@ -70,6 +67,24 @@ func DefaultGRPCServer(opts []grpc.ServerOption) *grpc.Server {
 func DefaultPluginSet(servers CapabilityServers) plugin.PluginSet {
 	return plugin.PluginSet{
 		PluginSetName: &GRPCPlugin{Servers: servers},
+	}
+}
+
+// DefaultPluginSetWithWatchSyncDeviceAuthorization returns the default plugin
+// set plus the separate device-authorization service. Keeping that server out
+// of CapabilityServers preserves the released v0.12 unkeyed struct shape.
+func DefaultPluginSetWithWatchSyncDeviceAuthorization(
+	servers CapabilityServers,
+	deviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer,
+) plugin.PluginSet {
+	if deviceAuthorization == nil {
+		return DefaultPluginSet(servers)
+	}
+	return plugin.PluginSet{
+		PluginSetName: &grpcPluginWithWatchSyncDeviceAuthorization{
+			GRPCPlugin:          &GRPCPlugin{Servers: servers},
+			deviceAuthorization: deviceAuthorization,
+		},
 	}
 }
 
@@ -145,6 +160,22 @@ type GRPCPlugin struct {
 	Servers CapabilityServers
 }
 
+type grpcPluginWithWatchSyncDeviceAuthorization struct {
+	*GRPCPlugin
+	deviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
+}
+
+func (p *grpcPluginWithWatchSyncDeviceAuthorization) GRPCServer(
+	broker *plugin.GRPCBroker,
+	server *grpc.Server,
+) error {
+	if err := p.GRPCPlugin.GRPCServer(broker, server); err != nil {
+		return err
+	}
+	pluginv1.RegisterWatchSyncDeviceAuthorizationServiceServer(server, p.deviceAuthorization)
+	return nil
+}
+
 func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) error {
 	pluginHost.setBroker(broker)
 	if p.Servers.Runtime == nil {
@@ -184,9 +215,6 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	}
 	if p.Servers.WatchSyncProvider != nil {
 		pluginv1.RegisterWatchSyncProviderServer(server, p.Servers.WatchSyncProvider)
-	}
-	if p.Servers.WatchSyncDeviceAuthorization != nil {
-		pluginv1.RegisterWatchSyncDeviceAuthorizationServiceServer(server, p.Servers.WatchSyncDeviceAuthorization)
 	}
 	return nil
 }

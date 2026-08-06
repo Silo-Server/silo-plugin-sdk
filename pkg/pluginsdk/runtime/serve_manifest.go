@@ -19,6 +19,24 @@ type manifestRuntime struct {
 	manifest *pluginv1.PluginManifest
 }
 
+type serveManifestOptions struct {
+	watchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
+}
+
+// ServeManifestOption adds a service without changing the released
+// CapabilityServers or ServeConfig struct layouts.
+type ServeManifestOption func(*serveManifestOptions)
+
+// WithWatchSyncDeviceAuthorization registers the separate device-code service
+// for a watch-sync provider that advertises DEVICE_CODE authentication.
+func WithWatchSyncDeviceAuthorization(
+	server pluginv1.WatchSyncDeviceAuthorizationServiceServer,
+) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.watchSyncDeviceAuthorization = server
+	}
+}
+
 func (s *manifestRuntime) GetManifest(context.Context, *pluginv1.GetManifestRequest) (*pluginv1.GetManifestResponse, error) {
 	return &pluginv1.GetManifestResponse{Manifest: s.manifest}, nil
 }
@@ -37,10 +55,33 @@ func (s *manifestRuntime) BindHostBroker(_ context.Context, req *pluginv1.BindHo
 // servers (the caller supplies only the non-Runtime servers). It never returns;
 // a fatal manifest error panics, matching a misbuilt plugin's old main().
 func ServeManifest(manifestBytes []byte, version string, servers CapabilityServers) {
+	ServeManifestWithOptions(manifestBytes, version, servers)
+}
+
+// ServeManifestWithOptions is the additive form of ServeManifest for services
+// introduced after the released CapabilityServers shape.
+func ServeManifestWithOptions(
+	manifestBytes []byte,
+	version string,
+	servers CapabilityServers,
+	options ...ServeManifestOption,
+) {
 	m, err := manifest.LoadWithChecksum(manifestBytes, version)
 	if err != nil {
 		panic(err)
 	}
 	servers.Runtime = &manifestRuntime{manifest: m}
-	Serve(ServeConfig{Servers: servers})
+	var resolved serveManifestOptions
+	for _, option := range options {
+		if option != nil {
+			option(&resolved)
+		}
+	}
+	Serve(ServeConfig{
+		Servers: servers,
+		Plugins: DefaultPluginSetWithWatchSyncDeviceAuthorization(
+			servers,
+			resolved.watchSyncDeviceAuthorization,
+		),
+	})
 }

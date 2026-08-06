@@ -1472,13 +1472,19 @@ type WatchSyncDeviceAuthorizationServicePollResponse struct {
 	// PENDING normally omits fault. DENIED and EXPIRED may use a safe,
 	// non-retryable fault. Connection-wide and transport failures use fault.
 	Fault *WatchSyncFault `protobuf:"bytes,4,opt,name=fault,proto3" json:"fault,omitempty"`
+	// A PENDING response may update host-private state and timing only for the
+	// same user challenge. The user_code and verification URLs returned by Start
+	// must remain valid through expires_at; if those instructions change, expire
+	// this flow and require a new Start call.
+	//
 	// Optional authoritative replacement for provider_state while PENDING. The
-	// host encrypts and uses it for the next poll.
-	ProviderState []byte `protobuf:"bytes,5,opt,name=provider_state,json=providerState,proto3" json:"provider_state,omitempty"`
+	// host encrypts and uses it for the next poll. Presence is significant: an
+	// explicitly empty value clears the prior state, while omission retains it.
+	ProviderState []byte `protobuf:"bytes,5,opt,name=provider_state,json=providerState,proto3,oneof" json:"provider_state,omitempty"`
 	// Optional replacement polling interval while PENDING, for example after an
 	// OAuth device-flow slow_down response.
 	PollingInterval *durationpb.Duration `protobuf:"bytes,6,opt,name=polling_interval,json=pollingInterval,proto3" json:"polling_interval,omitempty"`
-	// Optional replacement expiry for a rotated provider challenge.
+	// Optional replacement expiry for the same user challenge.
 	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2781,16 +2787,17 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	".WatchSyncDeviceAuthorizationServicePollRequest\x12#\n" +
 	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
 	"\x0fprovider_config\x18\x02 \x01(\v2'.silo.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12%\n" +
-	"\x0eprovider_state\x18\x03 \x01(\fR\rproviderState\"\xdf\x03\n" +
+	"\x0eprovider_state\x18\x03 \x01(\fR\rproviderState\"\xf7\x03\n" +
 	"/WatchSyncDeviceAuthorizationServicePollResponse\x12J\n" +
 	"\x06status\x18\x01 \x01(\x0e22.silo.plugin.v1.WatchSyncDeviceAuthorizationStatusR\x06status\x12F\n" +
 	"\vcredentials\x18\x02 \x01(\v2$.silo.plugin.v1.WatchSyncCredentialsR\vcredentials\x12:\n" +
 	"\aaccount\x18\x03 \x01(\v2 .silo.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
-	"\x05fault\x18\x04 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\x12%\n" +
-	"\x0eprovider_state\x18\x05 \x01(\fR\rproviderState\x12D\n" +
+	"\x05fault\x18\x04 \x01(\v2\x1e.silo.plugin.v1.WatchSyncFaultR\x05fault\x12*\n" +
+	"\x0eprovider_state\x18\x05 \x01(\fH\x00R\rproviderState\x88\x01\x01\x12D\n" +
 	"\x10polling_interval\x18\x06 \x01(\v2\x19.google.protobuf.DurationR\x0fpollingInterval\x129\n" +
 	"\n" +
-	"expires_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"m\n" +
+	"expires_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAtB\x11\n" +
+	"\x0f_provider_state\"m\n" +
 	"\"WatchSyncRefreshCredentialsRequest\x12G\n" +
 	"\acontext\x18\x01 \x01(\v2-.silo.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\xd7\x01\n" +
 	"\x1bWatchSyncCredentialResponse\x12F\n" +
@@ -3105,6 +3112,7 @@ func file_silo_plugin_v1_watch_sync_provider_proto_init() {
 	if File_silo_plugin_v1_watch_sync_provider_proto != nil {
 		return
 	}
+	file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[13].OneofWrappers = []any{}
 	file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

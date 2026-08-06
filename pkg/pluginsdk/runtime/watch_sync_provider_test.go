@@ -5,6 +5,7 @@ import (
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	runtime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )
 
@@ -17,11 +18,14 @@ type stubWatchSyncDeviceAuthorization struct {
 }
 
 func TestGRPCServerRegistersWatchSyncServices(t *testing.T) {
-	p := &runtime.GRPCPlugin{Servers: runtime.CapabilityServers{
-		Runtime:                      stubRuntime{},
-		WatchSyncProvider:            stubWatchSyncProvider{},
-		WatchSyncDeviceAuthorization: stubWatchSyncDeviceAuthorization{},
-	}}
+	plugins := runtime.DefaultPluginSetWithWatchSyncDeviceAuthorization(runtime.CapabilityServers{
+		Runtime:           stubRuntime{},
+		WatchSyncProvider: stubWatchSyncProvider{},
+	}, stubWatchSyncDeviceAuthorization{})
+	p, ok := plugins[runtime.PluginSetName].(plugin.GRPCPlugin)
+	if !ok {
+		t.Fatalf("watch-sync plugin type = %T, want plugin.GRPCPlugin", plugins[runtime.PluginSetName])
+	}
 	srv := grpc.NewServer()
 	if err := p.GRPCServer(nil, srv); err != nil {
 		t.Fatalf("GRPCServer with watch-sync services = %v, want nil", err)

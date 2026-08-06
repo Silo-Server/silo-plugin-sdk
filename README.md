@@ -148,9 +148,19 @@ fails, the host commits no other response data.
 Device-code plugins register both `WatchSyncProvider` and the separate
 `WatchSyncDeviceAuthorizationService`. Keeping device authorization in a
 second service preserves source compatibility for v0.12 Go providers that
-implemented `WatchSyncProviderServer` directly. A pending poll may replace its
-opaque provider state, polling interval, and expiry; the host encrypts and
-persists those values before the next poll.
+implemented `WatchSyncProviderServer` directly. Register it without changing
+the released `CapabilityServers` shape:
+
+```go
+runtime.ServeManifestWithOptions(manifestJSON, version, servers,
+    runtime.WithWatchSyncDeviceAuthorization(deviceAuthServer))
+```
+
+A pending poll may replace its opaque provider state, polling interval, and
+expiry; the host encrypts and persists those values before the next poll.
+Those updates remain part of the same user challenge, so the original user code
+and verification URL must stay valid until expiry. An explicitly empty
+`provider_state` clears the prior state; omitting it retains the prior state.
 
 `WatchSyncProviderConfig` is keyed by manifest config key and field, for example
 `provider.client_id`. Scalar values are sent as strings and structured values

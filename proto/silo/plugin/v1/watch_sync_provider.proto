@@ -232,13 +232,19 @@ message WatchSyncDeviceAuthorizationServicePollResponse {
   // PENDING normally omits fault. DENIED and EXPIRED may use a safe,
   // non-retryable fault. Connection-wide and transport failures use fault.
   WatchSyncFault fault = 4;
+  // A PENDING response may update host-private state and timing only for the
+  // same user challenge. The user_code and verification URLs returned by Start
+  // must remain valid through expires_at; if those instructions change, expire
+  // this flow and require a new Start call.
+  //
   // Optional authoritative replacement for provider_state while PENDING. The
-  // host encrypts and uses it for the next poll.
-  bytes provider_state = 5;
+  // host encrypts and uses it for the next poll. Presence is significant: an
+  // explicitly empty value clears the prior state, while omission retains it.
+  optional bytes provider_state = 5;
   // Optional replacement polling interval while PENDING, for example after an
   // OAuth device-flow slow_down response.
   google.protobuf.Duration polling_interval = 6;
-  // Optional replacement expiry for a rotated provider challenge.
+  // Optional replacement expiry for the same user challenge.
   google.protobuf.Timestamp expires_at = 7;
 }
 

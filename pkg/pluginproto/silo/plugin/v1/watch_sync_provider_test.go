@@ -102,6 +102,33 @@ func TestWatchSyncDeviceAuthorizationPendingStateRoundTrip(t *testing.T) {
 	}
 }
 
+func TestWatchSyncDeviceAuthorizationPendingStatePreservesPresence(t *testing.T) {
+	explicitEmpty := &WatchSyncDeviceAuthorizationServicePollResponse{ProviderState: []byte{}}
+	data, err := proto.Marshal(explicitEmpty)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncDeviceAuthorizationServicePollResponse
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.ProviderState == nil || len(output.GetProviderState()) != 0 {
+		t.Fatalf("explicit empty provider state = %#v", output.ProviderState)
+	}
+
+	data, err = proto.Marshal(&WatchSyncDeviceAuthorizationServicePollResponse{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	output.Reset()
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.ProviderState != nil {
+		t.Fatalf("omitted provider state = %#v, want nil", output.ProviderState)
+	}
+}
+
 func TestWatchSyncListPositionPreservesPresence(t *testing.T) {
 	zero := int32(0)
 	withZero := &WatchSyncEvent{ListPosition: &zero}
