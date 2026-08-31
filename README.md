@@ -2,7 +2,11 @@
 
 Public Go SDK for building Silo plugins. **Not a runtime plugin** — this is a library that plugin authors depend on via `go.mod`.
 
-`silo-plugin-sdk` is the source of truth for the plugin authoring contract. First-party consumers (Silo host, `silo-plugin-tmdb`, `silo-plugin-metadb`, every other plugin in this repo) pin tagged semver releases. Local multi-repo workspaces may use `go.work` or a temporary `replace`, but CI and release builds resolve the SDK from a published module tag.
+`silo-plugin-sdk` is the source of truth for the plugin authoring contract.
+First-party consumers—including the Silo host and the separate metadata,
+marker, autoscan, and watch-provider plugin repositories—pin tagged semantic
+versions. Local multi-repository workspaces may use `go.work`, but CI and
+release builds resolve the SDK from a published module tag.
 
 ## Packages
 
@@ -10,6 +14,8 @@ Public Go SDK for building Silo plugins. **Not a runtime plugin** — this is a 
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
@@ -22,6 +28,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `metadata_provider.v1`
 - `marker_provider.v1`
 - `media_analyzer.v1`
+- `image_resolver.v1`
 - `scheduled_task.v1`
 - `event_consumer.v1`
 - `auth_provider.v1`
@@ -230,9 +237,16 @@ Before downstream repos stop using local workspace overrides, the required SDK c
 ## Build & test
 
 ```bash
-make proto       # regenerate protobuf code (uses locally vendored buf under ./bin/)
+make proto       # regenerate protobuf code (installs tools under ./bin/ as needed)
 go test ./...
 ```
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and
+[docs/compatibility.md](docs/compatibility.md) before opening a pull request.
+Public Go, protobuf, runtime, and manifest changes should start as an issue and
+identify affected downstream repositories.
 
 ## License
 
