@@ -248,6 +248,17 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) and
 Public Go, protobuf, runtime, and manifest changes should start as an issue and
 identify affected downstream repositories.
 
+## Naming and branding
+
+Give your plugin its own name and mention Silo in the summary, for example
+"Trakt sync plugin for Silo". Repository and package names such as
+`silo-plugin-trakt` are fine, since "silo" only describes what the code plugs
+into. Avoid "Silo[word]" product names such as SiloTrakt, which read as
+official, and do not use the Silo logo as your plugin's icon. Set
+`publisher_name` to yourself, not "Silo", unless the plugin is published by the
+project. The full guidance, including what needs no permission, is at
+<https://siloserver.org/brand>.
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
