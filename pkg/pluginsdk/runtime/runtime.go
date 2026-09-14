@@ -262,28 +262,43 @@ func (s *pluginHostState) setBroker(b *plugin.GRPCBroker) {
 	s.mu.Unlock()
 }
 
+// setBrokerID records the host-assigned stream and dials it at once.
+//
+// The dial cannot wait for the first Host() call: go-plugin's broker keeps
+// the connection info the host sent for a stream for only five seconds
+// (GRPCBroker.timeoutWait), and the host sends it from its AcceptAndServe
+// just before invoking BindHostBroker. A plugin whose first host call comes
+// later than that, which is the normal case for a resident plugin that idles
+// until an admin connects it, would find the stream expired and every
+// Host() call would return nil for the life of the process. Dialing here
+// pins the connection while the window is open; runtimehost calls then
+// multiplex over it.
 func (s *pluginHostState) setBrokerID(id uint32) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.brokerID = id
 	// new stream id → drop any cached client
 	s.client = nil
-	s.mu.Unlock()
+	s.dialLocked()
+}
+
+// dialLocked connects to the bound stream if it has not been connected yet.
+// The caller holds s.mu.
+func (s *pluginHostState) dialLocked() {
+	if s.client != nil || s.broker == nil || s.brokerID == 0 {
+		return
+	}
+	conn, err := s.broker.Dial(s.brokerID)
+	if err != nil {
+		return
+	}
+	s.client = runtimehost.NewClient(conn)
 }
 
 func (s *pluginHostState) host() *runtimehost.Client {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.client != nil {
-		return s.client
-	}
-	if s.broker == nil || s.brokerID == 0 {
-		return nil
-	}
-	conn, err := s.broker.Dial(s.brokerID)
-	if err != nil {
-		return nil
-	}
-	s.client = runtimehost.NewClient(conn)
+	s.dialLocked()
 	return s.client
 }
 
@@ -295,8 +310,9 @@ func SetHostBrokerID(id uint32) { pluginHost.setBrokerID(id) }
 
 // Host returns a runtimehost.Client connected to the silo host. Returns
 // nil before the host has invoked Runtime.BindHostBroker (i.e. very briefly
-// during plugin startup) or if the broker dial fails. Capability handlers
-// should treat nil as transient and either skip or surface a temporary error.
+// during plugin startup) or if the broker dial failed at bind time.
+// Capability handlers should treat nil as transient and either skip or
+// surface a temporary error.
 //
 // The first successful call dials the host broker stream and caches the
 // *runtimehost.Client; later calls reuse the same client.

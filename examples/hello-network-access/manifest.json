@@ -3,6 +3,20 @@
   "version": "0.1.0",
   "checksum": "__CHECKSUM__",
   "silo_api_version": "v1",
+  "supported_platforms": [
+    {
+      "os": "linux",
+      "arch": "amd64"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64"
+    },
+    {
+      "os": "darwin",
+      "arch": "arm64"
+    }
+  ],
   "capabilities": [
     {
       "type": "network_access_provider.v1",
