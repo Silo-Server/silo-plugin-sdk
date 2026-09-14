@@ -32,6 +32,9 @@ const (
 	RuntimeHost_ResolveCatalogImageURLs_FullMethodName    = "/silo.plugin.v1.RuntimeHost/ResolveCatalogImageURLs"
 	RuntimeHost_MintScopedStream_FullMethodName           = "/silo.plugin.v1.RuntimeHost/MintScopedStream"
 	RuntimeHost_CallPluginHTTP_FullMethodName             = "/silo.plugin.v1.RuntimeHost/CallPluginHTTP"
+	RuntimeHost_ReadInstanceState_FullMethodName          = "/silo.plugin.v1.RuntimeHost/ReadInstanceState"
+	RuntimeHost_WriteInstanceState_FullMethodName         = "/silo.plugin.v1.RuntimeHost/WriteInstanceState"
+	RuntimeHost_ReportNetworkAccessStatus_FullMethodName  = "/silo.plugin.v1.RuntimeHost/ReportNetworkAccessStatus"
 )
 
 // RuntimeHostClient is the client API for RuntimeHost service.
@@ -83,6 +86,18 @@ type RuntimeHostClient interface {
 	// through the host control plane. Calls are treated as authenticated
 	// service-to-service traffic, but never as admin traffic.
 	CallPluginHTTP(ctx context.Context, in *CallPluginHTTPRequest, opts ...grpc.CallOption) (*CallPluginHTTPResponse, error)
+	// ReadInstanceState reads one key of the calling plugin instance's private
+	// state. The scope (installation plus host) is derived by the host and never
+	// supplied by the plugin. See docs/network-access-provider.md.
+	ReadInstanceState(ctx context.Context, in *ReadInstanceStateRequest, opts ...grpc.CallOption) (*ReadInstanceStateResponse, error)
+	// WriteInstanceState writes one key of the calling plugin instance's private
+	// state. The host stores values encrypted and never returns them through
+	// any API. Limits: key <= 256 bytes, value <= 256 KiB, <= 256 keys per scope.
+	WriteInstanceState(ctx context.Context, in *WriteInstanceStateRequest, opts ...grpc.CallOption) (*WriteInstanceStateResponse, error)
+	// ReportNetworkAccessStatus pushes a network_access_provider.v1 status
+	// change to the host so it does not have to poll. Plugins call it on every
+	// state transition; the host may still call GetStatus on demand.
+	ReportNetworkAccessStatus(ctx context.Context, in *ReportNetworkAccessStatusRequest, opts ...grpc.CallOption) (*ReportNetworkAccessStatusResponse, error)
 }
 
 type runtimeHostClient struct {
@@ -223,6 +238,36 @@ func (c *runtimeHostClient) CallPluginHTTP(ctx context.Context, in *CallPluginHT
 	return out, nil
 }
 
+func (c *runtimeHostClient) ReadInstanceState(ctx context.Context, in *ReadInstanceStateRequest, opts ...grpc.CallOption) (*ReadInstanceStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReadInstanceStateResponse)
+	err := c.cc.Invoke(ctx, RuntimeHost_ReadInstanceState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *runtimeHostClient) WriteInstanceState(ctx context.Context, in *WriteInstanceStateRequest, opts ...grpc.CallOption) (*WriteInstanceStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WriteInstanceStateResponse)
+	err := c.cc.Invoke(ctx, RuntimeHost_WriteInstanceState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *runtimeHostClient) ReportNetworkAccessStatus(ctx context.Context, in *ReportNetworkAccessStatusRequest, opts ...grpc.CallOption) (*ReportNetworkAccessStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportNetworkAccessStatusResponse)
+	err := c.cc.Invoke(ctx, RuntimeHost_ReportNetworkAccessStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RuntimeHostServer is the server API for RuntimeHost service.
 // All implementations should embed UnimplementedRuntimeHostServer
 // for forward compatibility.
@@ -272,6 +317,18 @@ type RuntimeHostServer interface {
 	// through the host control plane. Calls are treated as authenticated
 	// service-to-service traffic, but never as admin traffic.
 	CallPluginHTTP(context.Context, *CallPluginHTTPRequest) (*CallPluginHTTPResponse, error)
+	// ReadInstanceState reads one key of the calling plugin instance's private
+	// state. The scope (installation plus host) is derived by the host and never
+	// supplied by the plugin. See docs/network-access-provider.md.
+	ReadInstanceState(context.Context, *ReadInstanceStateRequest) (*ReadInstanceStateResponse, error)
+	// WriteInstanceState writes one key of the calling plugin instance's private
+	// state. The host stores values encrypted and never returns them through
+	// any API. Limits: key <= 256 bytes, value <= 256 KiB, <= 256 keys per scope.
+	WriteInstanceState(context.Context, *WriteInstanceStateRequest) (*WriteInstanceStateResponse, error)
+	// ReportNetworkAccessStatus pushes a network_access_provider.v1 status
+	// change to the host so it does not have to poll. Plugins call it on every
+	// state transition; the host may still call GetStatus on demand.
+	ReportNetworkAccessStatus(context.Context, *ReportNetworkAccessStatusRequest) (*ReportNetworkAccessStatusResponse, error)
 }
 
 // UnimplementedRuntimeHostServer should be embedded to have
@@ -319,6 +376,15 @@ func (UnimplementedRuntimeHostServer) MintScopedStream(context.Context, *MintSco
 }
 func (UnimplementedRuntimeHostServer) CallPluginHTTP(context.Context, *CallPluginHTTPRequest) (*CallPluginHTTPResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CallPluginHTTP not implemented")
+}
+func (UnimplementedRuntimeHostServer) ReadInstanceState(context.Context, *ReadInstanceStateRequest) (*ReadInstanceStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReadInstanceState not implemented")
+}
+func (UnimplementedRuntimeHostServer) WriteInstanceState(context.Context, *WriteInstanceStateRequest) (*WriteInstanceStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method WriteInstanceState not implemented")
+}
+func (UnimplementedRuntimeHostServer) ReportNetworkAccessStatus(context.Context, *ReportNetworkAccessStatusRequest) (*ReportNetworkAccessStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportNetworkAccessStatus not implemented")
 }
 func (UnimplementedRuntimeHostServer) testEmbeddedByValue() {}
 
@@ -574,6 +640,60 @@ func _RuntimeHost_CallPluginHTTP_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RuntimeHost_ReadInstanceState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadInstanceStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RuntimeHostServer).ReadInstanceState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RuntimeHost_ReadInstanceState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RuntimeHostServer).ReadInstanceState(ctx, req.(*ReadInstanceStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RuntimeHost_WriteInstanceState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WriteInstanceStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RuntimeHostServer).WriteInstanceState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RuntimeHost_WriteInstanceState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RuntimeHostServer).WriteInstanceState(ctx, req.(*WriteInstanceStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RuntimeHost_ReportNetworkAccessStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportNetworkAccessStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RuntimeHostServer).ReportNetworkAccessStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RuntimeHost_ReportNetworkAccessStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RuntimeHostServer).ReportNetworkAccessStatus(ctx, req.(*ReportNetworkAccessStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RuntimeHost_ServiceDesc is the grpc.ServiceDesc for RuntimeHost service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -632,6 +752,18 @@ var RuntimeHost_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CallPluginHTTP",
 			Handler:    _RuntimeHost_CallPluginHTTP_Handler,
+		},
+		{
+			MethodName: "ReadInstanceState",
+			Handler:    _RuntimeHost_ReadInstanceState_Handler,
+		},
+		{
+			MethodName: "WriteInstanceState",
+			Handler:    _RuntimeHost_WriteInstanceState_Handler,
+		},
+		{
+			MethodName: "ReportNetworkAccessStatus",
+			Handler:    _RuntimeHost_ReportNetworkAccessStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

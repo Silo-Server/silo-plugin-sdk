@@ -1,0 +1,18 @@
+{
+  "plugin_id": "example.hello-network-access",
+  "version": "0.1.0",
+  "checksum": "__CHECKSUM__",
+  "silo_api_version": "v1",
+  "capabilities": [
+    {
+      "type": "network_access_provider.v1",
+      "id": "stub",
+      "display_name": "Stub Overlay",
+      "description": "A stub network access provider with no real overlay network. Useful as a host test fixture.",
+      "network_access_provider": {
+        "provider": "stub",
+        "display_name": "Stub Overlay"
+      }
+    }
+  ]
+}

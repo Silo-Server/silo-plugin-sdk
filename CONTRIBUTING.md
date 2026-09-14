@@ -33,6 +33,7 @@ go test ./...
 go vet ./...
 go build ./examples/hello-scheduled-task
 go build ./examples/hello-runtime-host
+go build ./examples/hello-network-access
 gofmt -l .
 ```
 

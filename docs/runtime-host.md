@@ -11,7 +11,7 @@ plugin, the plugin calls back into the host.
 | `PublishEvent(name, payload)` | Publish onto the host's event bus. The host stamps `plugin.<plugin_id>.` in front of `name` server-side. |
 | `PublishEventTo(target_plugin_id, name, payload)` | Publish an event addressed to one installed plugin by stable `plugin_id`. |
 | `PublishEventToInstallation(target_installation_id, name, payload)` | Publish an event addressed to one specific plugin installation. |
-| `GetHostInfo()` | Return public-safe host URLs for callbacks and plugin-served links. |
+| `GetHostInfo()` | Return public-safe host URLs for callbacks and plugin-served links, plus host role, listeners, and the ingress token for network access providers. |
 | `ListLibraries(user_id)` | Return libraries (optionally scoped to a user). |
 | `CheckMediaPresence(provider, media_type, ids)` | Batched lookup: which external IDs already exist in the host catalog. v1 supports provider="tmdb" only. |
 | `ListInstalledPlugins()` | Return installed plugins and their advertised capabilities. |
@@ -21,6 +21,9 @@ plugin, the plugin calls back into the host.
 | `ResolveCatalogImageURLs(paths, variant)` | Resolve stored catalog image paths into host-generated browser URL targets. |
 | `MintScopedStream(request)` | Mint a short-lived stream grant for plugin-owned public access workflows. |
 | `CallPluginHTTP(request)` | Invoke another installed plugin's HTTP route through the host control plane. |
+| `ReadInstanceState(key)` | Read one key of the calling instance's encrypted, host-scoped state. |
+| `WriteInstanceState(key, value)` | Write one key of that state. Key ≤ 256 bytes, value ≤ 256 KiB, ≤ 256 keys per scope. |
+| `ReportNetworkAccessStatus(status)` | Push a `network_access_provider.v1` status change so the host does not poll. |
 
 ## Using it from a plugin
 

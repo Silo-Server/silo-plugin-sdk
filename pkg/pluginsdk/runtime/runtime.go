@@ -35,6 +35,10 @@ type CapabilityServers struct {
 	AuthProvider      pluginv1.AuthProviderServer
 	HttpRoutes        pluginv1.HttpRoutesServer
 	WatchSyncProvider pluginv1.WatchSyncProviderServer
+	// NetworkAccessProvider was added in v0.16.0. Plugins declaring
+	// network_access_provider.v1 register it here; the host treats them as
+	// resident and starts them at boot.
+	NetworkAccessProvider pluginv1.NetworkAccessProviderServer
 }
 
 // Client wraps the gRPC connection to a plugin and provides typed accessors
@@ -155,6 +159,10 @@ func (c *Client) WatchSyncDeviceAuthorization() pluginv1.WatchSyncDeviceAuthoriz
 	return pluginv1.NewWatchSyncDeviceAuthorizationServiceClient(c.conn)
 }
 
+func (c *Client) NetworkAccessProvider() pluginv1.NetworkAccessProviderClient {
+	return pluginv1.NewNetworkAccessProviderClient(c.conn)
+}
+
 type GRPCPlugin struct {
 	plugin.Plugin
 	Servers CapabilityServers
@@ -215,6 +223,9 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	}
 	if p.Servers.WatchSyncProvider != nil {
 		pluginv1.RegisterWatchSyncProviderServer(server, p.Servers.WatchSyncProvider)
+	}
+	if p.Servers.NetworkAccessProvider != nil {
+		pluginv1.RegisterNetworkAccessProviderServer(server, p.Servers.NetworkAccessProvider)
 	}
 	return nil
 }
