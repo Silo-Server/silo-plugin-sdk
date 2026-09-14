@@ -57,7 +57,9 @@ func (p *provider) Connect(ctx context.Context, _ *pluginv1.NetworkAccessConnect
 	}
 	p.connected = true
 	p.desired = true
-	p.persistLocked(ctx, host)
+	if err := p.persistLocked(ctx, host); err != nil {
+		return nil, err
+	}
 	status := p.statusLocked()
 	p.reportLocked(ctx, host, status)
 	return status, nil
@@ -70,7 +72,9 @@ func (p *provider) Disconnect(ctx context.Context, _ *pluginv1.NetworkAccessDisc
 	host := sdkruntime.Host()
 	p.connected = false
 	p.desired = false
-	p.persistLocked(ctx, host)
+	if err := p.persistLocked(ctx, host); err != nil {
+		return nil, err
+	}
 	status := p.statusLocked()
 	p.reportLocked(ctx, host, status)
 	return status, nil
@@ -94,12 +98,14 @@ func (p *provider) restoreLocked(ctx context.Context) {
 	if host == nil {
 		return
 	}
-	p.restored = true
 	value, found, err := host.ReadInstanceState(ctx, desiredKey)
 	if err != nil {
+		// Leave restored false so the next RPC tries again; a transient
+		// host error must not turn persisted intent into "disconnected".
 		p.logger.Warn("read instance state", "err", err)
 		return
 	}
+	p.restored = true
 	if found && string(value) == "1" {
 		p.desired = true
 		p.connected = true
@@ -109,17 +115,21 @@ func (p *provider) restoreLocked(ctx context.Context) {
 	}
 }
 
-func (p *provider) persistLocked(ctx context.Context, host *runtimehost.Client) {
+// persistLocked writes desired_connected. A failure is returned to the RPC
+// caller: the admin must know the intent did not survive, or the plugin would
+// come back in the wrong state after its next restart.
+func (p *provider) persistLocked(ctx context.Context, host *runtimehost.Client) error {
 	if host == nil {
-		return
+		return nil
 	}
 	value := []byte("0")
 	if p.desired {
 		value = []byte("1")
 	}
 	if err := host.WriteInstanceState(ctx, desiredKey, value); err != nil {
-		p.logger.Warn("write instance state", "err", err)
+		return fmt.Errorf("persist desired_connected: %w", err)
 	}
+	return nil
 }
 
 func (p *provider) reportLocked(ctx context.Context, host *runtimehost.Client, status *pluginv1.NetworkAccessStatus) {
@@ -145,7 +155,12 @@ func (p *provider) statusLocked() *pluginv1.NetworkAccessStatus {
 	status.Addresses = []string{"100.64.0.1"}
 	if p.hostInfo != nil {
 		for _, l := range p.hostInfo.Listeners {
-			origin := fmt.Sprintf("https://%s:%d", status.Hostname, l.DefaultPort)
+			// Zero asks for the provider default; this stub's default is
+			// HTTPS on 443, which the origin leaves implicit.
+			origin := "https://" + status.Hostname
+			if l.DefaultPort != 0 && l.DefaultPort != 443 {
+				origin = fmt.Sprintf("https://%s:%d", status.Hostname, l.DefaultPort)
+			}
 			status.Listeners = append(status.Listeners, &pluginv1.NetworkAccessListener{Name: l.Name, Origin: origin})
 			if l.Name == runtimehost.ListenerAPI {
 				status.Origin = origin
