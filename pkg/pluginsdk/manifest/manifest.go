@@ -113,6 +113,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 		if err := validateWatchSyncCapability(capability); err != nil {
 			return err
 		}
+		if err := validateNetworkAccessCapability(capability); err != nil {
+			return err
+		}
 	}
 	for _, schema := range manifest.GlobalConfigSchema {
 		if err := validateConfigSchema(schema); err != nil {
@@ -182,6 +185,23 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 		if !watchSyncSlugPattern.MatchString(namespace) {
 			return fmt.Errorf("plugin capability %q: invalid external id namespace %q", descriptor.GetId(), namespace)
 		}
+	}
+	return nil
+}
+
+func validateNetworkAccessCapability(descriptor *pluginv1.CapabilityDescriptor) error {
+	networkAccess := descriptor.GetNetworkAccessProvider()
+	if descriptor.GetType() != capability.NetworkAccessProvider {
+		if networkAccess != nil {
+			return fmt.Errorf("plugin capability %q: network_access_provider descriptor requires type %q", descriptor.GetId(), capability.NetworkAccessProvider)
+		}
+		return nil
+	}
+	if networkAccess == nil {
+		return fmt.Errorf("plugin capability %q: network_access_provider descriptor is required", descriptor.GetId())
+	}
+	if !watchSyncSlugPattern.MatchString(networkAccess.GetProvider()) {
+		return fmt.Errorf("plugin capability %q: network access provider must be a path-safe lowercase slug", descriptor.GetId())
 	}
 	return nil
 }

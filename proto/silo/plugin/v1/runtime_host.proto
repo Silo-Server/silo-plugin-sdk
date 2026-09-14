@@ -6,6 +6,7 @@ option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo
 
 import "google/protobuf/struct.proto";
 import "silo/plugin/v1/common.proto";
+import "silo/plugin/v1/network_access_provider.proto";
 
 // RuntimeHost is implemented by the silo host. Plugins dial it via the
 // go-plugin gRPC broker. See pkg/pluginsdk/runtimehost for a typed client.
@@ -64,6 +65,21 @@ service RuntimeHost {
   // through the host control plane. Calls are treated as authenticated
   // service-to-service traffic, but never as admin traffic.
   rpc CallPluginHTTP(CallPluginHTTPRequest) returns (CallPluginHTTPResponse);
+
+  // ReadInstanceState reads one key of the calling plugin instance's private
+  // state. The scope (installation plus host) is derived by the host and never
+  // supplied by the plugin. See docs/network-access-provider.md.
+  rpc ReadInstanceState(ReadInstanceStateRequest) returns (ReadInstanceStateResponse);
+
+  // WriteInstanceState writes one key of the calling plugin instance's private
+  // state. The host stores values encrypted and never returns them through
+  // any API. Limits: key <= 256 bytes, value <= 256 KiB, <= 256 keys per scope.
+  rpc WriteInstanceState(WriteInstanceStateRequest) returns (WriteInstanceStateResponse);
+
+  // ReportNetworkAccessStatus pushes a network_access_provider.v1 status
+  // change to the host so it does not have to poll. Plugins call it on every
+  // state transition; the host may still call GetStatus on demand.
+  rpc ReportNetworkAccessStatus(ReportNetworkAccessStatusRequest) returns (ReportNetworkAccessStatusResponse);
 }
 
 message PublishEventRequest {
@@ -102,6 +118,33 @@ message GetHostInfoResponse {
   string public_base_url = 1;
   string internal_base_url = 2;
   string plugin_proxy_base_url = 3;
+  // Role of the process hosting this plugin instance: api | proxy.
+  string host_role = 4;
+  // Node name on proxies, or the server name on the api host.
+  string host_name = 5;
+  // stream_nodes.id on proxies; 0 on the api host.
+  int64 node_id = 6;
+  // Per-process-start secret that a network access provider stamps on
+  // proxied requests as X-Silo-Ingress-Token. Treat as a credential: keep it
+  // in memory, never log or persist it, and re-read GetHostInfo after a
+  // restart because the host rotates it on every start.
+  string ingress_token = 7;
+  // Host listeners a network access provider should expose. Always contains
+  // "api"; "jellyfin" and "abs" appear when those listeners are enabled.
+  // Proxies expose only "api".
+  repeated HostListener listeners = 8;
+}
+
+// HostListener is one local listener the host asks a network access provider
+// to expose on the overlay network.
+message HostListener {
+  // Listener name: api | jellyfin | abs.
+  string name = 1;
+  // Loopback dial address for the listener, host:port.
+  string address = 2;
+  // Port the plugin should expose this listener on (e.g. 443 for api under
+  // HTTPS, 8096 for jellyfin, 13378 for abs). Zero means provider default.
+  int32 default_port = 3;
 }
 
 message ListLibrariesRequest {
@@ -284,3 +327,30 @@ message CallPluginHTTPResponse {
   map<string, string> headers = 2;
   bytes body = 3;
 }
+
+message ReadInstanceStateRequest {
+  // State key, <= 256 bytes.
+  string key = 1;
+}
+
+message ReadInstanceStateResponse {
+  // Stored value; empty when found is false.
+  bytes value = 1;
+  // False when no value is stored under key in this instance's scope.
+  bool found = 2;
+}
+
+message WriteInstanceStateRequest {
+  // State key, <= 256 bytes.
+  string key = 1;
+  // Value to store, <= 256 KiB.
+  bytes value = 2;
+}
+
+message WriteInstanceStateResponse {}
+
+message ReportNetworkAccessStatusRequest {
+  NetworkAccessStatus status = 1;
+}
+
+message ReportNetworkAccessStatusResponse {}

@@ -133,6 +133,11 @@ func (f *fakeServer) CallPluginHTTP(_ context.Context, r *pluginv1.CallPluginHTT
 
 func dial(t *testing.T, srv *fakeServer) *grpc.ClientConn {
 	t.Helper()
+	return dialServer(t, srv)
+}
+
+func dialServer(t *testing.T, srv pluginv1.RuntimeHostServer) *grpc.ClientConn {
+	t.Helper()
 	lis := bufconn.Listen(1024 * 1024)
 	g := grpc.NewServer()
 	pluginv1.RegisterRuntimeHostServer(g, srv)
@@ -230,6 +235,47 @@ func TestGetHostInfo_MapsResponse(t *testing.T) {
 	}
 	if got.PublicBaseURL != "https://silo.example" || got.PluginProxyBaseURL == "" {
 		t.Fatalf("bad host info: %+v", got)
+	}
+	if got.HostRole != "" || got.NodeID != 0 || got.IngressToken != "" || got.Listeners != nil {
+		t.Fatalf("pre-v0.16 host must map to zero values: %+v", got)
+	}
+	if got.Listener(runtimehost.ListenerAPI) != nil {
+		t.Fatal("Listener(api) on a host without listeners must be nil")
+	}
+}
+
+func TestGetHostInfo_MapsNetworkAccessFields(t *testing.T) {
+	srv := &fakeServer{
+		hostInfoResp: &pluginv1.GetHostInfoResponse{
+			PublicBaseUrl: "https://silo.example",
+			HostRole:      "proxy",
+			HostName:      "proxy-1",
+			NodeId:        3,
+			IngressToken:  "tok",
+			Listeners: []*pluginv1.HostListener{
+				{Name: "api", Address: "127.0.0.1:8090", DefaultPort: 443},
+			},
+		},
+	}
+	conn := dial(t, srv)
+	c := runtimehost.NewClient(conn)
+
+	got, err := c.GetHostInfo(context.Background())
+	if err != nil {
+		t.Fatalf("GetHostInfo: %v", err)
+	}
+	if got.HostRole != runtimehost.HostRoleProxy || got.HostName != "proxy-1" || got.NodeID != 3 || got.IngressToken != "tok" {
+		t.Fatalf("bad host info: %+v", got)
+	}
+	want := []runtimehost.HostListener{{Name: "api", Address: "127.0.0.1:8090", DefaultPort: 443}}
+	if !reflect.DeepEqual(got.Listeners, want) {
+		t.Fatalf("listeners = %+v, want %+v", got.Listeners, want)
+	}
+	if l := got.Listener(runtimehost.ListenerAPI); l == nil || l.Address != "127.0.0.1:8090" {
+		t.Fatalf("Listener(api) = %+v", l)
+	}
+	if got.Listener(runtimehost.ListenerJellyfin) != nil {
+		t.Fatal("Listener(jellyfin) should be nil when not reported")
 	}
 }
 

@@ -49,3 +49,19 @@ func TestImageResolverIsKnownType(t *testing.T) {
 		t.Fatalf("ImageResolver (%q) missing from KnownTypes %v", ImageResolver, KnownTypes)
 	}
 }
+
+func TestNetworkAccessProviderIsKnownType(t *testing.T) {
+	if NetworkAccessProvider != "network_access_provider.v1" {
+		t.Fatalf("NetworkAccessProvider const = %q, want %q", NetworkAccessProvider, "network_access_provider.v1")
+	}
+	found := false
+	for _, k := range KnownTypes {
+		if k == NetworkAccessProvider {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("NetworkAccessProvider (%q) missing from KnownTypes %v", NetworkAccessProvider, KnownTypes)
+	}
+}

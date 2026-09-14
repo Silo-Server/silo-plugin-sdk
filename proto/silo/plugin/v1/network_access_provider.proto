@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package silo.plugin.v1;
+
+option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
+
+// NetworkAccessProvider gives a Silo deployment an overlay-network identity
+// (Tailscale, NetBird, ...). The plugin owns the overlay client and a reverse
+// proxy in front of the host listeners it learns from RuntimeHost.GetHostInfo;
+// the host owns supervision, per-instance state storage, status aggregation,
+// and the admin API. Plugins declaring this capability are resident: the host
+// starts them at boot, restarts them on crash, and stops them last.
+service NetworkAccessProvider {
+  // Connect brings the overlay identity up and starts proxying. It returns the
+  // status reached so far; enrollment may continue in the background and be
+  // reported through RuntimeHost.ReportNetworkAccessStatus.
+  rpc Connect(NetworkAccessConnectRequest) returns (NetworkAccessStatus);
+  // Disconnect tears the overlay listener down and clears desired_connected.
+  rpc Disconnect(NetworkAccessDisconnectRequest) returns (NetworkAccessStatus);
+  // GetStatus returns the current status without changing it.
+  rpc GetStatus(NetworkAccessGetStatusRequest) returns (NetworkAccessStatus);
+}
+
+message NetworkAccessConnectRequest {}
+
+message NetworkAccessDisconnectRequest {}
+
+message NetworkAccessGetStatusRequest {}
+
+// NetworkAccessStatus is the provider's view of one plugin instance. Every
+// host (API server, each proxy node) runs its own instance and reports its own
+// status; the host aggregates them.
+message NetworkAccessStatus {
+  // One of: disconnected | awaiting_authorization | connecting | connected | error.
+  string state = 1;
+  // Overlay DNS name, e.g. silo.tail1234.ts.net.
+  string hostname = 2;
+  // scheme://host[:port] clients should use for the api listener.
+  string origin = 3;
+  // Overlay IP addresses assigned to this instance.
+  repeated string addresses = 4;
+  // One entry per exposed host listener (see RuntimeHost.GetHostInfo).
+  repeated NetworkAccessListener listeners = 5;
+  // Interactive enrollment URL. Only set while state is awaiting_authorization.
+  // Admin-only; the plugin must never log it.
+  string auth_url = 6;
+  // Human-readable failure detail when state is error.
+  string error = 7;
+  // Provider client version shown to admins, e.g. "tsnet 1.102.4".
+  string provider_version = 8;
+  // Plugin-owned intent that survives restarts. The plugin persists it in
+  // instance state and reconnects on start when true.
+  bool desired_connected = 9;
+}
+
+// NetworkAccessListener maps one host listener onto its overlay origin.
+message NetworkAccessListener {
+  // Listener name from RuntimeHost.GetHostInfo: api | jellyfin | abs.
+  string name = 1;
+  // Overlay origin serving that listener, scheme://host[:port].
+  string origin = 2;
+}
+
+// NetworkAccessProviderDescriptor is the typed manifest metadata for a
+// network_access_provider.v1 capability. The host lists providers from it
+// without launching the plugin.
+message NetworkAccessProviderDescriptor {
+  // Stable provider slug, e.g. "tailscale", "netbird". Lowercase, path-safe.
+  string provider = 1;
+  // Operator-facing name, e.g. "Tailscale".
+  string display_name = 2;
+}

@@ -15,6 +15,9 @@ const (
 	EbookBackend      = "ebook_backend.v1"
 	ScanSource        = "scan_source.v1"
 	WatchSyncProvider = "watch_sync_provider.v1"
+	// NetworkAccessProvider marks a resident plugin that gives the deployment
+	// an overlay-network identity (Tailscale, NetBird, ...). Added in v0.16.0.
+	NetworkAccessProvider = "network_access_provider.v1"
 )
 
 // KnownTypes lists every capability type recognized by this SDK version.
@@ -32,4 +35,5 @@ var KnownTypes = []string{
 	EbookBackend,
 	ScanSource,
 	WatchSyncProvider,
+	NetworkAccessProvider,
 }

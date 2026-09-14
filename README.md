@@ -36,6 +36,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `request_router.v1`
 - `scan_source.v1`
 - `watch_sync_provider.v1`
+- `network_access_provider.v1`
 - `audiobook_backend.v1`
 - `ebook_backend.v1`
 
@@ -50,7 +51,7 @@ A typical plugin:
 3. Supports the `manifest` subcommand via `pkg/pluginsdk/runtime` so the host can introspect manifests without launching the plugin.
 4. Is installed either from a catalog or by uploading a trusted binary to a Silo server.
 
-For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host).
+For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host). For a stub overlay-network provider, see [`examples/hello-network-access`](examples/hello-network-access).
 
 ## Operator-facing presentation
 
@@ -203,6 +204,16 @@ returned to the host. When
 and the order of returned watchlist states is the remote list order. Event
 `list_position` is presence-aware: an explicit zero means the first position,
 while omission means no requested ordering.
+
+## Network access providers
+
+`network_access_provider.v1` lets a resident plugin give the deployment an
+overlay-network identity (Tailscale, NetBird) and reverse-proxy overlay
+traffic to the host's local listeners. The host starts these plugins at boot,
+restarts them on crash, stores their per-instance state encrypted, and
+aggregates status across the API server and proxy nodes. See
+[docs/network-access-provider.md](docs/network-access-provider.md) for the
+proxy contract, `GetHostInfo` fields, instance state, and enrollment rules.
 
 ## Scan sources
 
