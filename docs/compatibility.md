@@ -63,6 +63,11 @@ APIs), never infer it from the numeric value. Calling
 `GetSeasonNumber() != 0` silently conflates "no season scope" with "Specials
 (season zero) requested."
 
+Watch-sync rating fields (`WatchSyncEvent.rating` and
+`WatchSyncRemoteRatingState.rating`) are deliberately plain `int32`. Valid
+ratings run from 1 to 10, so zero never carries a rating and no presence check
+is needed.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and
@@ -73,6 +78,7 @@ verify images by the per-image field rather than assume a filtered response.
 - `silo_api_version` is the coarse runtime compatibility gate between Silo and a plugin binary.
 - Host installs should reject incompatible API versions before runtime startup.
 - A plugin binary should return the same manifest shape that Silo installs, except that binaries may compute their checksum dynamically at runtime.
+- `convert.DecodeCapability` ignores fields and enum values it does not know, so a server node on an older SDK, in a mixed-version cluster sharing one database, still loads capability metadata written by a newer SDK; it only loses the parts added after its own SDK version.
 
 ## Go Support
 

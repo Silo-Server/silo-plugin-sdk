@@ -136,8 +136,9 @@ The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`,
 watch-provider pipeline. The host owns encrypted per-profile credentials,
 authorization-code and device-code flow state, durable desired-state events,
 retries, ordering, and reconciliation. Plugins are stateless protocol adapters:
-they receive secrets only for the duration of an RPC, map rich movie/episode
-identity to an upstream service, and return typed apply or retry outcomes.
+they receive secrets only for the duration of an RPC, map rich movie, episode,
+and series identity to an upstream service, and return typed apply or retry
+outcomes.
 
 Watch-sync plugins must not persist or log credentials, authorization codes,
 provider flow state, or secret configuration. `ApplyEvents` is an at-least-once
@@ -189,17 +190,35 @@ the fault, temporary retries use `TEMPORARY`, rate limits use `RATE_LIMITED`
 with an optional delay, and rejected events use a non-retryable fault code.
 Connection-wide faults such as invalid credentials belong on the RPC response.
 
+A `SERIES` media item describes the show itself: `external_ids`, `title`, and
+`year` identify the series, and the `series_*`, season, and episode fields are
+unused.
+
+Ratings are integers from 1 to 10 in every rating field; the host owns
+conversion to its own display scale. Plugins convert between the provider's
+native scale and 1–10 by rounding half up and clamping to the valid range.
+`import_ratings` means `ListRemoteState` returns `RATING` states, and
+`export_ratings` means `ApplyEvents` handles both `SET_RATING` and
+`REMOVE_RATING`; there is no separate removal flag. `SET_RATING` carries the
+value in the event's `rating` field, where zero is never valid. Both operations
+are convergent desired-state writes: resending the same value, or removing a
+rating that is already absent, must return `APPLIED` or `NO_CHANGE`, never a
+fault. The host sends rating events only for media types listed in
+`supported_media_types`, and manifest validation requires that list to include
+`MOVIE` or `SERIES` when either ratings flag is set.
+
 `ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
 play count and last-watched time; `progress` carries a fractional percentage and
-paused time; `favorite` and `watchlist` carry list membership. An item may
-contain multiple state families. The host requests only the state families a
-sync phase needs, keeps that phase's `cursor` fixed while following ephemeral
-page tokens, commits each successful page, and only then persists the final
-`next_cursor`. `complete_snapshot=true` means the traversal is authoritative;
-when false, missing items are not deletions. An incremental favorite or
-watchlist removal is an item whose corresponding list state has `removed=true`;
-it may omit `media` when `provider_item_key` identifies a record previously
-returned to the host. When
+paused time; `favorite` and `watchlist` carry list membership; `rating` carries
+a 1–10 rating and when it was set. An item may contain multiple state families.
+The host requests only the state families a sync phase needs, keeps that phase's
+`cursor` fixed while following ephemeral page tokens, commits each successful
+page, and only then persists the final `next_cursor`. `complete_snapshot=true`
+means the traversal is authoritative; when false, missing items are not
+deletions. In a complete `RATING` traversal, an item absent from the snapshot is
+unrated. An incremental favorite, watchlist, or rating removal is an item whose
+corresponding state has `removed=true`; it may omit `media` when
+`provider_item_key` identifies a record previously returned to the host. When
 `provides_watchlist_order=true`, watchlist traversals must be complete snapshots
 and the order of returned watchlist states is the remote list order. Event
 `list_position` is presence-aware: an explicit zero means the first position,

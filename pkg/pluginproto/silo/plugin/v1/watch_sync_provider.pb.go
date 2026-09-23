@@ -82,6 +82,10 @@ const (
 	WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED WatchSyncMediaType = 0
 	WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE       WatchSyncMediaType = 1
 	WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE     WatchSyncMediaType = 2
+	// A series-level item. In WatchSyncMedia, external_ids, title, and year
+	// describe the series itself; the series_* fields, season_number,
+	// episode_number, and absolute_episode_number are unused.
+	WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES WatchSyncMediaType = 3
 )
 
 // Enum value maps for WatchSyncMediaType.
@@ -90,11 +94,13 @@ var (
 		0: "WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED",
 		1: "WATCH_SYNC_MEDIA_TYPE_MOVIE",
 		2: "WATCH_SYNC_MEDIA_TYPE_EPISODE",
+		3: "WATCH_SYNC_MEDIA_TYPE_SERIES",
 	}
 	WatchSyncMediaType_value = map[string]int32{
 		"WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED": 0,
 		"WATCH_SYNC_MEDIA_TYPE_MOVIE":       1,
 		"WATCH_SYNC_MEDIA_TYPE_EPISODE":     2,
+		"WATCH_SYNC_MEDIA_TYPE_SERIES":      3,
 	}
 )
 
@@ -138,21 +144,27 @@ const (
 	WatchSyncOperation_WATCH_SYNC_OPERATION_SCROBBLE_START        WatchSyncOperation = 7
 	WatchSyncOperation_WATCH_SYNC_OPERATION_SCROBBLE_PAUSE        WatchSyncOperation = 8
 	WatchSyncOperation_WATCH_SYNC_OPERATION_SCROBBLE_STOP         WatchSyncOperation = 9
+	// Rating writes carry the desired value in WatchSyncEvent.rating. Both are
+	// convergent desired-state operations; see WatchSyncEvent.rating.
+	WatchSyncOperation_WATCH_SYNC_OPERATION_SET_RATING    WatchSyncOperation = 10
+	WatchSyncOperation_WATCH_SYNC_OPERATION_REMOVE_RATING WatchSyncOperation = 11
 )
 
 // Enum value maps for WatchSyncOperation.
 var (
 	WatchSyncOperation_name = map[int32]string{
-		0: "WATCH_SYNC_OPERATION_UNSPECIFIED",
-		1: "WATCH_SYNC_OPERATION_MARK_WATCHED",
-		2: "WATCH_SYNC_OPERATION_MARK_UNWATCHED",
-		3: "WATCH_SYNC_OPERATION_ADD_FAVORITE",
-		4: "WATCH_SYNC_OPERATION_REMOVE_FAVORITE",
-		5: "WATCH_SYNC_OPERATION_ADD_TO_WATCHLIST",
-		6: "WATCH_SYNC_OPERATION_REMOVE_FROM_WATCHLIST",
-		7: "WATCH_SYNC_OPERATION_SCROBBLE_START",
-		8: "WATCH_SYNC_OPERATION_SCROBBLE_PAUSE",
-		9: "WATCH_SYNC_OPERATION_SCROBBLE_STOP",
+		0:  "WATCH_SYNC_OPERATION_UNSPECIFIED",
+		1:  "WATCH_SYNC_OPERATION_MARK_WATCHED",
+		2:  "WATCH_SYNC_OPERATION_MARK_UNWATCHED",
+		3:  "WATCH_SYNC_OPERATION_ADD_FAVORITE",
+		4:  "WATCH_SYNC_OPERATION_REMOVE_FAVORITE",
+		5:  "WATCH_SYNC_OPERATION_ADD_TO_WATCHLIST",
+		6:  "WATCH_SYNC_OPERATION_REMOVE_FROM_WATCHLIST",
+		7:  "WATCH_SYNC_OPERATION_SCROBBLE_START",
+		8:  "WATCH_SYNC_OPERATION_SCROBBLE_PAUSE",
+		9:  "WATCH_SYNC_OPERATION_SCROBBLE_STOP",
+		10: "WATCH_SYNC_OPERATION_SET_RATING",
+		11: "WATCH_SYNC_OPERATION_REMOVE_RATING",
 	}
 	WatchSyncOperation_value = map[string]int32{
 		"WATCH_SYNC_OPERATION_UNSPECIFIED":           0,
@@ -165,6 +177,8 @@ var (
 		"WATCH_SYNC_OPERATION_SCROBBLE_START":        7,
 		"WATCH_SYNC_OPERATION_SCROBBLE_PAUSE":        8,
 		"WATCH_SYNC_OPERATION_SCROBBLE_STOP":         9,
+		"WATCH_SYNC_OPERATION_SET_RATING":            10,
+		"WATCH_SYNC_OPERATION_REMOVE_RATING":         11,
 	}
 )
 
@@ -203,6 +217,7 @@ const (
 	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_PROGRESS    WatchSyncRemoteStateKind = 2
 	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE    WatchSyncRemoteStateKind = 3
 	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST   WatchSyncRemoteStateKind = 4
+	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_RATING      WatchSyncRemoteStateKind = 5
 )
 
 // Enum value maps for WatchSyncRemoteStateKind.
@@ -213,6 +228,7 @@ var (
 		2: "WATCH_SYNC_REMOTE_STATE_KIND_PROGRESS",
 		3: "WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE",
 		4: "WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST",
+		5: "WATCH_SYNC_REMOTE_STATE_KIND_RATING",
 	}
 	WatchSyncRemoteStateKind_value = map[string]int32{
 		"WATCH_SYNC_REMOTE_STATE_KIND_UNSPECIFIED": 0,
@@ -220,6 +236,7 @@ var (
 		"WATCH_SYNC_REMOTE_STATE_KIND_PROGRESS":    2,
 		"WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE":    3,
 		"WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST":   4,
+		"WATCH_SYNC_REMOTE_STATE_KIND_RATING":      5,
 	}
 )
 
@@ -494,8 +511,19 @@ type WatchSyncProviderDescriptor struct {
 	// an incremental subset cannot define positions relative to omitted items.
 	ProvidesWatchlistOrder bool `protobuf:"varint,15,opt,name=provides_watchlist_order,json=providesWatchlistOrder,proto3" json:"provides_watchlist_order,omitempty"`
 	ScrobblePlayback       bool `protobuf:"varint,16,opt,name=scrobble_playback,json=scrobblePlayback,proto3" json:"scrobble_playback,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	// Ratings are integers from 1 to 10. Plugins convert between the provider's
+	// native scale and 1..10 by rounding half up and clamping to the valid range.
+	// The host sends rating events only for media types listed in
+	// supported_media_types, which must include MOVIE or SERIES when either
+	// ratings flag is set.
+	//
+	// When import_ratings is set, ListRemoteState returns RATING states.
+	ImportRatings bool `protobuf:"varint,17,opt,name=import_ratings,json=importRatings,proto3" json:"import_ratings,omitempty"`
+	// When export_ratings is set, ApplyEvents handles both SET_RATING and
+	// REMOVE_RATING; there is no separate flag for rating removal.
+	ExportRatings bool `protobuf:"varint,18,opt,name=export_ratings,json=exportRatings,proto3" json:"export_ratings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncProviderDescriptor) Reset() {
@@ -636,6 +664,20 @@ func (x *WatchSyncProviderDescriptor) GetProvidesWatchlistOrder() bool {
 func (x *WatchSyncProviderDescriptor) GetScrobblePlayback() bool {
 	if x != nil {
 		return x.ScrobblePlayback
+	}
+	return false
+}
+
+func (x *WatchSyncProviderDescriptor) GetImportRatings() bool {
+	if x != nil {
+		return x.ImportRatings
+	}
+	return false
+}
+
+func (x *WatchSyncProviderDescriptor) GetExportRatings() bool {
+	if x != nil {
+		return x.ExportRatings
 	}
 	return false
 }
@@ -1953,7 +1995,13 @@ type WatchSyncEvent struct {
 	// Authoritative host completion state for playback events. A history ID can
 	// exist for incomplete playback, and completion_percent may be below 100
 	// when the host's configured watched threshold has been reached.
-	Completed     bool `protobuf:"varint,14,opt,name=completed,proto3" json:"completed,omitempty"`
+	Completed bool `protobuf:"varint,14,opt,name=completed,proto3" json:"completed,omitempty"`
+	// Desired rating for SET_RATING, an integer from 1 to 10. Required for
+	// SET_RATING and ignored for every other operation; zero is never a valid
+	// rating. SET_RATING and REMOVE_RATING are convergent desired-state writes:
+	// resending the same value, or removing a rating that is already absent,
+	// must yield APPLIED or NO_CHANGE, never a fault.
+	Rating        int32 `protobuf:"varint,15,opt,name=rating,proto3" json:"rating,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2084,6 +2132,13 @@ func (x *WatchSyncEvent) GetCompleted() bool {
 		return x.Completed
 	}
 	return false
+}
+
+func (x *WatchSyncEvent) GetRating() int32 {
+	if x != nil {
+		return x.Rating
+	}
+	return 0
 }
 
 type WatchSyncApplyEventsRequest struct {
@@ -2517,11 +2572,77 @@ func (x *WatchSyncRemoteListState) GetRemoved() bool {
 	return false
 }
 
+type WatchSyncRemoteRatingState struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Integer rating from 1 to 10, converted from the provider's native scale.
+	// Required unless removed is true.
+	Rating int32 `protobuf:"varint,1,opt,name=rating,proto3" json:"rating,omitempty"`
+	// Provider timestamp for when the rating was last set, when available.
+	RatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=rated_at,json=ratedAt,proto3" json:"rated_at,omitempty"`
+	// True is an explicit tombstone for a rating cleared upstream. It is
+	// meaningful for incremental traversals, where omitting an item is not a
+	// deletion.
+	Removed       bool `protobuf:"varint,3,opt,name=removed,proto3" json:"removed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchSyncRemoteRatingState) Reset() {
+	*x = WatchSyncRemoteRatingState{}
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchSyncRemoteRatingState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchSyncRemoteRatingState) ProtoMessage() {}
+
+func (x *WatchSyncRemoteRatingState) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchSyncRemoteRatingState.ProtoReflect.Descriptor instead.
+func (*WatchSyncRemoteRatingState) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *WatchSyncRemoteRatingState) GetRating() int32 {
+	if x != nil {
+		return x.Rating
+	}
+	return 0
+}
+
+func (x *WatchSyncRemoteRatingState) GetRatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RatedAt
+	}
+	return nil
+}
+
+func (x *WatchSyncRemoteRatingState) GetRemoved() bool {
+	if x != nil {
+		return x.Removed
+	}
+	return false
+}
+
 type WatchSyncRemoteState struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ProviderItemKey string                 `protobuf:"bytes,1,opt,name=provider_item_key,json=providerItemKey,proto3" json:"provider_item_key,omitempty"`
-	// Required except on an explicit favorite/watchlist tombstone whose
-	// provider_item_key identifies a record returned previously.
+	// Required except on an explicit favorite, watchlist, or rating tombstone
+	// whose provider_item_key identifies a record returned previously.
 	Media *WatchSyncMedia `protobuf:"bytes,2,opt,name=media,proto3" json:"media,omitempty"`
 	// At least one typed state must be present. Both may be present when the
 	// provider reports a completed play and a separate resume point.
@@ -2529,13 +2650,14 @@ type WatchSyncRemoteState struct {
 	Progress      *WatchSyncRemoteProgressState `protobuf:"bytes,4,opt,name=progress,proto3" json:"progress,omitempty"`
 	Favorite      *WatchSyncRemoteListState     `protobuf:"bytes,5,opt,name=favorite,proto3" json:"favorite,omitempty"`
 	Watchlist     *WatchSyncRemoteListState     `protobuf:"bytes,6,opt,name=watchlist,proto3" json:"watchlist,omitempty"`
+	Rating        *WatchSyncRemoteRatingState   `protobuf:"bytes,7,opt,name=rating,proto3" json:"rating,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncRemoteState) Reset() {
 	*x = WatchSyncRemoteState{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[27]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2547,7 +2669,7 @@ func (x *WatchSyncRemoteState) String() string {
 func (*WatchSyncRemoteState) ProtoMessage() {}
 
 func (x *WatchSyncRemoteState) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[27]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2560,7 +2682,7 @@ func (x *WatchSyncRemoteState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncRemoteState.ProtoReflect.Descriptor instead.
 func (*WatchSyncRemoteState) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{27}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *WatchSyncRemoteState) GetProviderItemKey() string {
@@ -2605,6 +2727,13 @@ func (x *WatchSyncRemoteState) GetWatchlist() *WatchSyncRemoteListState {
 	return nil
 }
 
+func (x *WatchSyncRemoteState) GetRating() *WatchSyncRemoteRatingState {
+	if x != nil {
+		return x.Rating
+	}
+	return nil
+}
+
 type WatchSyncListRemoteStateResponse struct {
 	state protoimpl.MessageState  `protogen:"open.v1"`
 	Items []*WatchSyncRemoteState `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -2618,7 +2747,8 @@ type WatchSyncListRemoteStateResponse struct {
 	// incremental delta, so an absent item must not be interpreted as deletion.
 	// The value must remain stable across every page in one traversal. A provider
 	// advertising provides_watchlist_order must set this true for WATCHLIST
-	// traversals so the returned order is unambiguous.
+	// traversals so the returned order is unambiguous. In a complete RATING
+	// traversal, an item absent from the snapshot is unrated.
 	CompleteSnapshot bool `protobuf:"varint,4,opt,name=complete_snapshot,json=completeSnapshot,proto3" json:"complete_snapshot,omitempty"`
 	// Complete authoritative replacement. The host persists it before consuming
 	// this page or fault; a persistence failure discards the page and cursor.
@@ -2633,7 +2763,7 @@ type WatchSyncListRemoteStateResponse struct {
 
 func (x *WatchSyncListRemoteStateResponse) Reset() {
 	*x = WatchSyncListRemoteStateResponse{}
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[28]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2645,7 +2775,7 @@ func (x *WatchSyncListRemoteStateResponse) String() string {
 func (*WatchSyncListRemoteStateResponse) ProtoMessage() {}
 
 func (x *WatchSyncListRemoteStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[28]
+	mi := &file_silo_plugin_v1_watch_sync_provider_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2658,7 +2788,7 @@ func (x *WatchSyncListRemoteStateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncListRemoteStateResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncListRemoteStateResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{28}
+	return file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *WatchSyncListRemoteStateResponse) GetItems() []*WatchSyncRemoteState {
@@ -2707,7 +2837,7 @@ var File_silo_plugin_v1_watch_sync_provider_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\n" +
-	"(silo/plugin/v1/watch_sync_provider.proto\x12\x0esilo.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa4\x06\n" +
+	"(silo/plugin/v1/watch_sync_provider.proto\x12\x0esilo.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf2\x06\n" +
 	"\x1bWatchSyncProviderDescriptor\x12F\n" +
 	"\fauth_methods\x18\x01 \x03(\x0e2#.silo.plugin.v1.WatchSyncAuthMethodR\vauthMethods\x12%\n" +
 	"\x0eexport_watched\x18\x02 \x01(\bR\rexportWatched\x12)\n" +
@@ -2725,7 +2855,9 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x10export_watchlist\x18\r \x01(\bR\x0fexportWatchlist\x12)\n" +
 	"\x10remove_watchlist\x18\x0e \x01(\bR\x0fremoveWatchlist\x128\n" +
 	"\x18provides_watchlist_order\x18\x0f \x01(\bR\x16providesWatchlistOrder\x12+\n" +
-	"\x11scrobble_playback\x18\x10 \x01(\bR\x10scrobblePlayback\"\xc2\x02\n" +
+	"\x11scrobble_playback\x18\x10 \x01(\bR\x10scrobblePlayback\x12%\n" +
+	"\x0eimport_ratings\x18\x11 \x01(\bR\rimportRatings\x12%\n" +
+	"\x0eexport_ratings\x18\x12 \x01(\bR\rexportRatings\"\xc2\x02\n" +
 	"\x17WatchSyncProviderConfig\x12K\n" +
 	"\x06values\x18\x01 \x03(\v23.silo.plugin.v1.WatchSyncProviderConfig.ValuesEntryR\x06values\x12^\n" +
 	"\rsecret_values\x18\x02 \x03(\v29.silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntryR\fsecretValues\x1a9\n" +
@@ -2844,7 +2976,7 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aD\n" +
 	"\x16SeriesExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9d\x05\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb5\x05\n" +
 	"\x0eWatchSyncEvent\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12@\n" +
 	"\toperation\x18\x02 \x01(\x0e2\".silo.plugin.v1.WatchSyncOperationR\toperation\x127\n" +
@@ -2862,7 +2994,8 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"play_count\x18\v \x01(\x05R\tplayCount\x12(\n" +
 	"\rlist_position\x18\f \x01(\x05H\x00R\flistPosition\x88\x01\x01\x12*\n" +
 	"\x11provider_item_key\x18\r \x01(\tR\x0fproviderItemKey\x12\x1c\n" +
-	"\tcompleted\x18\x0e \x01(\bR\tcompletedB\x10\n" +
+	"\tcompleted\x18\x0e \x01(\bR\tcompleted\x12\x16\n" +
+	"\x06rating\x18\x0f \x01(\x05R\x06ratingB\x10\n" +
 	"\x0e_list_position\"\x9e\x01\n" +
 	"\x1bWatchSyncApplyEventsRequest\x12G\n" +
 	"\acontext\x18\x01 \x01(\v2-.silo.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x126\n" +
@@ -2892,14 +3025,19 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\tpaused_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\bpausedAt\"m\n" +
 	"\x18WatchSyncRemoteListState\x127\n" +
 	"\tlisted_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\blistedAt\x12\x18\n" +
-	"\aremoved\x18\x02 \x01(\bR\aremoved\"\x97\x03\n" +
+	"\aremoved\x18\x02 \x01(\bR\aremoved\"\x85\x01\n" +
+	"\x1aWatchSyncRemoteRatingState\x12\x16\n" +
+	"\x06rating\x18\x01 \x01(\x05R\x06rating\x125\n" +
+	"\brated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aratedAt\x12\x18\n" +
+	"\aremoved\x18\x03 \x01(\bR\aremoved\"\xdb\x03\n" +
 	"\x14WatchSyncRemoteState\x12*\n" +
 	"\x11provider_item_key\x18\x01 \x01(\tR\x0fproviderItemKey\x124\n" +
 	"\x05media\x18\x02 \x01(\v2\x1e.silo.plugin.v1.WatchSyncMediaR\x05media\x12E\n" +
 	"\awatched\x18\x03 \x01(\v2+.silo.plugin.v1.WatchSyncRemoteWatchedStateR\awatched\x12H\n" +
 	"\bprogress\x18\x04 \x01(\v2,.silo.plugin.v1.WatchSyncRemoteProgressStateR\bprogress\x12D\n" +
 	"\bfavorite\x18\x05 \x01(\v2(.silo.plugin.v1.WatchSyncRemoteListStateR\bfavorite\x12F\n" +
-	"\twatchlist\x18\x06 \x01(\v2(.silo.plugin.v1.WatchSyncRemoteListStateR\twatchlist\"\xe1\x02\n" +
+	"\twatchlist\x18\x06 \x01(\v2(.silo.plugin.v1.WatchSyncRemoteListStateR\twatchlist\x12B\n" +
+	"\x06rating\x18\a \x01(\v2*.silo.plugin.v1.WatchSyncRemoteRatingStateR\x06rating\"\xe1\x02\n" +
 	" WatchSyncListRemoteStateResponse\x12:\n" +
 	"\x05items\x18\x01 \x03(\v2$.silo.plugin.v1.WatchSyncRemoteStateR\x05items\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x1f\n" +
@@ -2912,11 +3050,12 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\"WATCH_SYNC_AUTH_METHOD_UNSPECIFIED\x10\x00\x12-\n" +
 	")WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE\x10\x01\x12\"\n" +
 	"\x1eWATCH_SYNC_AUTH_METHOD_API_KEY\x10\x02\x12&\n" +
-	"\"WATCH_SYNC_AUTH_METHOD_DEVICE_CODE\x10\x03*\x7f\n" +
+	"\"WATCH_SYNC_AUTH_METHOD_DEVICE_CODE\x10\x03*\xa1\x01\n" +
 	"\x12WatchSyncMediaType\x12%\n" +
 	"!WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bWATCH_SYNC_MEDIA_TYPE_MOVIE\x10\x01\x12!\n" +
-	"\x1dWATCH_SYNC_MEDIA_TYPE_EPISODE\x10\x02*\xb0\x03\n" +
+	"\x1dWATCH_SYNC_MEDIA_TYPE_EPISODE\x10\x02\x12 \n" +
+	"\x1cWATCH_SYNC_MEDIA_TYPE_SERIES\x10\x03*\xfd\x03\n" +
 	"\x12WatchSyncOperation\x12$\n" +
 	" WATCH_SYNC_OPERATION_UNSPECIFIED\x10\x00\x12%\n" +
 	"!WATCH_SYNC_OPERATION_MARK_WATCHED\x10\x01\x12'\n" +
@@ -2927,13 +3066,17 @@ const file_silo_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"*WATCH_SYNC_OPERATION_REMOVE_FROM_WATCHLIST\x10\x06\x12'\n" +
 	"#WATCH_SYNC_OPERATION_SCROBBLE_START\x10\a\x12'\n" +
 	"#WATCH_SYNC_OPERATION_SCROBBLE_PAUSE\x10\b\x12&\n" +
-	"\"WATCH_SYNC_OPERATION_SCROBBLE_STOP\x10\t*\xf4\x01\n" +
+	"\"WATCH_SYNC_OPERATION_SCROBBLE_STOP\x10\t\x12#\n" +
+	"\x1fWATCH_SYNC_OPERATION_SET_RATING\x10\n" +
+	"\x12&\n" +
+	"\"WATCH_SYNC_OPERATION_REMOVE_RATING\x10\v*\x9d\x02\n" +
 	"\x18WatchSyncRemoteStateKind\x12,\n" +
 	"(WATCH_SYNC_REMOTE_STATE_KIND_UNSPECIFIED\x10\x00\x12(\n" +
 	"$WATCH_SYNC_REMOTE_STATE_KIND_WATCHED\x10\x01\x12)\n" +
 	"%WATCH_SYNC_REMOTE_STATE_KIND_PROGRESS\x10\x02\x12)\n" +
 	"%WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE\x10\x03\x12*\n" +
-	"&WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST\x10\x04*\xae\x02\n" +
+	"&WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST\x10\x04\x12'\n" +
+	"#WATCH_SYNC_REMOTE_STATE_KIND_RATING\x10\x05*\xae\x02\n" +
 	"\"WatchSyncDeviceAuthorizationStatus\x126\n" +
 	"2WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_UNSPECIFIED\x10\x00\x122\n" +
 	".WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_PENDING\x10\x01\x125\n" +
@@ -2985,7 +3128,7 @@ func file_silo_plugin_v1_watch_sync_provider_proto_rawDescGZIP() []byte {
 }
 
 var file_silo_plugin_v1_watch_sync_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_silo_plugin_v1_watch_sync_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_silo_plugin_v1_watch_sync_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_silo_plugin_v1_watch_sync_provider_proto_goTypes = []any{
 	(WatchSyncAuthMethod)(0),                                 // 0: silo.plugin.v1.WatchSyncAuthMethod
 	(WatchSyncMediaType)(0),                                  // 1: silo.plugin.v1.WatchSyncMediaType
@@ -3022,43 +3165,44 @@ var file_silo_plugin_v1_watch_sync_provider_proto_goTypes = []any{
 	(*WatchSyncRemoteWatchedState)(nil),                      // 32: silo.plugin.v1.WatchSyncRemoteWatchedState
 	(*WatchSyncRemoteProgressState)(nil),                     // 33: silo.plugin.v1.WatchSyncRemoteProgressState
 	(*WatchSyncRemoteListState)(nil),                         // 34: silo.plugin.v1.WatchSyncRemoteListState
-	(*WatchSyncRemoteState)(nil),                             // 35: silo.plugin.v1.WatchSyncRemoteState
-	(*WatchSyncListRemoteStateResponse)(nil),                 // 36: silo.plugin.v1.WatchSyncListRemoteStateResponse
-	nil,                                                      // 37: silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
-	nil,                                                      // 38: silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
-	nil,                                                      // 39: silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
-	nil,                                                      // 40: silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
-	nil,                                                      // 41: silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
-	(*timestamppb.Timestamp)(nil),                            // 42: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),                              // 43: google.protobuf.Duration
-	(*structpb.Struct)(nil),                                  // 44: google.protobuf.Struct
+	(*WatchSyncRemoteRatingState)(nil),                       // 35: silo.plugin.v1.WatchSyncRemoteRatingState
+	(*WatchSyncRemoteState)(nil),                             // 36: silo.plugin.v1.WatchSyncRemoteState
+	(*WatchSyncListRemoteStateResponse)(nil),                 // 37: silo.plugin.v1.WatchSyncListRemoteStateResponse
+	nil,                                                      // 38: silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
+	nil,                                                      // 39: silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
+	nil,                                                      // 40: silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
+	nil,                                                      // 41: silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
+	nil,                                                      // 42: silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
+	(*timestamppb.Timestamp)(nil),                            // 43: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),                              // 44: google.protobuf.Duration
+	(*structpb.Struct)(nil),                                  // 45: google.protobuf.Struct
 }
 var file_silo_plugin_v1_watch_sync_provider_proto_depIdxs = []int32{
 	0,  // 0: silo.plugin.v1.WatchSyncProviderDescriptor.auth_methods:type_name -> silo.plugin.v1.WatchSyncAuthMethod
 	1,  // 1: silo.plugin.v1.WatchSyncProviderDescriptor.supported_media_types:type_name -> silo.plugin.v1.WatchSyncMediaType
-	37, // 2: silo.plugin.v1.WatchSyncProviderConfig.values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
-	38, // 3: silo.plugin.v1.WatchSyncProviderConfig.secret_values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
-	42, // 4: silo.plugin.v1.WatchSyncCredentials.expires_at:type_name -> google.protobuf.Timestamp
-	39, // 5: silo.plugin.v1.WatchSyncCredentials.secret_attributes:type_name -> silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
+	38, // 2: silo.plugin.v1.WatchSyncProviderConfig.values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.ValuesEntry
+	39, // 3: silo.plugin.v1.WatchSyncProviderConfig.secret_values:type_name -> silo.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
+	43, // 4: silo.plugin.v1.WatchSyncCredentials.expires_at:type_name -> google.protobuf.Timestamp
+	40, // 5: silo.plugin.v1.WatchSyncCredentials.secret_attributes:type_name -> silo.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
 	9,  // 6: silo.plugin.v1.WatchSyncAuthenticatedContext.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
 	10, // 7: silo.plugin.v1.WatchSyncAuthenticatedContext.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
 	7,  // 8: silo.plugin.v1.WatchSyncFault.code:type_name -> silo.plugin.v1.WatchSyncFaultCode
-	43, // 9: silo.plugin.v1.WatchSyncFault.retry_after:type_name -> google.protobuf.Duration
+	44, // 9: silo.plugin.v1.WatchSyncFault.retry_after:type_name -> google.protobuf.Duration
 	9,  // 10: silo.plugin.v1.WatchSyncInitAuthorizeRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
 	13, // 11: silo.plugin.v1.WatchSyncInitAuthorizeResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
 	9,  // 12: silo.plugin.v1.WatchSyncExchangeCodeRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
 	9,  // 13: silo.plugin.v1.WatchSyncExchangeAPIKeyRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
 	9,  // 14: silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
-	43, // 15: silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.polling_interval:type_name -> google.protobuf.Duration
-	42, // 16: silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.expires_at:type_name -> google.protobuf.Timestamp
+	44, // 15: silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.polling_interval:type_name -> google.protobuf.Duration
+	43, // 16: silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.expires_at:type_name -> google.protobuf.Timestamp
 	13, // 17: silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
 	9,  // 18: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest.provider_config:type_name -> silo.plugin.v1.WatchSyncProviderConfig
 	4,  // 19: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.status:type_name -> silo.plugin.v1.WatchSyncDeviceAuthorizationStatus
 	10, // 20: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
 	12, // 21: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.account:type_name -> silo.plugin.v1.WatchSyncAccount
 	13, // 22: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
-	43, // 23: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.polling_interval:type_name -> google.protobuf.Duration
-	42, // 24: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.expires_at:type_name -> google.protobuf.Timestamp
+	44, // 23: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.polling_interval:type_name -> google.protobuf.Duration
+	43, // 24: silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.expires_at:type_name -> google.protobuf.Timestamp
 	11, // 25: silo.plugin.v1.WatchSyncRefreshCredentialsRequest.context:type_name -> silo.plugin.v1.WatchSyncAuthenticatedContext
 	10, // 26: silo.plugin.v1.WatchSyncCredentialResponse.credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
 	12, // 27: silo.plugin.v1.WatchSyncCredentialResponse.account:type_name -> silo.plugin.v1.WatchSyncAccount
@@ -3067,12 +3211,12 @@ var file_silo_plugin_v1_watch_sync_provider_proto_depIdxs = []int32{
 	12, // 30: silo.plugin.v1.WatchSyncGetAccountResponse.account:type_name -> silo.plugin.v1.WatchSyncAccount
 	13, // 31: silo.plugin.v1.WatchSyncGetAccountResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
 	1,  // 32: silo.plugin.v1.WatchSyncMedia.media_type:type_name -> silo.plugin.v1.WatchSyncMediaType
-	40, // 33: silo.plugin.v1.WatchSyncMedia.external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
-	41, // 34: silo.plugin.v1.WatchSyncMedia.series_external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
-	44, // 35: silo.plugin.v1.WatchSyncMedia.metadata:type_name -> google.protobuf.Struct
+	41, // 33: silo.plugin.v1.WatchSyncMedia.external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.ExternalIdsEntry
+	42, // 34: silo.plugin.v1.WatchSyncMedia.series_external_ids:type_name -> silo.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
+	45, // 35: silo.plugin.v1.WatchSyncMedia.metadata:type_name -> google.protobuf.Struct
 	2,  // 36: silo.plugin.v1.WatchSyncEvent.operation:type_name -> silo.plugin.v1.WatchSyncOperation
 	5,  // 37: silo.plugin.v1.WatchSyncEvent.origin:type_name -> silo.plugin.v1.WatchSyncOrigin
-	42, // 38: silo.plugin.v1.WatchSyncEvent.occurred_at:type_name -> google.protobuf.Timestamp
+	43, // 38: silo.plugin.v1.WatchSyncEvent.occurred_at:type_name -> google.protobuf.Timestamp
 	26, // 39: silo.plugin.v1.WatchSyncEvent.media:type_name -> silo.plugin.v1.WatchSyncMedia
 	11, // 40: silo.plugin.v1.WatchSyncApplyEventsRequest.context:type_name -> silo.plugin.v1.WatchSyncAuthenticatedContext
 	27, // 41: silo.plugin.v1.WatchSyncApplyEventsRequest.events:type_name -> silo.plugin.v1.WatchSyncEvent
@@ -3083,40 +3227,42 @@ var file_silo_plugin_v1_watch_sync_provider_proto_depIdxs = []int32{
 	13, // 46: silo.plugin.v1.WatchSyncApplyEventsResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
 	11, // 47: silo.plugin.v1.WatchSyncListRemoteStateRequest.context:type_name -> silo.plugin.v1.WatchSyncAuthenticatedContext
 	3,  // 48: silo.plugin.v1.WatchSyncListRemoteStateRequest.state_kinds:type_name -> silo.plugin.v1.WatchSyncRemoteStateKind
-	42, // 49: silo.plugin.v1.WatchSyncRemoteWatchedState.last_watched_at:type_name -> google.protobuf.Timestamp
-	42, // 50: silo.plugin.v1.WatchSyncRemoteProgressState.paused_at:type_name -> google.protobuf.Timestamp
-	42, // 51: silo.plugin.v1.WatchSyncRemoteListState.listed_at:type_name -> google.protobuf.Timestamp
-	26, // 52: silo.plugin.v1.WatchSyncRemoteState.media:type_name -> silo.plugin.v1.WatchSyncMedia
-	32, // 53: silo.plugin.v1.WatchSyncRemoteState.watched:type_name -> silo.plugin.v1.WatchSyncRemoteWatchedState
-	33, // 54: silo.plugin.v1.WatchSyncRemoteState.progress:type_name -> silo.plugin.v1.WatchSyncRemoteProgressState
-	34, // 55: silo.plugin.v1.WatchSyncRemoteState.favorite:type_name -> silo.plugin.v1.WatchSyncRemoteListState
-	34, // 56: silo.plugin.v1.WatchSyncRemoteState.watchlist:type_name -> silo.plugin.v1.WatchSyncRemoteListState
-	35, // 57: silo.plugin.v1.WatchSyncListRemoteStateResponse.items:type_name -> silo.plugin.v1.WatchSyncRemoteState
-	10, // 58: silo.plugin.v1.WatchSyncListRemoteStateResponse.updated_credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
-	13, // 59: silo.plugin.v1.WatchSyncListRemoteStateResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
-	14, // 60: silo.plugin.v1.WatchSyncProvider.InitAuthorize:input_type -> silo.plugin.v1.WatchSyncInitAuthorizeRequest
-	16, // 61: silo.plugin.v1.WatchSyncProvider.ExchangeCode:input_type -> silo.plugin.v1.WatchSyncExchangeCodeRequest
-	17, // 62: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:input_type -> silo.plugin.v1.WatchSyncExchangeAPIKeyRequest
-	22, // 63: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:input_type -> silo.plugin.v1.WatchSyncRefreshCredentialsRequest
-	24, // 64: silo.plugin.v1.WatchSyncProvider.GetAccount:input_type -> silo.plugin.v1.WatchSyncGetAccountRequest
-	28, // 65: silo.plugin.v1.WatchSyncProvider.ApplyEvents:input_type -> silo.plugin.v1.WatchSyncApplyEventsRequest
-	31, // 66: silo.plugin.v1.WatchSyncProvider.ListRemoteState:input_type -> silo.plugin.v1.WatchSyncListRemoteStateRequest
-	18, // 67: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Start:input_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest
-	20, // 68: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:input_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest
-	15, // 69: silo.plugin.v1.WatchSyncProvider.InitAuthorize:output_type -> silo.plugin.v1.WatchSyncInitAuthorizeResponse
-	23, // 70: silo.plugin.v1.WatchSyncProvider.ExchangeCode:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
-	23, // 71: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
-	23, // 72: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
-	25, // 73: silo.plugin.v1.WatchSyncProvider.GetAccount:output_type -> silo.plugin.v1.WatchSyncGetAccountResponse
-	30, // 74: silo.plugin.v1.WatchSyncProvider.ApplyEvents:output_type -> silo.plugin.v1.WatchSyncApplyEventsResponse
-	36, // 75: silo.plugin.v1.WatchSyncProvider.ListRemoteState:output_type -> silo.plugin.v1.WatchSyncListRemoteStateResponse
-	19, // 76: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Start:output_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse
-	21, // 77: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:output_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse
-	69, // [69:78] is the sub-list for method output_type
-	60, // [60:69] is the sub-list for method input_type
-	60, // [60:60] is the sub-list for extension type_name
-	60, // [60:60] is the sub-list for extension extendee
-	0,  // [0:60] is the sub-list for field type_name
+	43, // 49: silo.plugin.v1.WatchSyncRemoteWatchedState.last_watched_at:type_name -> google.protobuf.Timestamp
+	43, // 50: silo.plugin.v1.WatchSyncRemoteProgressState.paused_at:type_name -> google.protobuf.Timestamp
+	43, // 51: silo.plugin.v1.WatchSyncRemoteListState.listed_at:type_name -> google.protobuf.Timestamp
+	43, // 52: silo.plugin.v1.WatchSyncRemoteRatingState.rated_at:type_name -> google.protobuf.Timestamp
+	26, // 53: silo.plugin.v1.WatchSyncRemoteState.media:type_name -> silo.plugin.v1.WatchSyncMedia
+	32, // 54: silo.plugin.v1.WatchSyncRemoteState.watched:type_name -> silo.plugin.v1.WatchSyncRemoteWatchedState
+	33, // 55: silo.plugin.v1.WatchSyncRemoteState.progress:type_name -> silo.plugin.v1.WatchSyncRemoteProgressState
+	34, // 56: silo.plugin.v1.WatchSyncRemoteState.favorite:type_name -> silo.plugin.v1.WatchSyncRemoteListState
+	34, // 57: silo.plugin.v1.WatchSyncRemoteState.watchlist:type_name -> silo.plugin.v1.WatchSyncRemoteListState
+	35, // 58: silo.plugin.v1.WatchSyncRemoteState.rating:type_name -> silo.plugin.v1.WatchSyncRemoteRatingState
+	36, // 59: silo.plugin.v1.WatchSyncListRemoteStateResponse.items:type_name -> silo.plugin.v1.WatchSyncRemoteState
+	10, // 60: silo.plugin.v1.WatchSyncListRemoteStateResponse.updated_credentials:type_name -> silo.plugin.v1.WatchSyncCredentials
+	13, // 61: silo.plugin.v1.WatchSyncListRemoteStateResponse.fault:type_name -> silo.plugin.v1.WatchSyncFault
+	14, // 62: silo.plugin.v1.WatchSyncProvider.InitAuthorize:input_type -> silo.plugin.v1.WatchSyncInitAuthorizeRequest
+	16, // 63: silo.plugin.v1.WatchSyncProvider.ExchangeCode:input_type -> silo.plugin.v1.WatchSyncExchangeCodeRequest
+	17, // 64: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:input_type -> silo.plugin.v1.WatchSyncExchangeAPIKeyRequest
+	22, // 65: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:input_type -> silo.plugin.v1.WatchSyncRefreshCredentialsRequest
+	24, // 66: silo.plugin.v1.WatchSyncProvider.GetAccount:input_type -> silo.plugin.v1.WatchSyncGetAccountRequest
+	28, // 67: silo.plugin.v1.WatchSyncProvider.ApplyEvents:input_type -> silo.plugin.v1.WatchSyncApplyEventsRequest
+	31, // 68: silo.plugin.v1.WatchSyncProvider.ListRemoteState:input_type -> silo.plugin.v1.WatchSyncListRemoteStateRequest
+	18, // 69: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Start:input_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest
+	20, // 70: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:input_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest
+	15, // 71: silo.plugin.v1.WatchSyncProvider.InitAuthorize:output_type -> silo.plugin.v1.WatchSyncInitAuthorizeResponse
+	23, // 72: silo.plugin.v1.WatchSyncProvider.ExchangeCode:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
+	23, // 73: silo.plugin.v1.WatchSyncProvider.ExchangeAPIKey:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
+	23, // 74: silo.plugin.v1.WatchSyncProvider.RefreshCredentials:output_type -> silo.plugin.v1.WatchSyncCredentialResponse
+	25, // 75: silo.plugin.v1.WatchSyncProvider.GetAccount:output_type -> silo.plugin.v1.WatchSyncGetAccountResponse
+	30, // 76: silo.plugin.v1.WatchSyncProvider.ApplyEvents:output_type -> silo.plugin.v1.WatchSyncApplyEventsResponse
+	37, // 77: silo.plugin.v1.WatchSyncProvider.ListRemoteState:output_type -> silo.plugin.v1.WatchSyncListRemoteStateResponse
+	19, // 78: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Start:output_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse
+	21, // 79: silo.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:output_type -> silo.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse
+	71, // [71:80] is the sub-list for method output_type
+	62, // [62:71] is the sub-list for method input_type
+	62, // [62:62] is the sub-list for extension type_name
+	62, // [62:62] is the sub-list for extension extendee
+	0,  // [0:62] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_watch_sync_provider_proto_init() }
@@ -3132,7 +3278,7 @@ func file_silo_plugin_v1_watch_sync_provider_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_watch_sync_provider_proto_rawDesc), len(file_silo_plugin_v1_watch_sync_provider_proto_rawDesc)),
 			NumEnums:      8,
-			NumMessages:   34,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

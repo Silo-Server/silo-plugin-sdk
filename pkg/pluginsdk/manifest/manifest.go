@@ -164,7 +164,8 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 		!watchSync.GetImportFavorites() && !watchSync.GetExportFavorites() &&
 		!watchSync.GetRemoveFavorites() && !watchSync.GetImportWatchlist() &&
 		!watchSync.GetExportWatchlist() && !watchSync.GetRemoveWatchlist() &&
-		!watchSync.GetScrobblePlayback() {
+		!watchSync.GetScrobblePlayback() &&
+		!watchSync.GetImportRatings() && !watchSync.GetExportRatings() {
 		return fmt.Errorf("plugin capability %q: at least one watch sync operation is required", descriptor.GetId())
 	}
 	if watchSync.GetProvidesWatchlistOrder() && !watchSync.GetImportWatchlist() {
@@ -181,12 +182,34 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 			return fmt.Errorf("plugin capability %q: watch sync media type cannot be unspecified", descriptor.GetId())
 		}
 	}
+	// supported_media_types is non-empty here; an empty list is rejected above.
+	if (watchSync.GetImportRatings() || watchSync.GetExportRatings()) &&
+		!watchSyncSupportsRatedMediaType(watchSync.GetSupportedMediaTypes()) {
+		return fmt.Errorf("plugin capability %q: watch sync ratings require a MOVIE or SERIES supported media type", descriptor.GetId())
+	}
 	for _, namespace := range watchSync.GetExternalIdNamespaces() {
 		if !watchSyncSlugPattern.MatchString(namespace) {
 			return fmt.Errorf("plugin capability %q: invalid external id namespace %q", descriptor.GetId(), namespace)
 		}
 	}
 	return nil
+}
+
+// watchSyncSupportsRatedMediaType reports whether a ratings-capable provider
+// lists a media type the host can rate. A value this SDK does not define counts
+// as rateable so that a descriptor built against a newer SDK stays valid here.
+func watchSyncSupportsRatedMediaType(mediaTypes []pluginv1.WatchSyncMediaType) bool {
+	for _, mediaType := range mediaTypes {
+		switch mediaType {
+		case pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE,
+			pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES:
+			return true
+		}
+		if _, known := pluginv1.WatchSyncMediaType_name[int32(mediaType)]; !known {
+			return true
+		}
+	}
+	return false
 }
 
 func validateNetworkAccessCapability(descriptor *pluginv1.CapabilityDescriptor) error {
