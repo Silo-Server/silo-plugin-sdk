@@ -10,6 +10,12 @@ import (
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 )
 
+// capabilityUnmarshal decodes stored capability metadata tolerantly. Unknown
+// fields and enum names are dropped rather than rejected, so a node on an older
+// SDK, in a mixed-version cluster sharing one database, can still load
+// descriptors written by a newer one.
+var capabilityUnmarshal = protojson.UnmarshalOptions{DiscardUnknown: true}
+
 type CapabilityRecord struct {
 	Type     string
 	ID       string
@@ -70,7 +76,7 @@ func DecodeCapability(record CapabilityRecord) (*pluginv1.CapabilityDescriptor, 
 			return nil, fmt.Errorf("encode watch sync provider descriptor: %w", err)
 		}
 		var typed pluginv1.WatchSyncProviderDescriptor
-		if err := protojson.Unmarshal(data, &typed); err != nil {
+		if err := capabilityUnmarshal.Unmarshal(data, &typed); err != nil {
 			return nil, fmt.Errorf("decode watch sync provider descriptor: %w", err)
 		}
 		descriptor.WatchSyncProvider = &typed
@@ -177,7 +183,7 @@ func decodeConfigSchemas(value any) ([]*pluginv1.ConfigSchema, error) {
 			return nil, fmt.Errorf("encode capability config schema: %w", err)
 		}
 		var schema pluginv1.ConfigSchema
-		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(jsonData, &schema); err != nil {
+		if err := capabilityUnmarshal.Unmarshal(jsonData, &schema); err != nil {
 			return nil, fmt.Errorf("decode capability config schema: %w", err)
 		}
 		schemas = append(schemas, &schema)

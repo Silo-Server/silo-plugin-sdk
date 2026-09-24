@@ -41,6 +41,10 @@ enum WatchSyncMediaType {
   WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED = 0;
   WATCH_SYNC_MEDIA_TYPE_MOVIE = 1;
   WATCH_SYNC_MEDIA_TYPE_EPISODE = 2;
+  // A series-level item. In WatchSyncMedia, external_ids, title, and year
+  // describe the series itself; the series_* fields, season_number,
+  // episode_number, and absolute_episode_number are unused.
+  WATCH_SYNC_MEDIA_TYPE_SERIES = 3;
 }
 
 enum WatchSyncOperation {
@@ -54,6 +58,10 @@ enum WatchSyncOperation {
   WATCH_SYNC_OPERATION_SCROBBLE_START = 7;
   WATCH_SYNC_OPERATION_SCROBBLE_PAUSE = 8;
   WATCH_SYNC_OPERATION_SCROBBLE_STOP = 9;
+  // Rating writes carry the desired value in WatchSyncEvent.rating. Both are
+  // convergent desired-state operations; see WatchSyncEvent.rating.
+  WATCH_SYNC_OPERATION_SET_RATING = 10;
+  WATCH_SYNC_OPERATION_REMOVE_RATING = 11;
 }
 
 enum WatchSyncRemoteStateKind {
@@ -62,6 +70,7 @@ enum WatchSyncRemoteStateKind {
   WATCH_SYNC_REMOTE_STATE_KIND_PROGRESS = 2;
   WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE = 3;
   WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST = 4;
+  WATCH_SYNC_REMOTE_STATE_KIND_RATING = 5;
 }
 
 enum WatchSyncDeviceAuthorizationStatus {
@@ -117,6 +126,17 @@ message WatchSyncProviderDescriptor {
   // an incremental subset cannot define positions relative to omitted items.
   bool provides_watchlist_order = 15;
   bool scrobble_playback = 16;
+  // Ratings are integers from 1 to 10. Plugins convert between the provider's
+  // native scale and 1..10 by rounding half up and clamping to the valid range.
+  // The host sends rating events only for media types listed in
+  // supported_media_types, which must include MOVIE or SERIES when either
+  // ratings flag is set.
+  //
+  // When import_ratings is set, ListRemoteState returns RATING states.
+  bool import_ratings = 17;
+  // When export_ratings is set, ApplyEvents handles both SET_RATING and
+  // REMOVE_RATING; there is no separate flag for rating removal.
+  bool export_ratings = 18;
 }
 
 message WatchSyncProviderConfig {
@@ -313,6 +333,12 @@ message WatchSyncEvent {
   // exist for incomplete playback, and completion_percent may be below 100
   // when the host's configured watched threshold has been reached.
   bool completed = 14;
+  // Desired rating for SET_RATING, an integer from 1 to 10. Required for
+  // SET_RATING and ignored for every other operation; zero is never a valid
+  // rating. SET_RATING and REMOVE_RATING are convergent desired-state writes:
+  // resending the same value, or removing a rating that is already absent,
+  // must yield APPLIED or NO_CHANGE, never a fault.
+  int32 rating = 15;
 }
 
 message WatchSyncApplyEventsRequest {
@@ -382,10 +408,22 @@ message WatchSyncRemoteListState {
   bool removed = 2;
 }
 
+message WatchSyncRemoteRatingState {
+  // Integer rating from 1 to 10, converted from the provider's native scale.
+  // Required unless removed is true.
+  int32 rating = 1;
+  // Provider timestamp for when the rating was last set, when available.
+  google.protobuf.Timestamp rated_at = 2;
+  // True is an explicit tombstone for a rating cleared upstream. It is
+  // meaningful for incremental traversals, where omitting an item is not a
+  // deletion.
+  bool removed = 3;
+}
+
 message WatchSyncRemoteState {
   string provider_item_key = 1;
-  // Required except on an explicit favorite/watchlist tombstone whose
-  // provider_item_key identifies a record returned previously.
+  // Required except on an explicit favorite, watchlist, or rating tombstone
+  // whose provider_item_key identifies a record returned previously.
   WatchSyncMedia media = 2;
   // At least one typed state must be present. Both may be present when the
   // provider reports a completed play and a separate resume point.
@@ -393,6 +431,7 @@ message WatchSyncRemoteState {
   WatchSyncRemoteProgressState progress = 4;
   WatchSyncRemoteListState favorite = 5;
   WatchSyncRemoteListState watchlist = 6;
+  WatchSyncRemoteRatingState rating = 7;
 }
 
 message WatchSyncListRemoteStateResponse {
@@ -407,7 +446,8 @@ message WatchSyncListRemoteStateResponse {
   // incremental delta, so an absent item must not be interpreted as deletion.
   // The value must remain stable across every page in one traversal. A provider
   // advertising provides_watchlist_order must set this true for WATCHLIST
-  // traversals so the returned order is unambiguous.
+  // traversals so the returned order is unambiguous. In a complete RATING
+  // traversal, an item absent from the snapshot is unrated.
   bool complete_snapshot = 4;
   // Complete authoritative replacement. The host persists it before consuming
   // this page or fault; a persistence failure discards the page and cursor.

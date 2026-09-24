@@ -159,6 +159,91 @@ func TestWatchSyncListTombstoneDoesNotRequireMedia(t *testing.T) {
 	}
 }
 
+func TestWatchSyncRatingRemoteStateRoundTrip(t *testing.T) {
+	ratedAt := time.Unix(1_750_000_000, 0).UTC()
+	input := &WatchSyncListRemoteStateResponse{
+		Items: []*WatchSyncRemoteState{{
+			ProviderItemKey: "show:7",
+			Media: &WatchSyncMedia{
+				MediaItemId: "local-series-7",
+				MediaType:   WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES,
+				Title:       "Example Series",
+				Year:        2019,
+				ExternalIds: map[string]string{"tvdb": "12345"},
+			},
+			Rating: &WatchSyncRemoteRatingState{
+				Rating:  8,
+				RatedAt: timestamppb.New(ratedAt),
+			},
+		}},
+		NextCursor:       "ratings-1",
+		CompleteSnapshot: true,
+	}
+
+	data, err := proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncListRemoteStateResponse
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+
+	item := output.GetItems()[0]
+	if !proto.Equal(input, &output) ||
+		item.GetMedia().GetMediaType() != WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES ||
+		item.GetMedia().GetExternalIds()["tvdb"] != "12345" ||
+		item.GetRating().GetRating() != 8 ||
+		!item.GetRating().GetRatedAt().AsTime().Equal(ratedAt) ||
+		item.GetRating().GetRemoved() {
+		t.Fatalf("rating remote state = %#v", item)
+	}
+}
+
+func TestWatchSyncRatingTombstoneDoesNotRequireMedia(t *testing.T) {
+	input := &WatchSyncRemoteState{
+		ProviderItemKey: "movie:9",
+		Rating:          &WatchSyncRemoteRatingState{Removed: true},
+	}
+	data, err := proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncRemoteState
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if !proto.Equal(input, &output) || output.GetMedia() != nil ||
+		!output.GetRating().GetRemoved() || output.GetRating().GetRating() != 0 {
+		t.Fatalf("rating tombstone = %#v", &output)
+	}
+}
+
+func TestWatchSyncEventCarriesRating(t *testing.T) {
+	input := &WatchSyncEvent{
+		EventId:   "rating-1",
+		Operation: WatchSyncOperation_WATCH_SYNC_OPERATION_SET_RATING,
+		Media: &WatchSyncMedia{
+			MediaItemId: "local-movie-9",
+			MediaType:   WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE,
+		},
+		Rating: 10,
+	}
+	data, err := proto.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output WatchSyncEvent
+	if err := proto.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if !proto.Equal(input, &output) ||
+		output.GetOperation() != WatchSyncOperation_WATCH_SYNC_OPERATION_SET_RATING ||
+		output.GetRating() != 10 {
+		t.Fatalf("rating event = %#v", &output)
+	}
+}
+
 func TestWatchSyncApplyResultCarriesTypedRateLimit(t *testing.T) {
 	retryAfter := 45 * time.Second
 	request := &WatchSyncApplyEventsRequest{
