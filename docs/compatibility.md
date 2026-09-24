@@ -78,7 +78,7 @@ verify images by the per-image field rather than assume a filtered response.
 - `silo_api_version` is the coarse runtime compatibility gate between Silo and a plugin binary.
 - Host installs should reject incompatible API versions before runtime startup.
 - A plugin binary should return the same manifest shape that Silo installs, except that binaries may compute their checksum dynamically at runtime.
-- `convert.DecodeCapability` ignores fields and enum values it does not know, so a server node on an older SDK, in a mixed-version cluster sharing one database, still loads capability metadata written by a newer SDK; it only loses the parts added after its own SDK version.
+- From this version, `convert.DecodeCapability` ignores fields and enum values it does not know, so a server node built on this SDK or later, in a mixed-version cluster sharing one database, still loads capability metadata written by a newer SDK; it only loses the parts added after its own SDK version. Nodes built on an earlier SDK decode strictly and reject such metadata, so upgrade every node past them before installing plugins that publish newer fields.
 
 ## Go Support
 
