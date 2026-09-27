@@ -68,6 +68,14 @@ Watch-sync rating fields (`WatchSyncEvent.rating` and
 ratings run from 1 to 10, so zero never carries a rating and no presence check
 is needed.
 
+`RequestDescriptor.seasons` is a repeated field, so it has no presence: an
+empty list means the whole series, and season `0` in a non-empty list means
+Specials. A plugin built before the field existed decodes it as an unknown
+field and fulfils the whole series. Because the plugin cannot say so on the
+wire, the host decides who may receive a season-only request from the
+manifest's `RequestRouterDescriptor.supports_seasons` flag instead. An absent
+descriptor means the flag is false.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and

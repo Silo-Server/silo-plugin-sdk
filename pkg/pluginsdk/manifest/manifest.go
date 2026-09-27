@@ -116,6 +116,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 		if err := validateNetworkAccessCapability(capability); err != nil {
 			return err
 		}
+		if err := validateRequestRouterCapability(capability); err != nil {
+			return err
+		}
 	}
 	for _, schema := range manifest.GlobalConfigSchema {
 		if err := validateConfigSchema(schema); err != nil {
@@ -225,6 +228,15 @@ func validateNetworkAccessCapability(descriptor *pluginv1.CapabilityDescriptor) 
 	}
 	if !watchSyncSlugPattern.MatchString(networkAccess.GetProvider()) {
 		return fmt.Errorf("plugin capability %q: network access provider must be a path-safe lowercase slug", descriptor.GetId())
+	}
+	return nil
+}
+
+// validateRequestRouterCapability keeps the descriptor optional so request
+// routers built before it existed stay valid.
+func validateRequestRouterCapability(descriptor *pluginv1.CapabilityDescriptor) error {
+	if descriptor.GetType() != capability.RequestRouter && descriptor.GetRequestRouter() != nil {
+		return fmt.Errorf("plugin capability %q: request_router descriptor requires type %q", descriptor.GetId(), capability.RequestRouter)
 	}
 	return nil
 }

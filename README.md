@@ -130,6 +130,37 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 
 The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
 
+## Request routers
+
+`request_router.v1` lets the host hand a media request to a download backend
+such as Sonarr, Radarr, or Seerr. The host owns the request lifecycle, policy,
+and quality governance; the plugin routes the request to a configured
+connection and reports its status.
+
+A series request may name seasons in `RequestDescriptor.seasons`. Season `0`
+is Specials, and an empty list means the whole series. A plugin that fulfils
+seasons individually declares it in its manifest:
+
+```json
+{
+  "type": "request_router.v1",
+  "id": "arr",
+  "request_router": { "supports_seasons": true }
+}
+```
+
+A declaring plugin must acquire only the requested seasons. When the series
+already exists upstream, it adds those seasons to what is already tracked and
+leaves the other seasons alone, so a request for season 4 never stops tracking
+seasons 1–3. Repeating a request must converge rather than add the series
+again. `CheckStatus` receives the same descriptor, so status can cover the
+requested seasons.
+
+Plugins without the flag, including every plugin built before it existed, keep
+today's whole-series behaviour. The host requests only the missing seasons of a
+series it already has from plugins that declare `supports_seasons`, because
+any other plugin would add the whole series again.
+
 ## Watch sync providers
 
 `watch_sync_provider.v1` lets external plugins participate in Silo's host-owned
