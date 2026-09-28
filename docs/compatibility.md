@@ -52,6 +52,13 @@ with a `default` arm rather than an exhaustive match, and do not assume the
 constants shipped in any given SDK tag are the complete set. The same rule
 applies to any future open vocabulary added to `v1`.
 
+`DownloadProgress.phase` runs the other way: plugins send it and the host reads
+it. The current values are `queued`, `downloading`, `paused`, `stalled`,
+`importing`, and `import_blocked`. Hosts treat a value they do not recognize as
+`downloading`, so a phase added later degrades to a plain progress display
+rather than an error. An empty `phase` is not a new value: plugins must always
+set one, as the `TargetStatus.progress` rules below describe.
+
 ## Presence-Sensitive Optional Fields
 
 Some contract fields use proto3 `optional` because absence and zero have
@@ -75,6 +82,22 @@ field and fulfils the whole series. Because the plugin cannot say so on the
 wire, the host decides who may receive a season-only request from the
 manifest's `RequestRouterDescriptor.supports_seasons` flag instead. An absent
 descriptor means the flag is false.
+
+`TargetStatus.progress` is a message field, so its presence is the `nil` check.
+Unset means the target has nothing in flight, and the host clears the progress
+it stored for it. A set `progress` must carry a `phase`: the host counts one
+with an empty `phase` and a `bytes_total` of 0 as unset. With a `phase`, a
+`bytes_total` of 0 means at least one of the target's distinct downloads has no
+known size yet. `bytes_left` is then 0 too, so the host shows no percentage
+rather than an overstated one.
+`estimated_completion` is unset when no download has an estimate. Plugins
+built before the field existed never set it, so the host refreshes progress
+every minute only when the manifest declares
+`RequestRouterDescriptor.reports_download_progress`, and then only for a
+`downloading` target whose last status carried `progress`. The host ignores
+`progress` from a plugin that does not declare the flag. The regular reconcile
+pass notices progress first, and a target
+whose `progress` comes back unset returns to that cadence.
 
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate

@@ -5,6 +5,7 @@ package silo.plugin.v1;
 option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
 
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 
 // RequestRouter lets the host delegate whole-request fulfillment to a backend
 // plugin (e.g. multi-instance Sonarr/Radarr, Seerr). The host owns the request
@@ -52,6 +53,14 @@ message RequestRouterDescriptor {
   // for only the missing seasons of a series it already has only to plugins
   // that set this flag, because other plugins would add the whole series.
   bool supports_seasons = 1;
+  // reports_download_progress declares that CheckStatus fills
+  // TargetStatus.progress for targets with downloads in flight. The host
+  // notices progress on its regular reconcile pass, then asks a declaring
+  // plugin every minute about a target that is downloading and has reported
+  // progress. A target whose progress comes back unset drops back to the
+  // regular cadence. Hosts ignore progress from plugins that do not declare
+  // this.
+  bool reports_download_progress = 2;
 }
 
 message RouterConnection {
@@ -110,6 +119,30 @@ message CheckStatusRequest {
   repeated RouterConnection connections = 4;
 }
 
+// DownloadProgress is how far a target's downloads are, as the downstream
+// service reports them. Set only while the target is queued or downloading and
+// the service has something in its download queue for it.
+message DownloadProgress {
+  // host-normalized: "queued" | "downloading" | "paused" | "stalled" |
+  // "importing" | "import_blocked". Required whenever progress is set: hosts
+  // count a progress with an empty phase and a bytes_total of 0 as unset. A
+  // target with several downloads reports the phase that ranks first in
+  // import_blocked > stalled > downloading > importing > paused > queued.
+  // Hosts treat unknown values as downloading.
+  string phase = 1;
+  // Summed over the target's distinct downloads (a season pack counts once).
+  // 0 whenever any of those downloads has an unknown size, so the host shows
+  // no percentage rather than an overstated one.
+  int64 bytes_total = 2;
+  // What remains of bytes_total, from 0 to bytes_total; 0 whenever
+  // bytes_total is 0.
+  int64 bytes_left = 3;
+  // Latest estimated completion across the downloads; unset when unknown.
+  google.protobuf.Timestamp estimated_completion = 4;
+  // Distinct downloads in flight for the target.
+  int32 downloads = 5;
+}
+
 message TargetStatus {
   string quality = 1;
   string connection_id = 2;
@@ -117,6 +150,15 @@ message TargetStatus {
   string status = 3;
   string external_status = 4; // raw upstream status passed through for display
   string message = 5;
+  // progress is filled by plugins that declare
+  // RequestRouterDescriptor.reports_download_progress; hosts ignore it from
+  // other plugins. The host first sees it on its regular reconcile pass, then
+  // checks the target every minute while progress is set and the target is
+  // downloading. Leaving it unset, or setting it with an empty phase and a
+  // bytes_total of 0, means nothing is in flight: the host clears the progress
+  // it last stored and checks the target on its regular reconcile cadence
+  // again.
+  DownloadProgress progress = 6;
 }
 
 message CheckStatusResponse {

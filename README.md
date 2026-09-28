@@ -161,6 +161,58 @@ today's whole-series behaviour. The host requests only the missing seasons of a
 series it already has from plugins that declare `supports_seasons`, because
 any other plugin would add the whole series again.
 
+A plugin that can read the downstream download queue reports progress from
+`CheckStatus` in `TargetStatus.progress`, and declares it in its manifest:
+
+```json
+{
+  "type": "request_router.v1",
+  "id": "arr",
+  "request_router": { "supports_seasons": true, "reports_download_progress": true }
+}
+```
+
+The host notices a target's progress on its regular reconcile pass. From then
+on it asks a declaring plugin about that target every minute, as long as the
+target is `downloading` and the last answer carried `progress`. A target whose
+`progress` comes back unset drops back to the regular cadence. The host ignores
+`progress` from plugins that do not declare the flag, including every plugin
+built before the flag existed.
+
+Set `progress` only while the target's status is `queued` or `downloading` and
+the service has something in its download queue for it. Leave it unset
+otherwise, including for failed downloads; the host then clears the progress it
+last stored. One `DownloadProgress` covers all of a target's downloads:
+
+- `bytes_total` and `bytes_left` sum the target's distinct downloads. Count a
+  season pack once, even when the service lists it once per episode.
+  Both are 0 whenever any of those downloads has an unknown size, so the host
+  shows no percentage rather than an overstated one. Otherwise `bytes_left`
+  stays between 0 and `bytes_total`.
+- `estimated_completion` is the latest estimate across the downloads. Leave it
+  unset when no download has one.
+- `downloads` counts the distinct downloads in flight.
+- `phase` is one of the values below, and is required whenever `progress` is
+  set, including while the size is unknown. The host counts a `progress` with
+  an empty `phase` and a `bytes_total` of 0 as unset, and clears the progress
+  it last stored. When downloads differ, report the phase that ranks first in
+  `import_blocked` > `stalled` > `downloading` > `importing` > `paused` >
+  `queued`. If any download needs attention, the phase says so; otherwise it
+  stays `downloading` while anything is still downloading.
+
+| Phase | Meaning |
+|---|---|
+| `import_blocked` | Downloaded, but the import needs manual attention |
+| `stalled` | Downloading, but the service reports a warning or error |
+| `downloading` | Transferring |
+| `importing` | Downloaded and waiting for or running the import |
+| `paused` | Paused in the download client |
+| `queued` | Waiting to start, delayed, or waiting for an unavailable download client |
+
+`phase` is an open vocabulary. Hosts treat values they do not know as
+`downloading`, so a phase added later still shows as a download in progress on
+hosts that predate it.
+
 ## Watch sync providers
 
 `watch_sync_provider.v1` lets external plugins participate in Silo's host-owned
