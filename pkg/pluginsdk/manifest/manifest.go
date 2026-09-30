@@ -238,6 +238,48 @@ func validateRequestRouterCapability(descriptor *pluginv1.CapabilityDescriptor) 
 	if descriptor.GetType() != capability.RequestRouter && descriptor.GetRequestRouter() != nil {
 		return fmt.Errorf("plugin capability %q: request_router descriptor requires type %q", descriptor.GetId(), capability.RequestRouter)
 	}
+	if err := ValidateRequestRouterWording(descriptor.GetRequestRouter().GetWording()); err != nil {
+		return fmt.Errorf("plugin capability %q: %w", descriptor.GetId(), err)
+	}
+	return nil
+}
+
+// Limits on RequestRouterWording values, in characters.
+const (
+	MaxRequestWordingLabelRunes  = 24
+	MaxRequestWordingDetailRunes = 140
+)
+
+// ValidateRequestRouterWording checks that every wording value is a single
+// line within its limit, with no leading or trailing whitespace. An absent
+// wording is valid. Hosts may call it on stored descriptors and fall back to
+// their own words when it fails.
+func ValidateRequestRouterWording(wording *pluginv1.RequestRouterWording) error {
+	if wording == nil {
+		return nil
+	}
+	fields := []struct {
+		name  string
+		value string
+		limit int
+	}{
+		{name: "step", value: wording.GetStep(), limit: MaxRequestWordingLabelRunes},
+		{name: "queued.label", value: wording.GetQueued().GetLabel(), limit: MaxRequestWordingLabelRunes},
+		{name: "queued.detail", value: wording.GetQueued().GetDetail(), limit: MaxRequestWordingDetailRunes},
+		{name: "downloading.label", value: wording.GetDownloading().GetLabel(), limit: MaxRequestWordingLabelRunes},
+		{name: "downloading.detail", value: wording.GetDownloading().GetDetail(), limit: MaxRequestWordingDetailRunes},
+	}
+	for _, field := range fields {
+		if field.value != strings.TrimSpace(field.value) {
+			return fmt.Errorf("request_router wording %s must not have leading or trailing whitespace", field.name)
+		}
+		if utf8.RuneCountInString(field.value) > field.limit {
+			return fmt.Errorf("request_router wording %s exceeds %d characters", field.name, field.limit)
+		}
+		if hasDisallowedControl(field.value, false) {
+			return fmt.Errorf("request_router wording %s contains control characters", field.name)
+		}
+	}
 	return nil
 }
 

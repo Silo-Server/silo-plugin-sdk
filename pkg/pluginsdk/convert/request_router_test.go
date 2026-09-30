@@ -17,6 +17,11 @@ func TestRequestRouterDescriptorRoundTrip(t *testing.T) {
 		{name: "seasons", descriptor: &pluginv1.RequestRouterDescriptor{SupportsSeasons: true}},
 		{name: "download progress", descriptor: &pluginv1.RequestRouterDescriptor{ReportsDownloadProgress: true}},
 		{name: "both", descriptor: &pluginv1.RequestRouterDescriptor{SupportsSeasons: true, ReportsDownloadProgress: true}},
+		{name: "wording", descriptor: &pluginv1.RequestRouterDescriptor{Wording: &pluginv1.RequestRouterWording{
+			Step:        "Processing",
+			Queued:      &pluginv1.RequestStatusWording{Label: "Sent to Seerr", Detail: "Seerr takes it from here."},
+			Downloading: &pluginv1.RequestStatusWording{Label: "Processing"},
+		}}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			manifest := &pluginv1.PluginManifest{Capabilities: []*pluginv1.CapabilityDescriptor{{
@@ -54,6 +59,29 @@ func TestCapabilityRecordStoresDownloadProgressFlag(t *testing.T) {
 	stored, _ := records[0].Metadata["request_router"].(map[string]any)
 	if stored["reports_download_progress"] != true {
 		t.Fatalf("stored request_router = %v, want reports_download_progress true", stored)
+	}
+}
+
+// Other nodes read the wording back from the stored JSON, so it is stored
+// under its proto field names.
+func TestCapabilityRecordStoresWording(t *testing.T) {
+	manifest := &pluginv1.PluginManifest{Capabilities: []*pluginv1.CapabilityDescriptor{{
+		Type: "request_router.v1",
+		Id:   "seerr",
+		RequestRouter: &pluginv1.RequestRouterDescriptor{Wording: &pluginv1.RequestRouterWording{
+			Step:   "Processing",
+			Queued: &pluginv1.RequestStatusWording{Label: "Sent to Seerr"},
+		}},
+	}}}
+	records, err := convert.CapabilityRecordsFromManifest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stored, _ := records[0].Metadata["request_router"].(map[string]any)
+	wording, _ := stored["wording"].(map[string]any)
+	queued, _ := wording["queued"].(map[string]any)
+	if wording["step"] != "Processing" || queued["label"] != "Sent to Seerr" {
+		t.Fatalf("stored request_router = %v, want wording step and queued label", stored)
 	}
 }
 

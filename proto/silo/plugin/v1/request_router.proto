@@ -61,6 +61,38 @@ message RequestRouterDescriptor {
   // regular cadence. Hosts ignore progress from plugins that do not declare
   // this.
   bool reports_download_progress = 2;
+  // wording is how clients describe a request while this plugin fulfils it.
+  // Unset, or any field left empty, means the host's own neutral words.
+  RequestRouterWording wording = 3;
+}
+
+// RequestRouterWording names the part of a request that a request router
+// handles, in words that fit how the plugin works. Clients draw a request as
+// four steps: requested, approved, the router's step, and in the library. The
+// router names only its own step and the two statuses it reports while the
+// request is on it; the host words the other steps. Clients show these words
+// to everyone who can see the request, so keep them plain English and leave
+// out release names, indexers, download clients and paths. Every value is a
+// single line without leading or trailing spaces.
+message RequestRouterWording {
+  // step names the router's step on the request's track, e.g. "Processing".
+  // At most 24 characters.
+  string step = 1;
+  // queued describes a request whose live targets are all queued: accepted
+  // by the downstream service, with nothing moving yet.
+  RequestStatusWording queued = 2;
+  // downloading describes a request with at least one downloading target.
+  RequestStatusWording downloading = 3;
+}
+
+// RequestStatusWording describes one status of a request on the router's step.
+message RequestStatusWording {
+  // label is one to three words for cards, list rows and the current step,
+  // e.g. "Searching". At most 24 characters.
+  string label = 1;
+  // detail is one sentence shown under the current step on the request's
+  // page, e.g. "Seerr takes it from here." At most 140 characters.
+  string detail = 2;
 }
 
 message RouterConnection {

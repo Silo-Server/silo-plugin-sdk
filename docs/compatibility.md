@@ -99,6 +99,11 @@ every minute only when the manifest declares
 pass notices progress first, and a target
 whose `progress` comes back unset returns to that cadence.
 
+`RequestRouterDescriptor.wording` is a message field read from the manifest.
+Hosts built before it existed ignore it, and an absent wording, or any empty
+value in it, means the host's own neutral words. Plugins can therefore declare
+wording without raising their minimum host version.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and

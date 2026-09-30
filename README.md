@@ -213,6 +213,42 @@ last stored. One `DownloadProgress` covers all of a target's downloads:
 `downloading`, so a phase added later still shows as a download in progress on
 hosts that predate it.
 
+### Wording
+
+Silo clients draw a request as four steps: requested, approved, the router's
+step, and in the library. By default they describe the router's step in neutral
+words: the step is "In progress", a queued request reads "Queued", and a
+downloading one reads "In progress". A plugin can name its step and those two
+statuses in words that fit how it works:
+
+```json
+{
+  "type": "request_router.v1",
+  "id": "seerr",
+  "request_router": {
+    "wording": {
+      "step": "Processing",
+      "queued": { "label": "Sent to Seerr", "detail": "Seerr takes it from here." },
+      "downloading": { "label": "Processing", "detail": "Seerr is working on it." }
+    }
+  }
+}
+```
+
+- `step` names the router's step on the track.
+- `queued` describes a request whose live targets are all `queued`;
+  `downloading` describes one with a `downloading` target.
+- `label` is one to three words for cards, list rows and the current step.
+- `detail` is one sentence shown under the current step on the request's page.
+
+Every field is optional, and clients use their own words for any field left
+empty. `step` and `label` are at most 24 characters and `detail` at most 140;
+each is a single line without leading or trailing spaces, and
+`manifest.Validate` rejects a manifest that breaks these limits. Everyone who
+can see a request sees its wording, so write plain English and leave out release
+names, indexers, download clients and paths. The requested, approved and
+in-library steps are the host's, so a plugin cannot rename them.
+
 ## Watch sync providers
 
 `watch_sync_provider.v1` lets external plugins participate in Silo's host-owned
