@@ -7,20 +7,7 @@ on:
   pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.26'
-
-      - name: Run tests
-        run: go test ./...
-
-      - name: Build example plugin
-        run: go build ./examples/hello-scheduled-task
-
-      - name: Build hello-runtime-host example
-        run: go build ./examples/hello-runtime-host
+  ci:
+    uses: Silo-Server/silo-plugin-sdk/.github/workflows/trusted-linux-ci.yml@main
+    with:
+      self_hosted: ${{ github.repository == 'Silo-Server/silo-plugin-sdk' && ((github.event_name == 'pull_request' && contains(fromJSON(vars.SILO_CI_MEMBERS || '[]'), github.event.pull_request.user.login)) || (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')) }}
