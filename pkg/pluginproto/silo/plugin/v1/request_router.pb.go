@@ -559,8 +559,11 @@ type FulfillmentTarget struct {
 	// host-normalized value
 	ExternalStatus string `protobuf:"bytes,4,opt,name=external_status,json=externalStatus,proto3" json:"external_status,omitempty"`
 	// host-normalized: "queued" | "downloading" | "completed" | "failed"
-	Status        string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
-	Message       string `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	Status  string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	Message string `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	// wording describes this target to requesters, in place of the manifest's
+	// wording for its status; see TargetStatus.wording.
+	Wording       *RequestStatusWording `protobuf:"bytes,7,opt,name=wording,proto3" json:"wording,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -635,6 +638,13 @@ func (x *FulfillmentTarget) GetMessage() string {
 		return x.Message
 	}
 	return ""
+}
+
+func (x *FulfillmentTarget) GetWording() *RequestStatusWording {
+	if x != nil {
+		return x.Wording
+	}
+	return nil
 }
 
 type FulfillResponse struct {
@@ -926,7 +936,19 @@ type TargetStatus struct {
 	// bytes_total of 0, means nothing is in flight: the host clears the progress
 	// it last stored and checks the target on its regular reconcile cadence
 	// again.
-	Progress      *DownloadProgress `protobuf:"bytes,6,opt,name=progress,proto3" json:"progress,omitempty"`
+	Progress *DownloadProgress `protobuf:"bytes,6,opt,name=progress,proto3" json:"progress,omitempty"`
+	// wording describes where this target is, for everyone who can see the
+	// request, when the plugin knows more than its status says: e.g. label
+	// "Not out yet", detail "Radarr adds it once it's out, expected
+	// December 18, 2026." It replaces the manifest's wording for the target's
+	// status (RequestRouterWording.queued or .downloading): a label replaces
+	// both the label and the detail, and a detail alone replaces only the
+	// detail. Set it only while the status is queued or downloading. Each
+	// answer replaces the last, so leave it unset once it no longer applies.
+	// The same limits apply as to the manifest's wording, and hosts drop
+	// wording that breaks them. Never include release names, indexers,
+	// download clients or paths.
+	Wording       *RequestStatusWording `protobuf:"bytes,7,opt,name=wording,proto3" json:"wording,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -999,6 +1021,13 @@ func (x *TargetStatus) GetMessage() string {
 func (x *TargetStatus) GetProgress() *DownloadProgress {
 	if x != nil {
 		return x.Progress
+	}
+	return nil
+}
+
+func (x *TargetStatus) GetWording() *RequestStatusWording {
+	if x != nil {
+		return x.Wording
 	}
 	return nil
 }
@@ -1504,7 +1533,7 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12;\n" +
 	"\arequest\x18\x02 \x01(\v2!.silo.plugin.v1.RequestDescriptorR\arequest\x12>\n" +
 	"\tqualities\x18\x03 \x03(\v2 .silo.plugin.v1.RequestedQualityR\tqualities\x12B\n" +
-	"\vconnections\x18\x04 \x03(\v2 .silo.plugin.v1.RouterConnectionR\vconnections\"\xce\x01\n" +
+	"\vconnections\x18\x04 \x03(\v2 .silo.plugin.v1.RouterConnectionR\vconnections\"\x8e\x02\n" +
 	"\x11FulfillmentTarget\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x1f\n" +
@@ -1512,7 +1541,8 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"externalId\x12'\n" +
 	"\x0fexternal_status\x18\x04 \x01(\tR\x0eexternalStatus\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12\x18\n" +
-	"\amessage\x18\x06 \x01(\tR\amessage\"h\n" +
+	"\amessage\x18\x06 \x01(\tR\amessage\x12>\n" +
+	"\awording\x18\a \x01(\v2$.silo.plugin.v1.RequestStatusWordingR\awording\"h\n" +
 	"\x0fFulfillResponse\x12;\n" +
 	"\atargets\x18\x01 \x03(\v2!.silo.plugin.v1.FulfillmentTargetR\atargets\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"k\n" +
@@ -1533,14 +1563,15 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	"\n" +
 	"bytes_left\x18\x03 \x01(\x03R\tbytesLeft\x12M\n" +
 	"\x14estimated_completion\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x13estimatedCompletion\x12\x1c\n" +
-	"\tdownloads\x18\x05 \x01(\x05R\tdownloads\"\xe6\x01\n" +
+	"\tdownloads\x18\x05 \x01(\x05R\tdownloads\"\xa6\x02\n" +
 	"\fTargetStatus\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\tR\x06status\x12'\n" +
 	"\x0fexternal_status\x18\x04 \x01(\tR\x0eexternalStatus\x12\x18\n" +
 	"\amessage\x18\x05 \x01(\tR\amessage\x12<\n" +
-	"\bprogress\x18\x06 \x01(\v2 .silo.plugin.v1.DownloadProgressR\bprogress\"O\n" +
+	"\bprogress\x18\x06 \x01(\v2 .silo.plugin.v1.DownloadProgressR\bprogress\x12>\n" +
+	"\awording\x18\a \x01(\v2$.silo.plugin.v1.RequestStatusWordingR\awording\"O\n" +
 	"\x13CheckStatusResponse\x128\n" +
 	"\bstatuses\x18\x01 \x03(\v2\x1c.silo.plugin.v1.TargetStatusR\bstatuses\":\n" +
 	"\fConfigOption\x12\x14\n" +
@@ -1637,36 +1668,38 @@ var file_silo_plugin_v1_request_router_proto_depIdxs = []int32{
 	0,  // 5: silo.plugin.v1.FulfillRequest.request:type_name -> silo.plugin.v1.RequestDescriptor
 	5,  // 6: silo.plugin.v1.FulfillRequest.qualities:type_name -> silo.plugin.v1.RequestedQuality
 	4,  // 7: silo.plugin.v1.FulfillRequest.connections:type_name -> silo.plugin.v1.RouterConnection
-	7,  // 8: silo.plugin.v1.FulfillResponse.targets:type_name -> silo.plugin.v1.FulfillmentTarget
-	0,  // 9: silo.plugin.v1.CheckStatusRequest.request:type_name -> silo.plugin.v1.RequestDescriptor
-	9,  // 10: silo.plugin.v1.CheckStatusRequest.targets:type_name -> silo.plugin.v1.TargetRef
-	4,  // 11: silo.plugin.v1.CheckStatusRequest.connections:type_name -> silo.plugin.v1.RouterConnection
-	26, // 12: silo.plugin.v1.DownloadProgress.estimated_completion:type_name -> google.protobuf.Timestamp
-	11, // 13: silo.plugin.v1.TargetStatus.progress:type_name -> silo.plugin.v1.DownloadProgress
-	12, // 14: silo.plugin.v1.CheckStatusResponse.statuses:type_name -> silo.plugin.v1.TargetStatus
-	14, // 15: silo.plugin.v1.ConfigOptionList.options:type_name -> silo.plugin.v1.ConfigOption
-	4,  // 16: silo.plugin.v1.ListConfigOptionsRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	23, // 17: silo.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
-	4,  // 18: silo.plugin.v1.TestConnectionRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	4,  // 19: silo.plugin.v1.ValidateRequest.connection:type_name -> silo.plugin.v1.RouterConnection
-	4,  // 20: silo.plugin.v1.ValidateRequest.siblings:type_name -> silo.plugin.v1.RouterConnection
-	24, // 21: silo.plugin.v1.ValidateResponse.field_errors:type_name -> silo.plugin.v1.ValidateResponse.FieldErrorsEntry
-	15, // 22: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
-	6,  // 23: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
-	10, // 24: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
-	16, // 25: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
-	18, // 26: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
-	20, // 27: silo.plugin.v1.RequestRouter.Validate:input_type -> silo.plugin.v1.ValidateRequest
-	8,  // 28: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
-	13, // 29: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
-	17, // 30: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
-	19, // 31: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
-	21, // 32: silo.plugin.v1.RequestRouter.Validate:output_type -> silo.plugin.v1.ValidateResponse
-	28, // [28:33] is the sub-list for method output_type
-	23, // [23:28] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	3,  // 8: silo.plugin.v1.FulfillmentTarget.wording:type_name -> silo.plugin.v1.RequestStatusWording
+	7,  // 9: silo.plugin.v1.FulfillResponse.targets:type_name -> silo.plugin.v1.FulfillmentTarget
+	0,  // 10: silo.plugin.v1.CheckStatusRequest.request:type_name -> silo.plugin.v1.RequestDescriptor
+	9,  // 11: silo.plugin.v1.CheckStatusRequest.targets:type_name -> silo.plugin.v1.TargetRef
+	4,  // 12: silo.plugin.v1.CheckStatusRequest.connections:type_name -> silo.plugin.v1.RouterConnection
+	26, // 13: silo.plugin.v1.DownloadProgress.estimated_completion:type_name -> google.protobuf.Timestamp
+	11, // 14: silo.plugin.v1.TargetStatus.progress:type_name -> silo.plugin.v1.DownloadProgress
+	3,  // 15: silo.plugin.v1.TargetStatus.wording:type_name -> silo.plugin.v1.RequestStatusWording
+	12, // 16: silo.plugin.v1.CheckStatusResponse.statuses:type_name -> silo.plugin.v1.TargetStatus
+	14, // 17: silo.plugin.v1.ConfigOptionList.options:type_name -> silo.plugin.v1.ConfigOption
+	4,  // 18: silo.plugin.v1.ListConfigOptionsRequest.connection:type_name -> silo.plugin.v1.RouterConnection
+	23, // 19: silo.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
+	4,  // 20: silo.plugin.v1.TestConnectionRequest.connection:type_name -> silo.plugin.v1.RouterConnection
+	4,  // 21: silo.plugin.v1.ValidateRequest.connection:type_name -> silo.plugin.v1.RouterConnection
+	4,  // 22: silo.plugin.v1.ValidateRequest.siblings:type_name -> silo.plugin.v1.RouterConnection
+	24, // 23: silo.plugin.v1.ValidateResponse.field_errors:type_name -> silo.plugin.v1.ValidateResponse.FieldErrorsEntry
+	15, // 24: silo.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> silo.plugin.v1.ConfigOptionList
+	6,  // 25: silo.plugin.v1.RequestRouter.Fulfill:input_type -> silo.plugin.v1.FulfillRequest
+	10, // 26: silo.plugin.v1.RequestRouter.CheckStatus:input_type -> silo.plugin.v1.CheckStatusRequest
+	16, // 27: silo.plugin.v1.RequestRouter.ListConfigOptions:input_type -> silo.plugin.v1.ListConfigOptionsRequest
+	18, // 28: silo.plugin.v1.RequestRouter.TestConnection:input_type -> silo.plugin.v1.TestConnectionRequest
+	20, // 29: silo.plugin.v1.RequestRouter.Validate:input_type -> silo.plugin.v1.ValidateRequest
+	8,  // 30: silo.plugin.v1.RequestRouter.Fulfill:output_type -> silo.plugin.v1.FulfillResponse
+	13, // 31: silo.plugin.v1.RequestRouter.CheckStatus:output_type -> silo.plugin.v1.CheckStatusResponse
+	17, // 32: silo.plugin.v1.RequestRouter.ListConfigOptions:output_type -> silo.plugin.v1.ListConfigOptionsResponse
+	19, // 33: silo.plugin.v1.RequestRouter.TestConnection:output_type -> silo.plugin.v1.TestConnectionResponse
+	21, // 34: silo.plugin.v1.RequestRouter.Validate:output_type -> silo.plugin.v1.ValidateResponse
+	30, // [30:35] is the sub-list for method output_type
+	25, // [25:30] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_request_router_proto_init() }

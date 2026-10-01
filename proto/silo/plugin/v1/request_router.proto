@@ -130,6 +130,9 @@ message FulfillmentTarget {
   // host-normalized: "queued" | "downloading" | "completed" | "failed"
   string status = 5;
   string message = 6;
+  // wording describes this target to requesters, in place of the manifest's
+  // wording for its status; see TargetStatus.wording.
+  RequestStatusWording wording = 7;
 }
 
 message FulfillResponse {
@@ -191,6 +194,18 @@ message TargetStatus {
   // it last stored and checks the target on its regular reconcile cadence
   // again.
   DownloadProgress progress = 6;
+  // wording describes where this target is, for everyone who can see the
+  // request, when the plugin knows more than its status says: e.g. label
+  // "Not out yet", detail "Radarr adds it once it's out, expected
+  // December 18, 2026." It replaces the manifest's wording for the target's
+  // status (RequestRouterWording.queued or .downloading): a label replaces
+  // both the label and the detail, and a detail alone replaces only the
+  // detail. Set it only while the status is queued or downloading. Each
+  // answer replaces the last, so leave it unset once it no longer applies.
+  // The same limits apply as to the manifest's wording, and hosts drop
+  // wording that breaks them. Never include release names, indexers,
+  // download clients or paths.
+  RequestStatusWording wording = 7;
 }
 
 message CheckStatusResponse {

@@ -249,6 +249,27 @@ can see a request sees its wording, so write plain English and leave out release
 names, indexers, download clients and paths. The requested, approved and
 in-library steps are the host's, so a plugin cannot rename them.
 
+The manifest's words are the same for every request. When a plugin knows more
+about one request, it reports `wording` on that target from `Fulfill` or
+`CheckStatus`:
+
+```go
+&pluginv1.TargetStatus{
+    Status: "queued",
+    Wording: &pluginv1.RequestStatusWording{
+        Label:  "Not out yet",
+        Detail: "Radarr adds it once it's out, expected December 18, 2026.",
+    },
+}
+```
+
+It replaces the manifest's wording for the target's status: a `label` replaces
+both the label and the detail, and a `detail` alone replaces only the detail.
+Set it only while the target is `queued` or `downloading`. Each answer replaces
+the last, so leave it unset once it no longer applies. The same limits apply,
+and the host drops wording that breaks them. Hosts that predate the field
+ignore it.
+
 ## Watch sync providers
 
 `watch_sync_provider.v1` lets external plugins participate in Silo's host-owned

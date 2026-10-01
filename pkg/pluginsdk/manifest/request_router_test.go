@@ -159,3 +159,21 @@ func TestValidateRequestRouterWordingCountsCharacters(t *testing.T) {
 		t.Fatalf("ValidateRequestRouterWording() error = %v, want nil", err)
 	}
 }
+
+// A target's reported wording follows the manifest's limits.
+func TestValidateRequestStatusWording(t *testing.T) {
+	if err := publicmanifest.ValidateRequestStatusWording(&pluginv1.RequestStatusWording{Label: "Not out yet", Detail: "Radarr adds it once it's out."}); err != nil {
+		t.Fatalf("fit wording: %v", err)
+	}
+	if err := publicmanifest.ValidateRequestStatusWording(nil); err != nil {
+		t.Fatalf("absent wording: %v", err)
+	}
+	for _, wording := range []*pluginv1.RequestStatusWording{
+		{Label: strings.Repeat("a", publicmanifest.MaxRequestWordingLabelRunes+1)},
+		{Detail: "Out soon.\nMaybe."},
+	} {
+		if err := publicmanifest.ValidateRequestStatusWording(wording); err == nil {
+			t.Errorf("wording %v: want an error", wording)
+		}
+	}
+}

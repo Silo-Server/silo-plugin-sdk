@@ -258,27 +258,38 @@ func ValidateRequestRouterWording(wording *pluginv1.RequestRouterWording) error 
 	if wording == nil {
 		return nil
 	}
-	fields := []struct {
-		name  string
-		value string
-		limit int
-	}{
-		{name: "step", value: wording.GetStep(), limit: MaxRequestWordingLabelRunes},
-		{name: "queued.label", value: wording.GetQueued().GetLabel(), limit: MaxRequestWordingLabelRunes},
-		{name: "queued.detail", value: wording.GetQueued().GetDetail(), limit: MaxRequestWordingDetailRunes},
-		{name: "downloading.label", value: wording.GetDownloading().GetLabel(), limit: MaxRequestWordingLabelRunes},
-		{name: "downloading.detail", value: wording.GetDownloading().GetDetail(), limit: MaxRequestWordingDetailRunes},
+	if err := validateWordingValue("step", wording.GetStep(), MaxRequestWordingLabelRunes); err != nil {
+		return err
 	}
-	for _, field := range fields {
-		if field.value != strings.TrimSpace(field.value) {
-			return fmt.Errorf("request_router wording %s must not have leading or trailing whitespace", field.name)
-		}
-		if utf8.RuneCountInString(field.value) > field.limit {
-			return fmt.Errorf("request_router wording %s exceeds %d characters", field.name, field.limit)
-		}
-		if hasDisallowedControl(field.value, false) {
-			return fmt.Errorf("request_router wording %s contains control characters", field.name)
-		}
+	if err := validateStatusWording("queued.", wording.GetQueued()); err != nil {
+		return err
+	}
+	return validateStatusWording("downloading.", wording.GetDownloading())
+}
+
+// ValidateRequestStatusWording checks one status's wording against the same
+// rules as ValidateRequestRouterWording. Hosts call it on the wording a
+// plugin reports for a target and drop wording that fails.
+func ValidateRequestStatusWording(wording *pluginv1.RequestStatusWording) error {
+	return validateStatusWording("", wording)
+}
+
+func validateStatusWording(prefix string, wording *pluginv1.RequestStatusWording) error {
+	if err := validateWordingValue(prefix+"label", wording.GetLabel(), MaxRequestWordingLabelRunes); err != nil {
+		return err
+	}
+	return validateWordingValue(prefix+"detail", wording.GetDetail(), MaxRequestWordingDetailRunes)
+}
+
+func validateWordingValue(name, value string, limit int) error {
+	if value != strings.TrimSpace(value) {
+		return fmt.Errorf("request_router wording %s must not have leading or trailing whitespace", name)
+	}
+	if utf8.RuneCountInString(value) > limit {
+		return fmt.Errorf("request_router wording %s exceeds %d characters", name, limit)
+	}
+	if hasDisallowedControl(value, false) {
+		return fmt.Errorf("request_router wording %s contains control characters", name)
 	}
 	return nil
 }
