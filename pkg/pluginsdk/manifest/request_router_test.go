@@ -136,6 +136,8 @@ func TestValidateRequestRouterWordingRejectsUnfitValues(t *testing.T) {
 		"long label":          {Queued: &pluginv1.RequestStatusWording{Label: long}},
 		"long detail":         {Downloading: &pluginv1.RequestStatusWording{Detail: longDetail}},
 		"two lines":           {Queued: &pluginv1.RequestStatusWording{Detail: "Sent.\nWaiting."}},
+		"line separator":      {Queued: &pluginv1.RequestStatusWording{Detail: "Sent.\u2028Waiting."}},
+		"paragraph separator": {Step: "Pro\u2029cessing"},
 		"padded label":        {Downloading: &pluginv1.RequestStatusWording{Label: " Processing"}},
 		"trailing space step": {Step: "Processing "},
 	} {
@@ -171,6 +173,8 @@ func TestValidateRequestStatusWording(t *testing.T) {
 	for _, wording := range []*pluginv1.RequestStatusWording{
 		{Label: strings.Repeat("a", publicmanifest.MaxRequestWordingLabelRunes+1)},
 		{Detail: "Out soon.\nMaybe."},
+		{Detail: "Out soon.\u2028Maybe."},
+		{Label: "Not\u2029out"},
 	} {
 		if err := publicmanifest.ValidateRequestStatusWording(wording); err == nil {
 			t.Errorf("wording %v: want an error", wording)

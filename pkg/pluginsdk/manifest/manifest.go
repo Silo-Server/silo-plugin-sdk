@@ -291,6 +291,11 @@ func validateWordingValue(name, value string, limit int) error {
 	if hasDisallowedControl(value, false) {
 		return fmt.Errorf("request_router wording %s contains control characters", name)
 	}
+	// Unicode line and paragraph separators break a line without being
+	// control characters.
+	if strings.ContainsFunc(value, func(r rune) bool { return unicode.In(r, unicode.Zl, unicode.Zp) }) {
+		return fmt.Errorf("request_router wording %s must be a single line", name)
+	}
 	return nil
 }
 
