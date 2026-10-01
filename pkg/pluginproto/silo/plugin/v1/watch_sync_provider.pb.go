@@ -2677,7 +2677,7 @@ func (x *WatchSyncRemoteRatingState) GetRemoved() bool {
 type WatchSyncRemoteState struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ProviderItemKey string                 `protobuf:"bytes,1,opt,name=provider_item_key,json=providerItemKey,proto3" json:"provider_item_key,omitempty"`
-	// Required except on an explicit favorite, watchlist, or rating tombstone
+	// Required except on an explicit favorite, watchlist, rating, or dropped tombstone
 	// whose provider_item_key identifies a record returned previously.
 	Media *WatchSyncMedia `protobuf:"bytes,2,opt,name=media,proto3" json:"media,omitempty"`
 	// At least one typed state must be present. Both may be present when the

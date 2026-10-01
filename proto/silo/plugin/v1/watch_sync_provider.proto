@@ -438,7 +438,7 @@ message WatchSyncRemoteRatingState {
 
 message WatchSyncRemoteState {
   string provider_item_key = 1;
-  // Required except on an explicit favorite, watchlist, or rating tombstone
+  // Required except on an explicit favorite, watchlist, rating, or dropped tombstone
   // whose provider_item_key identifies a record returned previously.
   WatchSyncMedia media = 2;
   // At least one typed state must be present. Both may be present when the
