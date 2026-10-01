@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -168,7 +169,8 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 		!watchSync.GetRemoveFavorites() && !watchSync.GetImportWatchlist() &&
 		!watchSync.GetExportWatchlist() && !watchSync.GetRemoveWatchlist() &&
 		!watchSync.GetScrobblePlayback() &&
-		!watchSync.GetImportRatings() && !watchSync.GetExportRatings() {
+		!watchSync.GetImportRatings() && !watchSync.GetExportRatings() &&
+		!watchSync.GetSyncDropped() {
 		return fmt.Errorf("plugin capability %q: at least one watch sync operation is required", descriptor.GetId())
 	}
 	if watchSync.GetProvidesWatchlistOrder() && !watchSync.GetImportWatchlist() {
@@ -190,12 +192,30 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 		!watchSyncSupportsRatedMediaType(watchSync.GetSupportedMediaTypes()) {
 		return fmt.Errorf("plugin capability %q: watch sync ratings require a MOVIE or SERIES supported media type", descriptor.GetId())
 	}
+	if watchSync.GetSyncDropped() && !watchSyncSupportsMediaType(watchSync.GetSupportedMediaTypes(),
+		pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES) {
+		return fmt.Errorf("plugin capability %q: watch sync dropped shows require the SERIES supported media type", descriptor.GetId())
+	}
+	if len(watchSync.GetRatingExportRequiresWatched()) > 0 && !watchSync.GetExportRatings() {
+		return fmt.Errorf("plugin capability %q: rating_export_requires_watched requires export_ratings", descriptor.GetId())
+	}
+	for _, mediaType := range watchSync.GetRatingExportRequiresWatched() {
+		if !watchSyncSupportsMediaType(watchSync.GetSupportedMediaTypes(), mediaType) {
+			return fmt.Errorf("plugin capability %q: rating_export_requires_watched media type %s is not a supported media type", descriptor.GetId(), mediaType)
+		}
+	}
 	for _, namespace := range watchSync.GetExternalIdNamespaces() {
 		if !watchSyncSlugPattern.MatchString(namespace) {
 			return fmt.Errorf("plugin capability %q: invalid external id namespace %q", descriptor.GetId(), namespace)
 		}
 	}
 	return nil
+}
+
+// watchSyncSupportsMediaType reports whether want is a declared media type.
+// UNSPECIFIED is never declared; validation rejects it above.
+func watchSyncSupportsMediaType(mediaTypes []pluginv1.WatchSyncMediaType, want pluginv1.WatchSyncMediaType) bool {
+	return want != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED && slices.Contains(mediaTypes, want)
 }
 
 // watchSyncSupportsRatedMediaType reports whether a ratings-capable provider

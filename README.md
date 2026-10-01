@@ -347,22 +347,38 @@ fault. The host sends rating events only for media types listed in
 `supported_media_types`, and manifest validation requires that list to include
 `MOVIE` or `SERIES` when either ratings flag is set.
 
+On some providers, rating a title also marks it watched. A plugin lists those
+media types in `rating_export_requires_watched`, and the host then sends a new
+rating of that type only after the profile has a completed play of the title.
+Each listed type must also be a supported media type, and `export_ratings` must
+be set.
+
+`sync_dropped` covers series the account stopped watching. `ListRemoteState`
+returns `DROPPED` states for them, and `ApplyEvents` handles `MARK_DROPPED` and
+`UNMARK_DROPPED` for `SERIES` items. Both writes are convergent: dropping a
+series that is already dropped, or undropping one that is not, returns
+`APPLIED` or `NO_CHANGE`. Manifest validation requires `SERIES` in
+`supported_media_types` when the flag is set.
+
 `ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
 play count and last-watched time; `progress` carries a fractional percentage and
 paused time; `favorite` and `watchlist` carry list membership; `rating` carries
-a 1–10 rating and when it was set. An item may contain multiple state families.
-The host requests only the state families a sync phase needs, keeps that phase's
+a 1–10 rating and when it was set; `dropped` carries when a series was dropped.
+An item may contain multiple state families. The host requests only the state families a sync phase needs, keeps that phase's
 `cursor` fixed while following ephemeral page tokens, commits each successful
 page, and only then persists the final `next_cursor`. `complete_snapshot=true`
 means the traversal is authoritative; when false, missing items are not
 deletions. In a complete `RATING` traversal, an item absent from the snapshot is
-unrated. An incremental favorite, watchlist, or rating removal is an item whose
-corresponding state has `removed=true`; it may omit `media` when
+unrated, and in a complete `DROPPED` traversal a series absent from the snapshot
+is not dropped. An incremental favorite, watchlist, rating, or dropped removal is
+an item whose corresponding state has `removed=true`; it may omit `media` when
 `provider_item_key` identifies a record previously returned to the host. When
 `provides_watchlist_order=true`, watchlist traversals must be complete snapshots
 and the order of returned watchlist states is the remote list order. Event
 `list_position` is presence-aware: an explicit zero means the first position,
-while omission means no requested ordering.
+while omission means no requested ordering. A page may carry `warnings`,
+safe notes such as items skipped for missing identity, which the host shows
+with the sync run.
 
 ## Network access providers
 

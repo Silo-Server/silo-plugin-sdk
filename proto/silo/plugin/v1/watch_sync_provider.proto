@@ -62,6 +62,11 @@ enum WatchSyncOperation {
   // convergent desired-state operations; see WatchSyncEvent.rating.
   WATCH_SYNC_OPERATION_SET_RATING = 10;
   WATCH_SYNC_OPERATION_REMOVE_RATING = 11;
+  // Dropped-show writes address a SERIES item. Both are convergent
+  // desired-state operations: dropping a series that is already dropped, or
+  // undropping one that is not, must yield APPLIED or NO_CHANGE, never a fault.
+  WATCH_SYNC_OPERATION_MARK_DROPPED = 12;
+  WATCH_SYNC_OPERATION_UNMARK_DROPPED = 13;
 }
 
 enum WatchSyncRemoteStateKind {
@@ -71,6 +76,7 @@ enum WatchSyncRemoteStateKind {
   WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE = 3;
   WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST = 4;
   WATCH_SYNC_REMOTE_STATE_KIND_RATING = 5;
+  WATCH_SYNC_REMOTE_STATE_KIND_DROPPED = 6;
 }
 
 enum WatchSyncDeviceAuthorizationStatus {
@@ -137,6 +143,16 @@ message WatchSyncProviderDescriptor {
   // When export_ratings is set, ApplyEvents handles both SET_RATING and
   // REMOVE_RATING; there is no separate flag for rating removal.
   bool export_ratings = 18;
+  // When sync_dropped is set, ListRemoteState returns DROPPED states for
+  // series the account stopped watching, and ApplyEvents handles both
+  // MARK_DROPPED and UNMARK_DROPPED. supported_media_types must include SERIES.
+  bool sync_dropped = 19;
+  // Media types whose SET_RATING also records the title as watched on the
+  // provider. The host sends a new rating for these types only after the
+  // profile has a completed play of the title, so rating an unwatched title in
+  // Silo does not mark it watched upstream. Each entry must also be listed in
+  // supported_media_types, and export_ratings must be set.
+  repeated WatchSyncMediaType rating_export_requires_watched = 20;
 }
 
 message WatchSyncProviderConfig {
@@ -432,6 +448,10 @@ message WatchSyncRemoteState {
   WatchSyncRemoteListState favorite = 5;
   WatchSyncRemoteListState watchlist = 6;
   WatchSyncRemoteRatingState rating = 7;
+  // Present in DROPPED traversals for a SERIES item. listed_at is when the
+  // series was dropped, when available; removed=true is an explicit undrop
+  // tombstone for incremental traversals.
+  WatchSyncRemoteListState dropped = 8;
 }
 
 message WatchSyncListRemoteStateResponse {
@@ -447,7 +467,8 @@ message WatchSyncListRemoteStateResponse {
   // The value must remain stable across every page in one traversal. A provider
   // advertising provides_watchlist_order must set this true for WATCHLIST
   // traversals so the returned order is unambiguous. In a complete RATING
-  // traversal, an item absent from the snapshot is unrated.
+  // traversal, an item absent from the snapshot is unrated; in a complete
+  // DROPPED traversal, a series absent from the snapshot is not dropped.
   bool complete_snapshot = 4;
   // Complete authoritative replacement. The host persists it before consuming
   // this page or fault; a persistence failure discards the page and cursor.
@@ -456,4 +477,8 @@ message WatchSyncListRemoteStateResponse {
   // updated_credentials, the host discards this page and keeps its previously
   // committed cursor.
   WatchSyncFault fault = 6;
+  // Non-fatal notes about this page, such as items the plugin skipped because
+  // the provider returned them without usable identity. The host shows them
+  // with the sync run. They follow the WatchSyncFault.safe_message rules.
+  repeated string warnings = 7;
 }
