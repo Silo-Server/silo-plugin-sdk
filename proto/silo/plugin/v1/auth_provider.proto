@@ -62,6 +62,34 @@ service AuthProviderChecks {
   rpc EndSessionUrl(AuthEndSessionUrlRequest) returns (AuthEndSessionUrlResponse);
 }
 
+// NetworkIdentityAuth signs people in from the overlay network a
+// network_access_provider.v1 plugin fronts, with no password and no browser.
+// The plugin's auth_provider.v1 capability declares the "network" auth mode,
+// and the same manifest must declare network_access_provider.v1.
+//
+// It is a separate service so the released AuthProviderServer interface stays
+// unchanged. Register it with runtime.WithNetworkIdentityAuth; the SDK runtime
+// also registers it when the AuthProvider server itself implements
+// NetworkIdentityAuthServer. A network provider re-checks accounts with
+// AuthProviderChecks.CheckAccount. The host never sends it a password: it
+// should still refuse Authenticate, because a host that predates the "network"
+// mode routes passwords to it as a credentials provider.
+service NetworkIdentityAuth {
+  // AuthenticatePeer identifies the overlay peer of a request this plugin
+  // proxied. The host calls it only for a request that carried this plugin's
+  // ingress token and an X-Silo-Ingress-Peer value, and passes that value
+  // here. The answer has the same shape and denials as Authenticate:
+  // NOT_PERMITTED for a peer the plugin will not vouch for (unknown, tagged or
+  // refused by policy) and PROVIDER_UNAVAILABLE while the overlay is down.
+  rpc AuthenticatePeer(AuthenticatePeerRequest) returns (AuthenticateResponse);
+}
+
+message AuthenticatePeerRequest {
+  // Overlay address of the peer as the plugin stamped it in
+  // X-Silo-Ingress-Peer: an IP literal without a port.
+  string peer_address = 1;
+}
+
 // AuthManagedRole is the Silo role a provider asks the host to apply to the
 // account. UNSPECIFIED leaves the role to the host.
 enum AuthManagedRole {

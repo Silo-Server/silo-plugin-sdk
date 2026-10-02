@@ -483,3 +483,141 @@ var AuthProviderChecks_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "silo/plugin/v1/auth_provider.proto",
 }
+
+const (
+	NetworkIdentityAuth_AuthenticatePeer_FullMethodName = "/silo.plugin.v1.NetworkIdentityAuth/AuthenticatePeer"
+)
+
+// NetworkIdentityAuthClient is the client API for NetworkIdentityAuth service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// NetworkIdentityAuth signs people in from the overlay network a
+// network_access_provider.v1 plugin fronts, with no password and no browser.
+// The plugin's auth_provider.v1 capability declares the "network" auth mode,
+// and the same manifest must declare network_access_provider.v1.
+//
+// It is a separate service so the released AuthProviderServer interface stays
+// unchanged. Register it with runtime.WithNetworkIdentityAuth; the SDK runtime
+// also registers it when the AuthProvider server itself implements
+// NetworkIdentityAuthServer. A network provider re-checks accounts with
+// AuthProviderChecks.CheckAccount. The host never sends it a password: it
+// should still refuse Authenticate, because a host that predates the "network"
+// mode routes passwords to it as a credentials provider.
+type NetworkIdentityAuthClient interface {
+	// AuthenticatePeer identifies the overlay peer of a request this plugin
+	// proxied. The host calls it only for a request that carried this plugin's
+	// ingress token and an X-Silo-Ingress-Peer value, and passes that value
+	// here. The answer has the same shape and denials as Authenticate:
+	// NOT_PERMITTED for a peer the plugin will not vouch for (unknown, tagged or
+	// refused by policy) and PROVIDER_UNAVAILABLE while the overlay is down.
+	AuthenticatePeer(ctx context.Context, in *AuthenticatePeerRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
+}
+
+type networkIdentityAuthClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewNetworkIdentityAuthClient(cc grpc.ClientConnInterface) NetworkIdentityAuthClient {
+	return &networkIdentityAuthClient{cc}
+}
+
+func (c *networkIdentityAuthClient) AuthenticatePeer(ctx context.Context, in *AuthenticatePeerRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthenticateResponse)
+	err := c.cc.Invoke(ctx, NetworkIdentityAuth_AuthenticatePeer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// NetworkIdentityAuthServer is the server API for NetworkIdentityAuth service.
+// All implementations should embed UnimplementedNetworkIdentityAuthServer
+// for forward compatibility.
+//
+// NetworkIdentityAuth signs people in from the overlay network a
+// network_access_provider.v1 plugin fronts, with no password and no browser.
+// The plugin's auth_provider.v1 capability declares the "network" auth mode,
+// and the same manifest must declare network_access_provider.v1.
+//
+// It is a separate service so the released AuthProviderServer interface stays
+// unchanged. Register it with runtime.WithNetworkIdentityAuth; the SDK runtime
+// also registers it when the AuthProvider server itself implements
+// NetworkIdentityAuthServer. A network provider re-checks accounts with
+// AuthProviderChecks.CheckAccount. The host never sends it a password: it
+// should still refuse Authenticate, because a host that predates the "network"
+// mode routes passwords to it as a credentials provider.
+type NetworkIdentityAuthServer interface {
+	// AuthenticatePeer identifies the overlay peer of a request this plugin
+	// proxied. The host calls it only for a request that carried this plugin's
+	// ingress token and an X-Silo-Ingress-Peer value, and passes that value
+	// here. The answer has the same shape and denials as Authenticate:
+	// NOT_PERMITTED for a peer the plugin will not vouch for (unknown, tagged or
+	// refused by policy) and PROVIDER_UNAVAILABLE while the overlay is down.
+	AuthenticatePeer(context.Context, *AuthenticatePeerRequest) (*AuthenticateResponse, error)
+}
+
+// UnimplementedNetworkIdentityAuthServer should be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedNetworkIdentityAuthServer struct{}
+
+func (UnimplementedNetworkIdentityAuthServer) AuthenticatePeer(context.Context, *AuthenticatePeerRequest) (*AuthenticateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthenticatePeer not implemented")
+}
+func (UnimplementedNetworkIdentityAuthServer) testEmbeddedByValue() {}
+
+// UnsafeNetworkIdentityAuthServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to NetworkIdentityAuthServer will
+// result in compilation errors.
+type UnsafeNetworkIdentityAuthServer interface {
+	mustEmbedUnimplementedNetworkIdentityAuthServer()
+}
+
+func RegisterNetworkIdentityAuthServer(s grpc.ServiceRegistrar, srv NetworkIdentityAuthServer) {
+	// If the following call panics, it indicates UnimplementedNetworkIdentityAuthServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&NetworkIdentityAuth_ServiceDesc, srv)
+}
+
+func _NetworkIdentityAuth_AuthenticatePeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticatePeerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkIdentityAuthServer).AuthenticatePeer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NetworkIdentityAuth_AuthenticatePeer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkIdentityAuthServer).AuthenticatePeer(ctx, req.(*AuthenticatePeerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// NetworkIdentityAuth_ServiceDesc is the grpc.ServiceDesc for NetworkIdentityAuth service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var NetworkIdentityAuth_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "silo.plugin.v1.NetworkIdentityAuth",
+	HandlerType: (*NetworkIdentityAuthServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AuthenticatePeer",
+			Handler:    _NetworkIdentityAuth_AuthenticatePeer_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "silo/plugin/v1/auth_provider.proto",
+}

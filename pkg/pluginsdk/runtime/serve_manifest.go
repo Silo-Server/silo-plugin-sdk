@@ -44,6 +44,7 @@ type ConfigureFunc func(ctx context.Context, entries []*pluginv1.ConfigEntry) er
 type serveManifestOptions struct {
 	watchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
 	authProviderChecks           pluginv1.AuthProviderChecksServer
+	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configure                    ConfigureFunc
 }
 
@@ -69,6 +70,16 @@ func WithWatchSyncDeviceAuthorization(
 func WithAuthProviderChecks(server pluginv1.AuthProviderChecksServer) ServeManifestOption {
 	return func(options *serveManifestOptions) {
 		options.authProviderChecks = server
+	}
+}
+
+// WithNetworkIdentityAuth registers the separate NetworkIdentityAuth service
+// (AuthenticatePeer) for an auth provider that declares the "network" auth
+// mode. Without it, the runtime registers the service only when the
+// AuthProvider server itself implements NetworkIdentityAuthServer.
+func WithNetworkIdentityAuth(server pluginv1.NetworkIdentityAuthServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.networkIdentityAuth = server
 	}
 }
 
@@ -111,7 +122,8 @@ func ServeManifest(manifestBytes []byte, version string, servers CapabilityServe
 // a Configure callback introduced after the released CapabilityServers shape.
 // Besides manifest errors, it panics when an auth_provider.v1 capability
 // declares "connection_test": true but no AuthProviderChecks server would be
-// registered.
+// registered, or declares the "network" auth mode but no NetworkIdentityAuth
+// server would be registered.
 func ServeManifestWithOptions(
 	manifestBytes []byte,
 	version string,
@@ -152,12 +164,22 @@ func manifestServeConfig(
 			}
 		}
 	}
+	if resolveNetworkIdentityAuth(servers.AuthProvider, resolved.networkIdentityAuth) == nil {
+		for _, descriptor := range m.GetCapabilities() {
+			if manifest.AuthProviderUsesNetworkIdentity(descriptor) {
+				return ServeConfig{}, fmt.Errorf(
+					"plugin capability %q declares auth mode %q but no NetworkIdentityAuth server is registered; pass runtime.WithNetworkIdentityAuth",
+					descriptor.GetId(), manifest.AuthModeNetwork)
+			}
+		}
+	}
 	servers.Runtime = &manifestRuntime{manifest: m, configure: resolved.configure}
 	return ServeConfig{
 		Servers: servers,
 		Plugins: pluginSetWithOptionalServices(servers, optionalServices{
 			watchSyncDeviceAuthorization: resolved.watchSyncDeviceAuthorization,
 			authProviderChecks:           resolved.authProviderChecks,
+			networkIdentityAuth:          resolved.networkIdentityAuth,
 		}),
 	}, nil
 }

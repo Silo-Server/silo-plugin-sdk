@@ -100,9 +100,17 @@ For every request the plugin forwards to a host listener:
 - Set `X-Silo-Ingress-Token` to the value from `GetHostInfo`, replacing any
   client-supplied value; the host answers 403 when the header carries more
   than one value.
+- Remove any client-supplied `X-Silo-Ingress-Peer`, then set it to the overlay
+  peer's IP address (no port) when the plugin can identify that peer on its
+  overlay. Never set it for a connection that did not come from an overlay
+  peer, such as traffic a public relay forwards.
 
-The host validates the token, strips the header, and records the request's
-access path so stream URLs point tailnet clients at overlay origins. The
+The host validates the token, strips both headers, and records the request's
+access path so stream URLs point tailnet clients at overlay origins. It reads
+the peer only from a request whose token is valid; it never authorizes
+anything by itself. A plugin that declares the `network` auth mode turns a
+peer into a sign-in through `NetworkIdentityAuth`
+([auth-provider.md](auth-provider.md#network-identity-networkidentityauth)). The
 plugin's loopback source is in the host's default trusted-proxy list, so the
 forwarded headers are honoured.
 

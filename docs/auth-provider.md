@@ -18,13 +18,18 @@ Silo accounts, account linking, sessions, roles, and the login UI.
 ```
 
 - `auth_modes` lists the flows the plugin serves: `password` (the host calls
-  `Authenticate` with a username and password) and `oauth2` (the host calls
-  `InitAuthorize` and `ExchangeCode`). An empty list means `password`. Use the
-  `manifest.AuthModePassword` and `manifest.AuthModeOAuth2` constants. The
+  `Authenticate` with a username and password), `oauth2` (the host calls
+  `InitAuthorize` and `ExchangeCode`), and `network` (the host calls
+  `NetworkIdentityAuth.AuthenticatePeer`; see
+  [Network identity](#network-identity-networkidentityauth)). An empty list
+  means `password`. Use the `manifest.AuthModePassword`,
+  `manifest.AuthModeOAuth2` and `manifest.AuthModeNetwork` constants. The
   list is an open vocabulary: hosts ignore modes they don't recognize, so a
   plugin that adds a newer mode should still list one an older host
   understands. For this capability type `manifest.Validate` rejects empty
-  modes, duplicates, and case variants of the known modes such as `OAuth2`.
+  modes, duplicates, and case variants of the known modes such as `OAuth2`. It
+  also rejects `network` combined with any other mode, and `network` in a
+  manifest without a `network_access_provider.v1` capability.
 - `metadata.connection_test` must be a boolean when present. `true` tells the
   host it may call `AuthProviderChecks.TestConnection`. Hosts read it with
   `manifest.AuthProviderSupportsConnectionTest`. `ServeManifestWithOptions`
@@ -144,6 +149,40 @@ A gRPC error still means an unexpected failure.
 or `select_account`) and `login_hint`. Empty values mean the plugin's
 configured default and no hint. `linking` is true when a signed-in user is
 linking the provider to an existing Silo account.
+
+## Network identity (`NetworkIdentityAuth`)
+
+A plugin that also serves `network_access_provider.v1` can sign people in
+from its overlay network with no password and no browser: the overlay already
+knows who owns the device a request came from. Declare an `auth_provider.v1`
+capability with `"auth_modes": ["network"]` and register the
+`NetworkIdentityAuth` service with `runtime.WithNetworkIdentityAuth(server)`
+(or implement it on the `AuthProvider` server). `ServeManifestWithOptions`
+panics at start when the mode is declared but no server would be registered.
+
+The flow:
+
+1. The plugin's proxy stamps `X-Silo-Ingress-Peer` on every request it
+   forwards (see the proxy contract in
+   [network-access-provider.md](network-access-provider.md#proxy-contract)).
+2. For a request that carried the plugin's ingress token and a peer, the host
+   calls `AuthenticatePeer` with that peer address, at sign-in, at account
+   linking, and to label the sign-in button.
+3. The plugin looks the peer up on its overlay and answers with the same
+   `AuthenticateResponse` as `Authenticate`: a stable `external_subject` for
+   the person (not the device), their names, and `managed_role` when the
+   overlay's policy decides the Silo role. Refuse with `NOT_PERMITTED` a peer
+   it will not vouch for, such as an unknown address, a device with no person
+   behind it, or one its policy refuses, and with `PROVIDER_UNAVAILABLE` while
+   the overlay is down.
+4. The host re-checks the account later with `AuthProviderChecks.CheckAccount`,
+   which the plugin answers from its own view of the overlay, for example
+   `NOT_FOUND` once the person is no longer on it.
+
+The host never sends a network provider a password. Hosts built before
+v0.23.0 don't know the mode and treat the capability as a password provider,
+so answer `Authenticate` with `INVALID_CREDENTIALS` and leave `InitAuthorize`
+and `ExchangeCode` unimplemented.
 
 ## Checks (`AuthProviderChecks`)
 

@@ -133,7 +133,9 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 `auth_provider.v1` lets people sign in with an account from an external
 identity provider, such as OIDC or LDAP. Password plugins implement
 `Authenticate`; OAuth plugins implement `InitAuthorize` and `ExchangeCode` and
-declare `"auth_modes": ["oauth2"]`. Both return `AuthenticateResponse`, which
+declare `"auth_modes": ["oauth2"]`. A network access provider can also sign
+people in from its overlay with `"auth_modes": ["network"]` and the separate
+`NetworkIdentityAuth` service (v0.23.0). All return `AuthenticateResponse`, which
 since v0.22.0 also carries typed identity fields (issuer, username,
 `email_verified`, groups, picture, managed role), opaque `refresh_state`, and a
 typed `denial` for refused sign-ins.

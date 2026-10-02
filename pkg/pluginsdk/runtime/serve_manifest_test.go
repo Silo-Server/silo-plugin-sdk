@@ -250,3 +250,76 @@ func TestManifestServeConfigFallsBackToAuthProviderChecks(t *testing.T) {
 		t.Fatalf("EndSessionUrl url = %q, want the AuthProvider server's", resp.GetUrl())
 	}
 }
+
+// peerServer answers AuthenticatePeer with its name as the subject, so tests
+// can tell which registered server handled the call.
+type peerServer struct {
+	pluginv1.UnimplementedNetworkIdentityAuthServer
+	name string
+}
+
+func (s peerServer) AuthenticatePeer(_ context.Context, req *pluginv1.AuthenticatePeerRequest) (*pluginv1.AuthenticateResponse, error) {
+	return &pluginv1.AuthenticateResponse{ExternalSubject: s.name + "|" + req.GetPeerAddress()}, nil
+}
+
+// providerWithPeer implements AuthProvider and NetworkIdentityAuth on one type.
+type providerWithPeer struct {
+	pluginv1.UnimplementedAuthProviderServer
+	peerServer
+}
+
+func networkAuthManifest() *pluginv1.PluginManifest {
+	return &pluginv1.PluginManifest{
+		PluginId: "silo.test",
+		Capabilities: []*pluginv1.CapabilityDescriptor{
+			{
+				Type: capability.NetworkAccessProvider,
+				Id:   "overlay",
+				NetworkAccessProvider: &pluginv1.NetworkAccessProviderDescriptor{
+					Provider: "tailscale", DisplayName: "Tailscale",
+				},
+			},
+			{Type: capability.AuthProvider, Id: "tailscale", AuthModes: []string{"network"}},
+		},
+	}
+}
+
+func TestManifestServeConfigRejectsNetworkModeWithoutService(t *testing.T) {
+	_, err := manifestServeConfig(networkAuthManifest(), CapabilityServers{AuthProvider: onlyAuthProvider{}})
+	if err == nil || !strings.Contains(err.Error(), "WithNetworkIdentityAuth") {
+		t.Fatalf("manifestServeConfig = %v, want an error naming WithNetworkIdentityAuth", err)
+	}
+}
+
+func TestManifestServeConfigRegistersExplicitNetworkIdentityAuth(t *testing.T) {
+	cfg, err := manifestServeConfig(networkAuthManifest(),
+		CapabilityServers{AuthProvider: providerWithPeer{peerServer: peerServer{name: "provider"}}},
+		WithNetworkIdentityAuth(peerServer{name: "explicit"}))
+	if err != nil {
+		t.Fatalf("manifestServeConfig = %v", err)
+	}
+	resp, err := serveConfigClient(t, cfg).NetworkIdentityAuth().AuthenticatePeer(context.Background(),
+		&pluginv1.AuthenticatePeerRequest{PeerAddress: "100.64.0.7"})
+	if err != nil {
+		t.Fatalf("AuthenticatePeer = %v", err)
+	}
+	if got, want := resp.GetExternalSubject(), "explicit|100.64.0.7"; got != want {
+		t.Fatalf("AuthenticatePeer subject = %q, want %q", got, want)
+	}
+}
+
+func TestManifestServeConfigFallsBackToAuthProviderNetworkIdentity(t *testing.T) {
+	cfg, err := manifestServeConfig(networkAuthManifest(),
+		CapabilityServers{AuthProvider: providerWithPeer{peerServer: peerServer{name: "provider"}}})
+	if err != nil {
+		t.Fatalf("manifestServeConfig = %v", err)
+	}
+	resp, err := serveConfigClient(t, cfg).NetworkIdentityAuth().AuthenticatePeer(context.Background(),
+		&pluginv1.AuthenticatePeerRequest{PeerAddress: "100.64.0.7"})
+	if err != nil {
+		t.Fatalf("AuthenticatePeer = %v", err)
+	}
+	if got, want := resp.GetExternalSubject(), "provider|100.64.0.7"; got != want {
+		t.Fatalf("AuthenticatePeer subject = %q, want %q", got, want)
+	}
+}

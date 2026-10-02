@@ -217,6 +217,52 @@ func (CheckAccountStatus) EnumDescriptor() ([]byte, []int) {
 	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{2}
 }
 
+type AuthenticatePeerRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Overlay address of the peer as the plugin stamped it in
+	// X-Silo-Ingress-Peer: an IP literal without a port.
+	PeerAddress   string `protobuf:"bytes,1,opt,name=peer_address,json=peerAddress,proto3" json:"peer_address,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthenticatePeerRequest) Reset() {
+	*x = AuthenticatePeerRequest{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthenticatePeerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthenticatePeerRequest) ProtoMessage() {}
+
+func (x *AuthenticatePeerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthenticatePeerRequest.ProtoReflect.Descriptor instead.
+func (*AuthenticatePeerRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *AuthenticatePeerRequest) GetPeerAddress() string {
+	if x != nil {
+		return x.PeerAddress
+	}
+	return ""
+}
+
 type AuthenticateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
@@ -228,7 +274,7 @@ type AuthenticateRequest struct {
 
 func (x *AuthenticateRequest) Reset() {
 	*x = AuthenticateRequest{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[0]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -240,7 +286,7 @@ func (x *AuthenticateRequest) String() string {
 func (*AuthenticateRequest) ProtoMessage() {}
 
 func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[0]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -253,7 +299,7 @@ func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateRequest.ProtoReflect.Descriptor instead.
 func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{0}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AuthenticateRequest) GetUsername() string {
@@ -315,7 +361,7 @@ type AuthenticateResponse struct {
 
 func (x *AuthenticateResponse) Reset() {
 	*x = AuthenticateResponse{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[1]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -327,7 +373,7 @@ func (x *AuthenticateResponse) String() string {
 func (*AuthenticateResponse) ProtoMessage() {}
 
 func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[1]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +386,7 @@ func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateResponse.ProtoReflect.Descriptor instead.
 func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{1}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AuthenticateResponse) GetExternalSubject() string {
@@ -451,7 +497,7 @@ type InitAuthorizeRequest struct {
 
 func (x *InitAuthorizeRequest) Reset() {
 	*x = InitAuthorizeRequest{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[2]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -463,7 +509,7 @@ func (x *InitAuthorizeRequest) String() string {
 func (*InitAuthorizeRequest) ProtoMessage() {}
 
 func (x *InitAuthorizeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[2]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -476,7 +522,7 @@ func (x *InitAuthorizeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitAuthorizeRequest.ProtoReflect.Descriptor instead.
 func (*InitAuthorizeRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{2}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *InitAuthorizeRequest) GetRedirectUri() string {
@@ -531,7 +577,7 @@ type InitAuthorizeResponse struct {
 
 func (x *InitAuthorizeResponse) Reset() {
 	*x = InitAuthorizeResponse{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -543,7 +589,7 @@ func (x *InitAuthorizeResponse) String() string {
 func (*InitAuthorizeResponse) ProtoMessage() {}
 
 func (x *InitAuthorizeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[3]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -556,7 +602,7 @@ func (x *InitAuthorizeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitAuthorizeResponse.ProtoReflect.Descriptor instead.
 func (*InitAuthorizeResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{3}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *InitAuthorizeResponse) GetAuthorizeUrl() string {
@@ -585,7 +631,7 @@ type ExchangeCodeRequest struct {
 
 func (x *ExchangeCodeRequest) Reset() {
 	*x = ExchangeCodeRequest{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -597,7 +643,7 @@ func (x *ExchangeCodeRequest) String() string {
 func (*ExchangeCodeRequest) ProtoMessage() {}
 
 func (x *ExchangeCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[4]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -610,7 +656,7 @@ func (x *ExchangeCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExchangeCodeRequest.ProtoReflect.Descriptor instead.
 func (*ExchangeCodeRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{4}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ExchangeCodeRequest) GetCode() string {
@@ -651,7 +697,7 @@ type RefreshSessionRequest struct {
 
 func (x *RefreshSessionRequest) Reset() {
 	*x = RefreshSessionRequest{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -663,7 +709,7 @@ func (x *RefreshSessionRequest) String() string {
 func (*RefreshSessionRequest) ProtoMessage() {}
 
 func (x *RefreshSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[5]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -676,7 +722,7 @@ func (x *RefreshSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshSessionRequest.ProtoReflect.Descriptor instead.
 func (*RefreshSessionRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{5}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RefreshSessionRequest) GetExternalSubject() string {
@@ -704,7 +750,7 @@ type AuthTestConnectionRequest struct {
 
 func (x *AuthTestConnectionRequest) Reset() {
 	*x = AuthTestConnectionRequest{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -716,7 +762,7 @@ func (x *AuthTestConnectionRequest) String() string {
 func (*AuthTestConnectionRequest) ProtoMessage() {}
 
 func (x *AuthTestConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[6]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +775,7 @@ func (x *AuthTestConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthTestConnectionRequest.ProtoReflect.Descriptor instead.
 func (*AuthTestConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{6}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AuthTestConnectionRequest) GetConfig() []*ConfigEntry {
@@ -751,7 +797,7 @@ type AuthTestConnectionResponse struct {
 
 func (x *AuthTestConnectionResponse) Reset() {
 	*x = AuthTestConnectionResponse{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -763,7 +809,7 @@ func (x *AuthTestConnectionResponse) String() string {
 func (*AuthTestConnectionResponse) ProtoMessage() {}
 
 func (x *AuthTestConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[7]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -776,7 +822,7 @@ func (x *AuthTestConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthTestConnectionResponse.ProtoReflect.Descriptor instead.
 func (*AuthTestConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{7}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AuthTestConnectionResponse) GetSteps() []*AuthTestStep {
@@ -810,7 +856,7 @@ type AuthTestStep struct {
 
 func (x *AuthTestStep) Reset() {
 	*x = AuthTestStep{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -822,7 +868,7 @@ func (x *AuthTestStep) String() string {
 func (*AuthTestStep) ProtoMessage() {}
 
 func (x *AuthTestStep) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[8]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +881,7 @@ func (x *AuthTestStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthTestStep.ProtoReflect.Descriptor instead.
 func (*AuthTestStep) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{8}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AuthTestStep) GetId() string {
@@ -878,7 +924,7 @@ type CheckAccountRequest struct {
 
 func (x *CheckAccountRequest) Reset() {
 	*x = CheckAccountRequest{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -890,7 +936,7 @@ func (x *CheckAccountRequest) String() string {
 func (*CheckAccountRequest) ProtoMessage() {}
 
 func (x *CheckAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[9]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -903,7 +949,7 @@ func (x *CheckAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAccountRequest.ProtoReflect.Descriptor instead.
 func (*CheckAccountRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{9}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CheckAccountRequest) GetExternalSubject() string {
@@ -938,7 +984,7 @@ type CheckAccountResponse struct {
 
 func (x *CheckAccountResponse) Reset() {
 	*x = CheckAccountResponse{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -950,7 +996,7 @@ func (x *CheckAccountResponse) String() string {
 func (*CheckAccountResponse) ProtoMessage() {}
 
 func (x *CheckAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[10]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -963,7 +1009,7 @@ func (x *CheckAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAccountResponse.ProtoReflect.Descriptor instead.
 func (*CheckAccountResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{10}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CheckAccountResponse) GetStatus() CheckAccountStatus {
@@ -995,7 +1041,7 @@ type AuthEndSessionUrlRequest struct {
 
 func (x *AuthEndSessionUrlRequest) Reset() {
 	*x = AuthEndSessionUrlRequest{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1007,7 +1053,7 @@ func (x *AuthEndSessionUrlRequest) String() string {
 func (*AuthEndSessionUrlRequest) ProtoMessage() {}
 
 func (x *AuthEndSessionUrlRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[11]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1020,7 +1066,7 @@ func (x *AuthEndSessionUrlRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthEndSessionUrlRequest.ProtoReflect.Descriptor instead.
 func (*AuthEndSessionUrlRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{11}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AuthEndSessionUrlRequest) GetExternalSubject() string {
@@ -1055,7 +1101,7 @@ type AuthEndSessionUrlResponse struct {
 
 func (x *AuthEndSessionUrlResponse) Reset() {
 	*x = AuthEndSessionUrlResponse{}
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1067,7 +1113,7 @@ func (x *AuthEndSessionUrlResponse) String() string {
 func (*AuthEndSessionUrlResponse) ProtoMessage() {}
 
 func (x *AuthEndSessionUrlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1080,7 +1126,7 @@ func (x *AuthEndSessionUrlResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthEndSessionUrlResponse.ProtoReflect.Descriptor instead.
 func (*AuthEndSessionUrlResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *AuthEndSessionUrlResponse) GetUrl() string {
@@ -1094,7 +1140,9 @@ var File_silo_plugin_v1_auth_provider_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\n" +
-	"\"silo/plugin/v1/auth_provider.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bsilo/plugin/v1/common.proto\"\x82\x01\n" +
+	"\"silo/plugin/v1/auth_provider.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bsilo/plugin/v1/common.proto\"<\n" +
+	"\x17AuthenticatePeerRequest\x12!\n" +
+	"\fpeer_address\x18\x01 \x01(\tR\vpeerAddress\"\x82\x01\n" +
 	"\x13AuthenticateRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x123\n" +
@@ -1185,7 +1233,9 @@ const file_silo_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\x12AuthProviderChecks\x12g\n" +
 	"\x0eTestConnection\x12).silo.plugin.v1.AuthTestConnectionRequest\x1a*.silo.plugin.v1.AuthTestConnectionResponse\x12Y\n" +
 	"\fCheckAccount\x12#.silo.plugin.v1.CheckAccountRequest\x1a$.silo.plugin.v1.CheckAccountResponse\x12d\n" +
-	"\rEndSessionUrl\x12(.silo.plugin.v1.AuthEndSessionUrlRequest\x1a).silo.plugin.v1.AuthEndSessionUrlResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
+	"\rEndSessionUrl\x12(.silo.plugin.v1.AuthEndSessionUrlRequest\x1a).silo.plugin.v1.AuthEndSessionUrlResponse2x\n" +
+	"\x13NetworkIdentityAuth\x12a\n" +
+	"\x10AuthenticatePeer\x12'.silo.plugin.v1.AuthenticatePeerRequest\x1a$.silo.plugin.v1.AuthenticateResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_silo_plugin_v1_auth_provider_proto_rawDescOnce sync.Once
@@ -1200,59 +1250,62 @@ func file_silo_plugin_v1_auth_provider_proto_rawDescGZIP() []byte {
 }
 
 var file_silo_plugin_v1_auth_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_silo_plugin_v1_auth_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_silo_plugin_v1_auth_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_silo_plugin_v1_auth_provider_proto_goTypes = []any{
 	(AuthManagedRole)(0),               // 0: silo.plugin.v1.AuthManagedRole
 	(AuthDenial)(0),                    // 1: silo.plugin.v1.AuthDenial
 	(CheckAccountStatus)(0),            // 2: silo.plugin.v1.CheckAccountStatus
-	(*AuthenticateRequest)(nil),        // 3: silo.plugin.v1.AuthenticateRequest
-	(*AuthenticateResponse)(nil),       // 4: silo.plugin.v1.AuthenticateResponse
-	(*InitAuthorizeRequest)(nil),       // 5: silo.plugin.v1.InitAuthorizeRequest
-	(*InitAuthorizeResponse)(nil),      // 6: silo.plugin.v1.InitAuthorizeResponse
-	(*ExchangeCodeRequest)(nil),        // 7: silo.plugin.v1.ExchangeCodeRequest
-	(*RefreshSessionRequest)(nil),      // 8: silo.plugin.v1.RefreshSessionRequest
-	(*AuthTestConnectionRequest)(nil),  // 9: silo.plugin.v1.AuthTestConnectionRequest
-	(*AuthTestConnectionResponse)(nil), // 10: silo.plugin.v1.AuthTestConnectionResponse
-	(*AuthTestStep)(nil),               // 11: silo.plugin.v1.AuthTestStep
-	(*CheckAccountRequest)(nil),        // 12: silo.plugin.v1.CheckAccountRequest
-	(*CheckAccountResponse)(nil),       // 13: silo.plugin.v1.CheckAccountResponse
-	(*AuthEndSessionUrlRequest)(nil),   // 14: silo.plugin.v1.AuthEndSessionUrlRequest
-	(*AuthEndSessionUrlResponse)(nil),  // 15: silo.plugin.v1.AuthEndSessionUrlResponse
-	(*structpb.Struct)(nil),            // 16: google.protobuf.Struct
-	(*ConfigEntry)(nil),                // 17: silo.plugin.v1.ConfigEntry
+	(*AuthenticatePeerRequest)(nil),    // 3: silo.plugin.v1.AuthenticatePeerRequest
+	(*AuthenticateRequest)(nil),        // 4: silo.plugin.v1.AuthenticateRequest
+	(*AuthenticateResponse)(nil),       // 5: silo.plugin.v1.AuthenticateResponse
+	(*InitAuthorizeRequest)(nil),       // 6: silo.plugin.v1.InitAuthorizeRequest
+	(*InitAuthorizeResponse)(nil),      // 7: silo.plugin.v1.InitAuthorizeResponse
+	(*ExchangeCodeRequest)(nil),        // 8: silo.plugin.v1.ExchangeCodeRequest
+	(*RefreshSessionRequest)(nil),      // 9: silo.plugin.v1.RefreshSessionRequest
+	(*AuthTestConnectionRequest)(nil),  // 10: silo.plugin.v1.AuthTestConnectionRequest
+	(*AuthTestConnectionResponse)(nil), // 11: silo.plugin.v1.AuthTestConnectionResponse
+	(*AuthTestStep)(nil),               // 12: silo.plugin.v1.AuthTestStep
+	(*CheckAccountRequest)(nil),        // 13: silo.plugin.v1.CheckAccountRequest
+	(*CheckAccountResponse)(nil),       // 14: silo.plugin.v1.CheckAccountResponse
+	(*AuthEndSessionUrlRequest)(nil),   // 15: silo.plugin.v1.AuthEndSessionUrlRequest
+	(*AuthEndSessionUrlResponse)(nil),  // 16: silo.plugin.v1.AuthEndSessionUrlResponse
+	(*structpb.Struct)(nil),            // 17: google.protobuf.Struct
+	(*ConfigEntry)(nil),                // 18: silo.plugin.v1.ConfigEntry
 }
 var file_silo_plugin_v1_auth_provider_proto_depIdxs = []int32{
-	16, // 0: silo.plugin.v1.AuthenticateRequest.metadata:type_name -> google.protobuf.Struct
-	16, // 1: silo.plugin.v1.AuthenticateResponse.claims:type_name -> google.protobuf.Struct
+	17, // 0: silo.plugin.v1.AuthenticateRequest.metadata:type_name -> google.protobuf.Struct
+	17, // 1: silo.plugin.v1.AuthenticateResponse.claims:type_name -> google.protobuf.Struct
 	0,  // 2: silo.plugin.v1.AuthenticateResponse.managed_role:type_name -> silo.plugin.v1.AuthManagedRole
-	16, // 3: silo.plugin.v1.AuthenticateResponse.refresh_state:type_name -> google.protobuf.Struct
+	17, // 3: silo.plugin.v1.AuthenticateResponse.refresh_state:type_name -> google.protobuf.Struct
 	1,  // 4: silo.plugin.v1.AuthenticateResponse.denial:type_name -> silo.plugin.v1.AuthDenial
-	16, // 5: silo.plugin.v1.InitAuthorizeRequest.metadata:type_name -> google.protobuf.Struct
-	16, // 6: silo.plugin.v1.InitAuthorizeResponse.provider_state:type_name -> google.protobuf.Struct
-	16, // 7: silo.plugin.v1.ExchangeCodeRequest.provider_state:type_name -> google.protobuf.Struct
-	16, // 8: silo.plugin.v1.RefreshSessionRequest.refresh_state:type_name -> google.protobuf.Struct
-	17, // 9: silo.plugin.v1.AuthTestConnectionRequest.config:type_name -> silo.plugin.v1.ConfigEntry
-	11, // 10: silo.plugin.v1.AuthTestConnectionResponse.steps:type_name -> silo.plugin.v1.AuthTestStep
-	16, // 11: silo.plugin.v1.CheckAccountRequest.refresh_state:type_name -> google.protobuf.Struct
+	17, // 5: silo.plugin.v1.InitAuthorizeRequest.metadata:type_name -> google.protobuf.Struct
+	17, // 6: silo.plugin.v1.InitAuthorizeResponse.provider_state:type_name -> google.protobuf.Struct
+	17, // 7: silo.plugin.v1.ExchangeCodeRequest.provider_state:type_name -> google.protobuf.Struct
+	17, // 8: silo.plugin.v1.RefreshSessionRequest.refresh_state:type_name -> google.protobuf.Struct
+	18, // 9: silo.plugin.v1.AuthTestConnectionRequest.config:type_name -> silo.plugin.v1.ConfigEntry
+	12, // 10: silo.plugin.v1.AuthTestConnectionResponse.steps:type_name -> silo.plugin.v1.AuthTestStep
+	17, // 11: silo.plugin.v1.CheckAccountRequest.refresh_state:type_name -> google.protobuf.Struct
 	2,  // 12: silo.plugin.v1.CheckAccountResponse.status:type_name -> silo.plugin.v1.CheckAccountStatus
-	4,  // 13: silo.plugin.v1.CheckAccountResponse.account:type_name -> silo.plugin.v1.AuthenticateResponse
-	16, // 14: silo.plugin.v1.AuthEndSessionUrlRequest.refresh_state:type_name -> google.protobuf.Struct
-	3,  // 15: silo.plugin.v1.AuthProvider.Authenticate:input_type -> silo.plugin.v1.AuthenticateRequest
-	5,  // 16: silo.plugin.v1.AuthProvider.InitAuthorize:input_type -> silo.plugin.v1.InitAuthorizeRequest
-	7,  // 17: silo.plugin.v1.AuthProvider.ExchangeCode:input_type -> silo.plugin.v1.ExchangeCodeRequest
-	8,  // 18: silo.plugin.v1.AuthProvider.RefreshSession:input_type -> silo.plugin.v1.RefreshSessionRequest
-	9,  // 19: silo.plugin.v1.AuthProviderChecks.TestConnection:input_type -> silo.plugin.v1.AuthTestConnectionRequest
-	12, // 20: silo.plugin.v1.AuthProviderChecks.CheckAccount:input_type -> silo.plugin.v1.CheckAccountRequest
-	14, // 21: silo.plugin.v1.AuthProviderChecks.EndSessionUrl:input_type -> silo.plugin.v1.AuthEndSessionUrlRequest
-	4,  // 22: silo.plugin.v1.AuthProvider.Authenticate:output_type -> silo.plugin.v1.AuthenticateResponse
-	6,  // 23: silo.plugin.v1.AuthProvider.InitAuthorize:output_type -> silo.plugin.v1.InitAuthorizeResponse
-	4,  // 24: silo.plugin.v1.AuthProvider.ExchangeCode:output_type -> silo.plugin.v1.AuthenticateResponse
-	4,  // 25: silo.plugin.v1.AuthProvider.RefreshSession:output_type -> silo.plugin.v1.AuthenticateResponse
-	10, // 26: silo.plugin.v1.AuthProviderChecks.TestConnection:output_type -> silo.plugin.v1.AuthTestConnectionResponse
-	13, // 27: silo.plugin.v1.AuthProviderChecks.CheckAccount:output_type -> silo.plugin.v1.CheckAccountResponse
-	15, // 28: silo.plugin.v1.AuthProviderChecks.EndSessionUrl:output_type -> silo.plugin.v1.AuthEndSessionUrlResponse
-	22, // [22:29] is the sub-list for method output_type
-	15, // [15:22] is the sub-list for method input_type
+	5,  // 13: silo.plugin.v1.CheckAccountResponse.account:type_name -> silo.plugin.v1.AuthenticateResponse
+	17, // 14: silo.plugin.v1.AuthEndSessionUrlRequest.refresh_state:type_name -> google.protobuf.Struct
+	4,  // 15: silo.plugin.v1.AuthProvider.Authenticate:input_type -> silo.plugin.v1.AuthenticateRequest
+	6,  // 16: silo.plugin.v1.AuthProvider.InitAuthorize:input_type -> silo.plugin.v1.InitAuthorizeRequest
+	8,  // 17: silo.plugin.v1.AuthProvider.ExchangeCode:input_type -> silo.plugin.v1.ExchangeCodeRequest
+	9,  // 18: silo.plugin.v1.AuthProvider.RefreshSession:input_type -> silo.plugin.v1.RefreshSessionRequest
+	10, // 19: silo.plugin.v1.AuthProviderChecks.TestConnection:input_type -> silo.plugin.v1.AuthTestConnectionRequest
+	13, // 20: silo.plugin.v1.AuthProviderChecks.CheckAccount:input_type -> silo.plugin.v1.CheckAccountRequest
+	15, // 21: silo.plugin.v1.AuthProviderChecks.EndSessionUrl:input_type -> silo.plugin.v1.AuthEndSessionUrlRequest
+	3,  // 22: silo.plugin.v1.NetworkIdentityAuth.AuthenticatePeer:input_type -> silo.plugin.v1.AuthenticatePeerRequest
+	5,  // 23: silo.plugin.v1.AuthProvider.Authenticate:output_type -> silo.plugin.v1.AuthenticateResponse
+	7,  // 24: silo.plugin.v1.AuthProvider.InitAuthorize:output_type -> silo.plugin.v1.InitAuthorizeResponse
+	5,  // 25: silo.plugin.v1.AuthProvider.ExchangeCode:output_type -> silo.plugin.v1.AuthenticateResponse
+	5,  // 26: silo.plugin.v1.AuthProvider.RefreshSession:output_type -> silo.plugin.v1.AuthenticateResponse
+	11, // 27: silo.plugin.v1.AuthProviderChecks.TestConnection:output_type -> silo.plugin.v1.AuthTestConnectionResponse
+	14, // 28: silo.plugin.v1.AuthProviderChecks.CheckAccount:output_type -> silo.plugin.v1.CheckAccountResponse
+	16, // 29: silo.plugin.v1.AuthProviderChecks.EndSessionUrl:output_type -> silo.plugin.v1.AuthEndSessionUrlResponse
+	5,  // 30: silo.plugin.v1.NetworkIdentityAuth.AuthenticatePeer:output_type -> silo.plugin.v1.AuthenticateResponse
+	23, // [23:31] is the sub-list for method output_type
+	15, // [15:23] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
 	15, // [15:15] is the sub-list for extension extendee
 	0,  // [0:15] is the sub-list for field type_name
@@ -1264,16 +1317,16 @@ func file_silo_plugin_v1_auth_provider_proto_init() {
 		return
 	}
 	file_silo_plugin_v1_common_proto_init()
-	file_silo_plugin_v1_auth_provider_proto_msgTypes[1].OneofWrappers = []any{}
+	file_silo_plugin_v1_auth_provider_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_auth_provider_proto_rawDesc), len(file_silo_plugin_v1_auth_provider_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   3,
 		},
 		GoTypes:           file_silo_plugin_v1_auth_provider_proto_goTypes,
 		DependencyIndexes: file_silo_plugin_v1_auth_provider_proto_depIdxs,

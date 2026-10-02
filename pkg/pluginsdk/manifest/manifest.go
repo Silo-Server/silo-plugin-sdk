@@ -45,6 +45,11 @@ const (
 const (
 	AuthModePassword = "password"
 	AuthModeOAuth2   = "oauth2"
+	// AuthModeNetwork signs people in from the overlay network the plugin's
+	// network_access_provider.v1 capability fronts (NetworkIdentityAuth). It
+	// cannot be combined with another mode, and the manifest must also declare
+	// network_access_provider.v1.
+	AuthModeNetwork = "network"
 )
 
 // AuthProviderConnectionTestKey is the auth_provider.v1 capability metadata
@@ -138,6 +143,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 		if err := validateAuthProviderCapability(capability); err != nil {
 			return err
 		}
+	}
+	if err := validateNetworkAuthPairing(manifest); err != nil {
+		return err
 	}
 	for _, schema := range manifest.GlobalConfigSchema {
 		if err := validateConfigSchema(schema); err != nil {
@@ -350,7 +358,7 @@ func validateAuthProviderCapability(descriptor *pluginv1.CapabilityDescriptor) e
 		}
 		// Unknown modes are allowed, but a case variant of a known one is a
 		// typo the host would silently ignore.
-		for _, known := range []string{AuthModePassword, AuthModeOAuth2} {
+		for _, known := range []string{AuthModePassword, AuthModeOAuth2, AuthModeNetwork} {
 			if mode != known && strings.EqualFold(mode, known) {
 				return fmt.Errorf("plugin capability %q: auth mode %q must be spelled %q", descriptor.GetId(), mode, known)
 			}
@@ -360,12 +368,46 @@ func validateAuthProviderCapability(descriptor *pluginv1.CapabilityDescriptor) e
 		}
 		seen[mode] = struct{}{}
 	}
+	if _, network := seen[AuthModeNetwork]; network && len(seen) > 1 {
+		return fmt.Errorf("plugin capability %q: auth mode %q cannot be combined with other modes", descriptor.GetId(), AuthModeNetwork)
+	}
 	if value, ok := descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey]; ok {
 		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
 			return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), AuthProviderConnectionTestKey)
 		}
 	}
 	return nil
+}
+
+// validateNetworkAuthPairing requires a manifest with a "network" auth mode
+// to declare network_access_provider.v1 too: the host only hands a network
+// provider peers that arrived through the plugin's own overlay listeners.
+func validateNetworkAuthPairing(manifest *pluginv1.PluginManifest) error {
+	var networkAuth *pluginv1.CapabilityDescriptor
+	hasNetworkAccess := false
+	for _, descriptor := range manifest.GetCapabilities() {
+		if AuthProviderUsesNetworkIdentity(descriptor) && networkAuth == nil {
+			networkAuth = descriptor
+		}
+		if descriptor.GetType() == capability.NetworkAccessProvider {
+			hasNetworkAccess = true
+		}
+	}
+	if networkAuth != nil && !hasNetworkAccess {
+		return fmt.Errorf("plugin capability %q: auth mode %q requires a %q capability in the same manifest",
+			networkAuth.GetId(), AuthModeNetwork, capability.NetworkAccessProvider)
+	}
+	return nil
+}
+
+// AuthProviderUsesNetworkIdentity reports whether an auth_provider.v1
+// capability declares the "network" auth mode, so the host reaches it through
+// NetworkIdentityAuth and never sends it a password.
+func AuthProviderUsesNetworkIdentity(descriptor *pluginv1.CapabilityDescriptor) bool {
+	if descriptor.GetType() != capability.AuthProvider {
+		return false
+	}
+	return slices.Contains(descriptor.GetAuthModes(), AuthModeNetwork)
 }
 
 // AuthProviderSupportsConnectionTest reports whether an auth_provider.v1

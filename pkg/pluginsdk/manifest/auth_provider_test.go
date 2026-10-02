@@ -102,3 +102,55 @@ func TestConnectionTestMetadataIgnoredOnOtherCapabilities(t *testing.T) {
 		t.Fatal("empty descriptor reported connection test support")
 	}
 }
+
+const networkAccessCapability = `{"type": "network_access_provider.v1", "id": "overlay",
+	"network_access_provider": {"provider": "tailscale", "display_name": "Tailscale"}}`
+
+func TestLoadAcceptsNetworkAuthWithNetworkAccess(t *testing.T) {
+	raw := authManifest(networkAccessCapability + `, {"type": "auth_provider.v1", "id": "tailscale", "auth_modes": ["network"]}`)
+	m, err := manifest.Load(raw)
+	if err != nil {
+		t.Fatalf("Load = %v, want nil", err)
+	}
+	if !manifest.AuthProviderUsesNetworkIdentity(m.GetCapabilities()[1]) {
+		t.Fatal("AuthProviderUsesNetworkIdentity = false, want true")
+	}
+	if manifest.AuthProviderUsesNetworkIdentity(m.GetCapabilities()[0]) {
+		t.Fatal("AuthProviderUsesNetworkIdentity on the network access capability = true, want false")
+	}
+}
+
+func TestLoadRejectsNetworkAuthWithoutNetworkAccess(t *testing.T) {
+	raw := authManifest(`{"type": "auth_provider.v1", "id": "tailscale", "auth_modes": ["network"]}`)
+	_, err := manifest.Load(raw)
+	if err == nil || !strings.Contains(err.Error(), "network_access_provider.v1") {
+		t.Fatalf("Load = %v, want an error naming network_access_provider.v1", err)
+	}
+}
+
+// A network provider never takes a password or runs a browser flow, so mixing
+// modes would let a host route credentials to it.
+func TestLoadRejectsNetworkAuthCombinedWithOtherModes(t *testing.T) {
+	for _, modes := range []string{`["network", "password"]`, `["oauth2", "network"]`, `["network", "saml"]`} {
+		raw := authManifest(networkAccessCapability + `, {"type": "auth_provider.v1", "id": "tailscale", "auth_modes": ` + modes + `}`)
+		_, err := manifest.Load(raw)
+		if err == nil || !strings.Contains(err.Error(), "cannot be combined") {
+			t.Errorf("auth_modes %s: Load = %v, want a combination error", modes, err)
+		}
+	}
+}
+
+func TestLoadRejectsMisspelledNetworkMode(t *testing.T) {
+	raw := authManifest(networkAccessCapability + `, {"type": "auth_provider.v1", "id": "tailscale", "auth_modes": ["Network"]}`)
+	_, err := manifest.Load(raw)
+	if err == nil || !strings.Contains(err.Error(), `must be spelled "network"`) {
+		t.Fatalf("Load = %v, want a spelling error", err)
+	}
+}
+
+func TestAuthProviderUsesNetworkIdentityIgnoresOtherTypes(t *testing.T) {
+	descriptor := &pluginv1.CapabilityDescriptor{Type: "scheduled_task.v1", Id: "sync", AuthModes: []string{"network"}}
+	if manifest.AuthProviderUsesNetworkIdentity(descriptor) {
+		t.Fatal("AuthProviderUsesNetworkIdentity = true for a scheduled task, want false")
+	}
+}
