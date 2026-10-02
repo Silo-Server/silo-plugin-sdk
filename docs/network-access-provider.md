@@ -103,7 +103,10 @@ For every request the plugin forwards to a host listener:
 - Remove any client-supplied `X-Silo-Ingress-Peer`, then set it to the overlay
   peer's IP address (no port) when the plugin can identify that peer on its
   overlay. Never set it for a connection that did not come from an overlay
-  peer, such as traffic a public relay forwards.
+  peer, such as traffic a public relay forwards. Leave it out, too, for a
+  request that carries another proxy's forwarding headers (`Forwarded`,
+  `X-Forwarded-For`, `Via` and the like): the connection then comes from the
+  relay's device, whose owner is not the person making the request.
 
 The host validates the token, strips both headers, and records the request's
 access path so stream URLs point tailnet clients at overlay origins. It reads
