@@ -5,6 +5,7 @@ package silo.plugin.v1;
 option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
 
 import "google/protobuf/struct.proto";
+import "silo/plugin/v1/common.proto";
 
 service AuthProvider {
   // Authenticate handles password-based login. Existing surface.
@@ -25,6 +26,61 @@ service AuthProvider {
   rpc RefreshSession(RefreshSessionRequest) returns (AuthenticateResponse);
 }
 
+// AuthProviderChecks is separate from AuthProvider so adding these RPCs does
+// not add methods to the released AuthProviderServer Go interface. Register it
+// with runtime.WithAuthProviderChecks; the SDK runtime also registers it when
+// the AuthProvider server itself implements AuthProviderChecksServer.
+//
+// Plugins that do not serve it answer Unimplemented. Hosts treat an
+// Unimplemented TestConnection as "no connection test", an Unimplemented
+// CheckAccount like CHECK_ACCOUNT_STATUS_UNSUPPORTED (the account's sessions
+// get an absolute age limit and do not slide), and an Unimplemented
+// EndSessionUrl like an empty url.
+service AuthProviderChecks {
+  // TestConnection checks staged, unsaved configuration. The plugin tests the
+  // config in the request, never its running configuration, and persists
+  // nothing. Advertise support with the capability metadata key
+  // "connection_test": true.
+  rpc TestConnection(AuthTestConnectionRequest) returns (AuthTestConnectionResponse);
+
+  // CheckAccount re-checks a previously authenticated account against the
+  // provider without user interaction, for example with a stored refresh
+  // token or a directory lookup. It replaces RefreshSession, which the host
+  // does not call.
+  //
+  // Host guarantees: at most one CheckAccount is in flight per (installation,
+  // external_subject) across all nodes, and the host persists a rotated
+  // account.refresh_state (for example under a row lock or compare-and-swap)
+  // before it makes the next call for that account. A plugin can therefore
+  // rotate a single-use refresh token without two nodes presenting the same
+  // token.
+  rpc CheckAccount(CheckAccountRequest) returns (CheckAccountResponse);
+
+  // EndSessionUrl returns the provider logout URL the host sends the browser
+  // to on web sign-out, such as an OIDC end_session_endpoint with
+  // id_token_hint. The host ends the Silo session whatever the answer.
+  rpc EndSessionUrl(AuthEndSessionUrlRequest) returns (AuthEndSessionUrlResponse);
+}
+
+// AuthManagedRole is the Silo role a provider asks the host to apply to the
+// account. UNSPECIFIED leaves the role to the host.
+enum AuthManagedRole {
+  AUTH_MANAGED_ROLE_UNSPECIFIED = 0;
+  AUTH_MANAGED_ROLE_USER = 1;
+  AUTH_MANAGED_ROLE_ADMIN = 2;
+}
+
+// AuthDenial tells the host why a provider refused a sign-in. A response with
+// a denial other than UNSPECIFIED is a refusal, not an identity.
+enum AuthDenial {
+  AUTH_DENIAL_UNSPECIFIED = 0;
+  AUTH_DENIAL_INVALID_CREDENTIALS = 1;
+  AUTH_DENIAL_NOT_PERMITTED = 2;
+  AUTH_DENIAL_ACCOUNT_DISABLED = 3;
+  AUTH_DENIAL_PASSWORD_EXPIRED = 4;
+  AUTH_DENIAL_PROVIDER_UNAVAILABLE = 5;
+}
+
 message AuthenticateRequest {
   string username = 1;
   string password = 2;
@@ -35,7 +91,37 @@ message AuthenticateResponse {
   string external_subject = 1;
   string display_name = 2;
   string email = 3;
+  // Free-form provider claims. The host does not read them; prefer the typed
+  // fields below.
   google.protobuf.Struct claims = 4;
+
+  // Fields 5-13 were added in v0.22.0. Plugins built before then leave them
+  // unset, and the host keeps its earlier behaviour.
+
+  // Issuer that asserted external_subject, such as an OIDC "iss" or an LDAP
+  // server URL. Informational; the host keys identities by installation and
+  // external_subject.
+  string issuer = 5;
+  // Preferred login name, used as the base for a new Silo username.
+  string username = 6;
+  // Whether the provider verified email. Unset means the provider did not say.
+  optional bool email_verified = 7;
+  // Provider group names after the plugin's normalization.
+  repeated string groups = 8;
+  // Absolute http(s) URL of the account picture.
+  string picture_url = 9;
+  // Role the plugin's group rules assign. UNSPECIFIED leaves the role alone.
+  AuthManagedRole managed_role = 10;
+  // Opaque provider state for later CheckAccount calls, such as a refresh
+  // token. The host stores it encrypted, never reads it, and sends it back
+  // unchanged. Unset keeps the stored state; an empty Struct clears it.
+  google.protobuf.Struct refresh_state = 11;
+  // Why the provider refused the sign-in. When set, leave external_subject
+  // empty so hosts built before this field existed still refuse the sign-in.
+  AuthDenial denial = 12;
+  // Operator-facing detail for the denial. The host logs it and never shows
+  // it to the user. Never include secrets.
+  string denial_detail = 13;
 }
 
 message InitAuthorizeRequest {
@@ -43,6 +129,11 @@ message InitAuthorizeRequest {
   string state = 2;
   bool linking = 3;
   google.protobuf.Struct metadata = 4;
+  // OIDC "prompt" value requested by the host, such as "login" or
+  // "select_account". Empty means the plugin applies its configured default.
+  string prompt = 5;
+  // Login hint to pre-fill the provider's sign-in form. Empty means none.
+  string login_hint = 6;
 }
 
 message InitAuthorizeResponse {
@@ -60,4 +151,98 @@ message ExchangeCodeRequest {
 message RefreshSessionRequest {
   string external_subject = 1;
   google.protobuf.Struct refresh_state = 2;
+}
+
+message AuthTestConnectionRequest {
+  // Staged configuration in the same shape as ConfigureRequest.config. Secret
+  // fields carry plaintext. It may differ from the running configuration.
+  repeated ConfigEntry config = 1;
+}
+
+message AuthTestConnectionResponse {
+  // Checks in the order they ran. A plugin may stop after the first failure.
+  repeated AuthTestStep steps = 1;
+  // True only when every check the plugin ran passed.
+  bool ok = 2;
+}
+
+// AuthTestStep is one check shown to the operator, such as "Discovery
+// document reachable".
+message AuthTestStep {
+  // Stable machine identifier, such as "discovery" or "service_bind".
+  string id = 1;
+  // Operator-facing label.
+  string label = 2;
+  bool ok = 3;
+  // Operator-facing result or failure reason. Never include secrets.
+  string message = 4;
+}
+
+// CheckAccountStatus is the provider's answer about one account.
+//
+// Hosts treat UNSPECIFIED, a value they do not recognize, and a gRPC error
+// other than Unimplemented like UNAVAILABLE: log, keep the account's current
+// state, and retry later. None of them ever counts as ACTIVE.
+enum CheckAccountStatus {
+  // Not an answer. A zero-value response decodes to this, and the host
+  // handles it like UNAVAILABLE.
+  CHECK_ACCOUNT_STATUS_UNSPECIFIED = 0;
+  // The account exists and still passes the plugin's access rules.
+  CHECK_ACCOUNT_STATUS_ACTIVE = 1;
+  // The provider no longer knows the account.
+  CHECK_ACCOUNT_STATUS_NOT_FOUND = 2;
+  // The provider disabled or locked the account.
+  CHECK_ACCOUNT_STATUS_DISABLED = 3;
+  // The account exists but no longer passes the plugin's access rules. The
+  // host revokes the account's Silo sessions and deletes its API keys.
+  //
+  // A refused refresh token, such as an OIDC invalid_grant, is NOT_PERMITTED
+  // only when the token is known to be inside its lifetime, so the refusal
+  // must be a revocation. Providers refuse expired and revoked tokens alike;
+  // answer UNSUPPORTED when the token may have expired.
+  CHECK_ACCOUNT_STATUS_NOT_PERMITTED = 4;
+  // The plugin cannot check this account, for example because the provider
+  // never issued a refresh token, or refused one that may have expired. The
+  // host gives the account's sessions an absolute age limit instead of
+  // signing the person out.
+  CHECK_ACCOUNT_STATUS_UNSUPPORTED = 5;
+  // The provider could not be reached. The host retries later and does not
+  // treat this as a denial.
+  CHECK_ACCOUNT_STATUS_UNAVAILABLE = 6;
+}
+
+message CheckAccountRequest {
+  string external_subject = 1;
+  // State from the latest AuthenticateResponse.refresh_state or
+  // CheckAccountResponse.account.refresh_state for this account.
+  google.protobuf.Struct refresh_state = 2;
+}
+
+message CheckAccountResponse {
+  CheckAccountStatus status = 1;
+  // Current account details when status is ACTIVE; optional otherwise.
+  // account.refresh_state carries rotated provider state, such as a new
+  // refresh token, with the same unset/empty rules as AuthenticateResponse.
+  //
+  // The host applies every update to the account named by the request's
+  // external_subject. It ignores account.external_subject, account.denial and
+  // account.denial_detail here; status alone carries the verdict. A
+  // managed_role value the host does not recognize leaves the role unchanged.
+  AuthenticateResponse account = 2;
+}
+
+message AuthEndSessionUrlRequest {
+  string external_subject = 1;
+  // Latest stored refresh_state for this account. A plugin that needs an
+  // id_token_hint keeps the ID token there.
+  google.protobuf.Struct refresh_state = 2;
+  // Absolute URL the provider should return the browser to after logout.
+  // Empty means the host asks for no redirect.
+  string post_logout_redirect_uri = 3;
+}
+
+message AuthEndSessionUrlResponse {
+  // Absolute https URL of the provider logout page. Empty means the provider
+  // has no end-session endpoint or the operator turned provider logout off.
+  string url = 1;
 }

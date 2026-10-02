@@ -81,10 +81,29 @@ jobs:
           package main
 
           import (
+            "context"
+
+            pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
             _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/config"
             _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/convert"
-            _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
-            _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+            "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+            "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+          )
+
+          // Auth provider additions from v0.22.0, referenced the way an
+          // external plugin and the host use them.
+          var (
+            _ pluginv1.AuthProviderChecksServer = pluginv1.UnimplementedAuthProviderChecksServer{}
+            _ = &pluginv1.AuthenticateResponse{
+              EmailVerified: new(bool),
+              ManagedRole:   pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN,
+              Denial:        pluginv1.AuthDenial_AUTH_DENIAL_NOT_PERMITTED,
+            }
+            _ = &pluginv1.CheckAccountResponse{Status: pluginv1.CheckAccountStatus_CHECK_ACCOUNT_STATUS_ACTIVE}
+            _ = &pluginv1.AuthTestConnectionResponse{Steps: []*pluginv1.AuthTestStep{{Id: "smoke"}}}
+            _ = (*runtime.Client).AuthProviderChecks
+            _ = runtime.WithConfigure(func(context.Context, []*pluginv1.ConfigEntry) error { return nil })
+            _ = manifest.AuthProviderSupportsConnectionTest
           )
 
           func main() {}

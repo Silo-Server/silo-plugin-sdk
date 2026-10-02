@@ -22,6 +22,201 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// AuthManagedRole is the Silo role a provider asks the host to apply to the
+// account. UNSPECIFIED leaves the role to the host.
+type AuthManagedRole int32
+
+const (
+	AuthManagedRole_AUTH_MANAGED_ROLE_UNSPECIFIED AuthManagedRole = 0
+	AuthManagedRole_AUTH_MANAGED_ROLE_USER        AuthManagedRole = 1
+	AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN       AuthManagedRole = 2
+)
+
+// Enum value maps for AuthManagedRole.
+var (
+	AuthManagedRole_name = map[int32]string{
+		0: "AUTH_MANAGED_ROLE_UNSPECIFIED",
+		1: "AUTH_MANAGED_ROLE_USER",
+		2: "AUTH_MANAGED_ROLE_ADMIN",
+	}
+	AuthManagedRole_value = map[string]int32{
+		"AUTH_MANAGED_ROLE_UNSPECIFIED": 0,
+		"AUTH_MANAGED_ROLE_USER":        1,
+		"AUTH_MANAGED_ROLE_ADMIN":       2,
+	}
+)
+
+func (x AuthManagedRole) Enum() *AuthManagedRole {
+	p := new(AuthManagedRole)
+	*p = x
+	return p
+}
+
+func (x AuthManagedRole) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AuthManagedRole) Descriptor() protoreflect.EnumDescriptor {
+	return file_silo_plugin_v1_auth_provider_proto_enumTypes[0].Descriptor()
+}
+
+func (AuthManagedRole) Type() protoreflect.EnumType {
+	return &file_silo_plugin_v1_auth_provider_proto_enumTypes[0]
+}
+
+func (x AuthManagedRole) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AuthManagedRole.Descriptor instead.
+func (AuthManagedRole) EnumDescriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{0}
+}
+
+// AuthDenial tells the host why a provider refused a sign-in. A response with
+// a denial other than UNSPECIFIED is a refusal, not an identity.
+type AuthDenial int32
+
+const (
+	AuthDenial_AUTH_DENIAL_UNSPECIFIED          AuthDenial = 0
+	AuthDenial_AUTH_DENIAL_INVALID_CREDENTIALS  AuthDenial = 1
+	AuthDenial_AUTH_DENIAL_NOT_PERMITTED        AuthDenial = 2
+	AuthDenial_AUTH_DENIAL_ACCOUNT_DISABLED     AuthDenial = 3
+	AuthDenial_AUTH_DENIAL_PASSWORD_EXPIRED     AuthDenial = 4
+	AuthDenial_AUTH_DENIAL_PROVIDER_UNAVAILABLE AuthDenial = 5
+)
+
+// Enum value maps for AuthDenial.
+var (
+	AuthDenial_name = map[int32]string{
+		0: "AUTH_DENIAL_UNSPECIFIED",
+		1: "AUTH_DENIAL_INVALID_CREDENTIALS",
+		2: "AUTH_DENIAL_NOT_PERMITTED",
+		3: "AUTH_DENIAL_ACCOUNT_DISABLED",
+		4: "AUTH_DENIAL_PASSWORD_EXPIRED",
+		5: "AUTH_DENIAL_PROVIDER_UNAVAILABLE",
+	}
+	AuthDenial_value = map[string]int32{
+		"AUTH_DENIAL_UNSPECIFIED":          0,
+		"AUTH_DENIAL_INVALID_CREDENTIALS":  1,
+		"AUTH_DENIAL_NOT_PERMITTED":        2,
+		"AUTH_DENIAL_ACCOUNT_DISABLED":     3,
+		"AUTH_DENIAL_PASSWORD_EXPIRED":     4,
+		"AUTH_DENIAL_PROVIDER_UNAVAILABLE": 5,
+	}
+)
+
+func (x AuthDenial) Enum() *AuthDenial {
+	p := new(AuthDenial)
+	*p = x
+	return p
+}
+
+func (x AuthDenial) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AuthDenial) Descriptor() protoreflect.EnumDescriptor {
+	return file_silo_plugin_v1_auth_provider_proto_enumTypes[1].Descriptor()
+}
+
+func (AuthDenial) Type() protoreflect.EnumType {
+	return &file_silo_plugin_v1_auth_provider_proto_enumTypes[1]
+}
+
+func (x AuthDenial) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AuthDenial.Descriptor instead.
+func (AuthDenial) EnumDescriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{1}
+}
+
+// CheckAccountStatus is the provider's answer about one account.
+//
+// Hosts treat UNSPECIFIED, a value they do not recognize, and a gRPC error
+// other than Unimplemented like UNAVAILABLE: log, keep the account's current
+// state, and retry later. None of them ever counts as ACTIVE.
+type CheckAccountStatus int32
+
+const (
+	// Not an answer. A zero-value response decodes to this, and the host
+	// handles it like UNAVAILABLE.
+	CheckAccountStatus_CHECK_ACCOUNT_STATUS_UNSPECIFIED CheckAccountStatus = 0
+	// The account exists and still passes the plugin's access rules.
+	CheckAccountStatus_CHECK_ACCOUNT_STATUS_ACTIVE CheckAccountStatus = 1
+	// The provider no longer knows the account.
+	CheckAccountStatus_CHECK_ACCOUNT_STATUS_NOT_FOUND CheckAccountStatus = 2
+	// The provider disabled or locked the account.
+	CheckAccountStatus_CHECK_ACCOUNT_STATUS_DISABLED CheckAccountStatus = 3
+	// The account exists but no longer passes the plugin's access rules. The
+	// host revokes the account's Silo sessions and deletes its API keys.
+	//
+	// A refused refresh token, such as an OIDC invalid_grant, is NOT_PERMITTED
+	// only when the token is known to be inside its lifetime, so the refusal
+	// must be a revocation. Providers refuse expired and revoked tokens alike;
+	// answer UNSUPPORTED when the token may have expired.
+	CheckAccountStatus_CHECK_ACCOUNT_STATUS_NOT_PERMITTED CheckAccountStatus = 4
+	// The plugin cannot check this account, for example because the provider
+	// never issued a refresh token, or refused one that may have expired. The
+	// host gives the account's sessions an absolute age limit instead of
+	// signing the person out.
+	CheckAccountStatus_CHECK_ACCOUNT_STATUS_UNSUPPORTED CheckAccountStatus = 5
+	// The provider could not be reached. The host retries later and does not
+	// treat this as a denial.
+	CheckAccountStatus_CHECK_ACCOUNT_STATUS_UNAVAILABLE CheckAccountStatus = 6
+)
+
+// Enum value maps for CheckAccountStatus.
+var (
+	CheckAccountStatus_name = map[int32]string{
+		0: "CHECK_ACCOUNT_STATUS_UNSPECIFIED",
+		1: "CHECK_ACCOUNT_STATUS_ACTIVE",
+		2: "CHECK_ACCOUNT_STATUS_NOT_FOUND",
+		3: "CHECK_ACCOUNT_STATUS_DISABLED",
+		4: "CHECK_ACCOUNT_STATUS_NOT_PERMITTED",
+		5: "CHECK_ACCOUNT_STATUS_UNSUPPORTED",
+		6: "CHECK_ACCOUNT_STATUS_UNAVAILABLE",
+	}
+	CheckAccountStatus_value = map[string]int32{
+		"CHECK_ACCOUNT_STATUS_UNSPECIFIED":   0,
+		"CHECK_ACCOUNT_STATUS_ACTIVE":        1,
+		"CHECK_ACCOUNT_STATUS_NOT_FOUND":     2,
+		"CHECK_ACCOUNT_STATUS_DISABLED":      3,
+		"CHECK_ACCOUNT_STATUS_NOT_PERMITTED": 4,
+		"CHECK_ACCOUNT_STATUS_UNSUPPORTED":   5,
+		"CHECK_ACCOUNT_STATUS_UNAVAILABLE":   6,
+	}
+)
+
+func (x CheckAccountStatus) Enum() *CheckAccountStatus {
+	p := new(CheckAccountStatus)
+	*p = x
+	return p
+}
+
+func (x CheckAccountStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CheckAccountStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_silo_plugin_v1_auth_provider_proto_enumTypes[2].Descriptor()
+}
+
+func (CheckAccountStatus) Type() protoreflect.EnumType {
+	return &file_silo_plugin_v1_auth_provider_proto_enumTypes[2]
+}
+
+func (x CheckAccountStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CheckAccountStatus.Descriptor instead.
+func (CheckAccountStatus) EnumDescriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{2}
+}
+
 type AuthenticateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
@@ -87,9 +282,35 @@ type AuthenticateResponse struct {
 	ExternalSubject string                 `protobuf:"bytes,1,opt,name=external_subject,json=externalSubject,proto3" json:"external_subject,omitempty"`
 	DisplayName     string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	Email           string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	Claims          *structpb.Struct       `protobuf:"bytes,4,opt,name=claims,proto3" json:"claims,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Free-form provider claims. The host does not read them; prefer the typed
+	// fields below.
+	Claims *structpb.Struct `protobuf:"bytes,4,opt,name=claims,proto3" json:"claims,omitempty"`
+	// Issuer that asserted external_subject, such as an OIDC "iss" or an LDAP
+	// server URL. Informational; the host keys identities by installation and
+	// external_subject.
+	Issuer string `protobuf:"bytes,5,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	// Preferred login name, used as the base for a new Silo username.
+	Username string `protobuf:"bytes,6,opt,name=username,proto3" json:"username,omitempty"`
+	// Whether the provider verified email. Unset means the provider did not say.
+	EmailVerified *bool `protobuf:"varint,7,opt,name=email_verified,json=emailVerified,proto3,oneof" json:"email_verified,omitempty"`
+	// Provider group names after the plugin's normalization.
+	Groups []string `protobuf:"bytes,8,rep,name=groups,proto3" json:"groups,omitempty"`
+	// Absolute http(s) URL of the account picture.
+	PictureUrl string `protobuf:"bytes,9,opt,name=picture_url,json=pictureUrl,proto3" json:"picture_url,omitempty"`
+	// Role the plugin's group rules assign. UNSPECIFIED leaves the role alone.
+	ManagedRole AuthManagedRole `protobuf:"varint,10,opt,name=managed_role,json=managedRole,proto3,enum=silo.plugin.v1.AuthManagedRole" json:"managed_role,omitempty"`
+	// Opaque provider state for later CheckAccount calls, such as a refresh
+	// token. The host stores it encrypted, never reads it, and sends it back
+	// unchanged. Unset keeps the stored state; an empty Struct clears it.
+	RefreshState *structpb.Struct `protobuf:"bytes,11,opt,name=refresh_state,json=refreshState,proto3" json:"refresh_state,omitempty"`
+	// Why the provider refused the sign-in. When set, leave external_subject
+	// empty so hosts built before this field existed still refuse the sign-in.
+	Denial AuthDenial `protobuf:"varint,12,opt,name=denial,proto3,enum=silo.plugin.v1.AuthDenial" json:"denial,omitempty"`
+	// Operator-facing detail for the denial. The host logs it and never shows
+	// it to the user. Never include secrets.
+	DenialDetail  string `protobuf:"bytes,13,opt,name=denial_detail,json=denialDetail,proto3" json:"denial_detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AuthenticateResponse) Reset() {
@@ -150,12 +371,80 @@ func (x *AuthenticateResponse) GetClaims() *structpb.Struct {
 	return nil
 }
 
+func (x *AuthenticateResponse) GetIssuer() string {
+	if x != nil {
+		return x.Issuer
+	}
+	return ""
+}
+
+func (x *AuthenticateResponse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *AuthenticateResponse) GetEmailVerified() bool {
+	if x != nil && x.EmailVerified != nil {
+		return *x.EmailVerified
+	}
+	return false
+}
+
+func (x *AuthenticateResponse) GetGroups() []string {
+	if x != nil {
+		return x.Groups
+	}
+	return nil
+}
+
+func (x *AuthenticateResponse) GetPictureUrl() string {
+	if x != nil {
+		return x.PictureUrl
+	}
+	return ""
+}
+
+func (x *AuthenticateResponse) GetManagedRole() AuthManagedRole {
+	if x != nil {
+		return x.ManagedRole
+	}
+	return AuthManagedRole_AUTH_MANAGED_ROLE_UNSPECIFIED
+}
+
+func (x *AuthenticateResponse) GetRefreshState() *structpb.Struct {
+	if x != nil {
+		return x.RefreshState
+	}
+	return nil
+}
+
+func (x *AuthenticateResponse) GetDenial() AuthDenial {
+	if x != nil {
+		return x.Denial
+	}
+	return AuthDenial_AUTH_DENIAL_UNSPECIFIED
+}
+
+func (x *AuthenticateResponse) GetDenialDetail() string {
+	if x != nil {
+		return x.DenialDetail
+	}
+	return ""
+}
+
 type InitAuthorizeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RedirectUri   string                 `protobuf:"bytes,1,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
-	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
-	Linking       bool                   `protobuf:"varint,3,opt,name=linking,proto3" json:"linking,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	RedirectUri string                 `protobuf:"bytes,1,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	State       string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	Linking     bool                   `protobuf:"varint,3,opt,name=linking,proto3" json:"linking,omitempty"`
+	Metadata    *structpb.Struct       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// OIDC "prompt" value requested by the host, such as "login" or
+	// "select_account". Empty means the plugin applies its configured default.
+	Prompt string `protobuf:"bytes,5,opt,name=prompt,proto3" json:"prompt,omitempty"`
+	// Login hint to pre-fill the provider's sign-in form. Empty means none.
+	LoginHint     string `protobuf:"bytes,6,opt,name=login_hint,json=loginHint,proto3" json:"login_hint,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -216,6 +505,20 @@ func (x *InitAuthorizeRequest) GetMetadata() *structpb.Struct {
 		return x.Metadata
 	}
 	return nil
+}
+
+func (x *InitAuthorizeRequest) GetPrompt() string {
+	if x != nil {
+		return x.Prompt
+	}
+	return ""
+}
+
+func (x *InitAuthorizeRequest) GetLoginHint() string {
+	if x != nil {
+		return x.LoginHint
+	}
+	return ""
 }
 
 type InitAuthorizeResponse struct {
@@ -390,25 +693,437 @@ func (x *RefreshSessionRequest) GetRefreshState() *structpb.Struct {
 	return nil
 }
 
+type AuthTestConnectionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Staged configuration in the same shape as ConfigureRequest.config. Secret
+	// fields carry plaintext. It may differ from the running configuration.
+	Config        []*ConfigEntry `protobuf:"bytes,1,rep,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthTestConnectionRequest) Reset() {
+	*x = AuthTestConnectionRequest{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthTestConnectionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthTestConnectionRequest) ProtoMessage() {}
+
+func (x *AuthTestConnectionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthTestConnectionRequest.ProtoReflect.Descriptor instead.
+func (*AuthTestConnectionRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *AuthTestConnectionRequest) GetConfig() []*ConfigEntry {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+type AuthTestConnectionResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Checks in the order they ran. A plugin may stop after the first failure.
+	Steps []*AuthTestStep `protobuf:"bytes,1,rep,name=steps,proto3" json:"steps,omitempty"`
+	// True only when every check the plugin ran passed.
+	Ok            bool `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthTestConnectionResponse) Reset() {
+	*x = AuthTestConnectionResponse{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthTestConnectionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthTestConnectionResponse) ProtoMessage() {}
+
+func (x *AuthTestConnectionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthTestConnectionResponse.ProtoReflect.Descriptor instead.
+func (*AuthTestConnectionResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *AuthTestConnectionResponse) GetSteps() []*AuthTestStep {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
+func (x *AuthTestConnectionResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+// AuthTestStep is one check shown to the operator, such as "Discovery
+// document reachable".
+type AuthTestStep struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable machine identifier, such as "discovery" or "service_bind".
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Operator-facing label.
+	Label string `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Ok    bool   `protobuf:"varint,3,opt,name=ok,proto3" json:"ok,omitempty"`
+	// Operator-facing result or failure reason. Never include secrets.
+	Message       string `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthTestStep) Reset() {
+	*x = AuthTestStep{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthTestStep) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthTestStep) ProtoMessage() {}
+
+func (x *AuthTestStep) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthTestStep.ProtoReflect.Descriptor instead.
+func (*AuthTestStep) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AuthTestStep) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AuthTestStep) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *AuthTestStep) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *AuthTestStep) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type CheckAccountRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ExternalSubject string                 `protobuf:"bytes,1,opt,name=external_subject,json=externalSubject,proto3" json:"external_subject,omitempty"`
+	// State from the latest AuthenticateResponse.refresh_state or
+	// CheckAccountResponse.account.refresh_state for this account.
+	RefreshState  *structpb.Struct `protobuf:"bytes,2,opt,name=refresh_state,json=refreshState,proto3" json:"refresh_state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckAccountRequest) Reset() {
+	*x = CheckAccountRequest{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckAccountRequest) ProtoMessage() {}
+
+func (x *CheckAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckAccountRequest.ProtoReflect.Descriptor instead.
+func (*CheckAccountRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CheckAccountRequest) GetExternalSubject() string {
+	if x != nil {
+		return x.ExternalSubject
+	}
+	return ""
+}
+
+func (x *CheckAccountRequest) GetRefreshState() *structpb.Struct {
+	if x != nil {
+		return x.RefreshState
+	}
+	return nil
+}
+
+type CheckAccountResponse struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Status CheckAccountStatus     `protobuf:"varint,1,opt,name=status,proto3,enum=silo.plugin.v1.CheckAccountStatus" json:"status,omitempty"`
+	// Current account details when status is ACTIVE; optional otherwise.
+	// account.refresh_state carries rotated provider state, such as a new
+	// refresh token, with the same unset/empty rules as AuthenticateResponse.
+	//
+	// The host applies every update to the account named by the request's
+	// external_subject. It ignores account.external_subject, account.denial and
+	// account.denial_detail here; status alone carries the verdict. A
+	// managed_role value the host does not recognize leaves the role unchanged.
+	Account       *AuthenticateResponse `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckAccountResponse) Reset() {
+	*x = CheckAccountResponse{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckAccountResponse) ProtoMessage() {}
+
+func (x *CheckAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckAccountResponse.ProtoReflect.Descriptor instead.
+func (*CheckAccountResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *CheckAccountResponse) GetStatus() CheckAccountStatus {
+	if x != nil {
+		return x.Status
+	}
+	return CheckAccountStatus_CHECK_ACCOUNT_STATUS_UNSPECIFIED
+}
+
+func (x *CheckAccountResponse) GetAccount() *AuthenticateResponse {
+	if x != nil {
+		return x.Account
+	}
+	return nil
+}
+
+type AuthEndSessionUrlRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ExternalSubject string                 `protobuf:"bytes,1,opt,name=external_subject,json=externalSubject,proto3" json:"external_subject,omitempty"`
+	// Latest stored refresh_state for this account. A plugin that needs an
+	// id_token_hint keeps the ID token there.
+	RefreshState *structpb.Struct `protobuf:"bytes,2,opt,name=refresh_state,json=refreshState,proto3" json:"refresh_state,omitempty"`
+	// Absolute URL the provider should return the browser to after logout.
+	// Empty means the host asks for no redirect.
+	PostLogoutRedirectUri string `protobuf:"bytes,3,opt,name=post_logout_redirect_uri,json=postLogoutRedirectUri,proto3" json:"post_logout_redirect_uri,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *AuthEndSessionUrlRequest) Reset() {
+	*x = AuthEndSessionUrlRequest{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthEndSessionUrlRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthEndSessionUrlRequest) ProtoMessage() {}
+
+func (x *AuthEndSessionUrlRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthEndSessionUrlRequest.ProtoReflect.Descriptor instead.
+func (*AuthEndSessionUrlRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AuthEndSessionUrlRequest) GetExternalSubject() string {
+	if x != nil {
+		return x.ExternalSubject
+	}
+	return ""
+}
+
+func (x *AuthEndSessionUrlRequest) GetRefreshState() *structpb.Struct {
+	if x != nil {
+		return x.RefreshState
+	}
+	return nil
+}
+
+func (x *AuthEndSessionUrlRequest) GetPostLogoutRedirectUri() string {
+	if x != nil {
+		return x.PostLogoutRedirectUri
+	}
+	return ""
+}
+
+type AuthEndSessionUrlResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Absolute https URL of the provider logout page. Empty means the provider
+	// has no end-session endpoint or the operator turned provider logout off.
+	Url           string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthEndSessionUrlResponse) Reset() {
+	*x = AuthEndSessionUrlResponse{}
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthEndSessionUrlResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthEndSessionUrlResponse) ProtoMessage() {}
+
+func (x *AuthEndSessionUrlResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_auth_provider_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthEndSessionUrlResponse.ProtoReflect.Descriptor instead.
+func (*AuthEndSessionUrlResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_auth_provider_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *AuthEndSessionUrlResponse) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
 var File_silo_plugin_v1_auth_provider_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\n" +
-	"\"silo/plugin/v1/auth_provider.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"\x82\x01\n" +
+	"\"silo/plugin/v1/auth_provider.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bsilo/plugin/v1/common.proto\"\x82\x01\n" +
 	"\x13AuthenticateRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x123\n" +
-	"\bmetadata\x18\x03 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xab\x01\n" +
+	"\bmetadata\x18\x03 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xb2\x04\n" +
 	"\x14AuthenticateResponse\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12/\n" +
-	"\x06claims\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x06claims\"\x9e\x01\n" +
+	"\x06claims\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x06claims\x12\x16\n" +
+	"\x06issuer\x18\x05 \x01(\tR\x06issuer\x12\x1a\n" +
+	"\busername\x18\x06 \x01(\tR\busername\x12*\n" +
+	"\x0eemail_verified\x18\a \x01(\bH\x00R\remailVerified\x88\x01\x01\x12\x16\n" +
+	"\x06groups\x18\b \x03(\tR\x06groups\x12\x1f\n" +
+	"\vpicture_url\x18\t \x01(\tR\n" +
+	"pictureUrl\x12B\n" +
+	"\fmanaged_role\x18\n" +
+	" \x01(\x0e2\x1f.silo.plugin.v1.AuthManagedRoleR\vmanagedRole\x12<\n" +
+	"\rrefresh_state\x18\v \x01(\v2\x17.google.protobuf.StructR\frefreshState\x122\n" +
+	"\x06denial\x18\f \x01(\x0e2\x1a.silo.plugin.v1.AuthDenialR\x06denial\x12#\n" +
+	"\rdenial_detail\x18\r \x01(\tR\fdenialDetailB\x11\n" +
+	"\x0f_email_verified\"\xd5\x01\n" +
 	"\x14InitAuthorizeRequest\x12!\n" +
 	"\fredirect_uri\x18\x01 \x01(\tR\vredirectUri\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\x12\x18\n" +
 	"\alinking\x18\x03 \x01(\bR\alinking\x123\n" +
-	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"|\n" +
+	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x16\n" +
+	"\x06prompt\x18\x05 \x01(\tR\x06prompt\x12\x1d\n" +
+	"\n" +
+	"login_hint\x18\x06 \x01(\tR\tloginHint\"|\n" +
 	"\x15InitAuthorizeResponse\x12#\n" +
 	"\rauthorize_url\x18\x01 \x01(\tR\fauthorizeUrl\x12>\n" +
 	"\x0eprovider_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\rproviderState\"\xa2\x01\n" +
@@ -419,12 +1134,58 @@ const file_silo_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\x0eprovider_state\x18\x04 \x01(\v2\x17.google.protobuf.StructR\rproviderState\"\x80\x01\n" +
 	"\x15RefreshSessionRequest\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12<\n" +
-	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState2\x81\x03\n" +
+	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\"P\n" +
+	"\x19AuthTestConnectionRequest\x123\n" +
+	"\x06config\x18\x01 \x03(\v2\x1b.silo.plugin.v1.ConfigEntryR\x06config\"`\n" +
+	"\x1aAuthTestConnectionResponse\x122\n" +
+	"\x05steps\x18\x01 \x03(\v2\x1c.silo.plugin.v1.AuthTestStepR\x05steps\x12\x0e\n" +
+	"\x02ok\x18\x02 \x01(\bR\x02ok\"^\n" +
+	"\fAuthTestStep\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\x12\x0e\n" +
+	"\x02ok\x18\x03 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\"~\n" +
+	"\x13CheckAccountRequest\x12)\n" +
+	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12<\n" +
+	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\"\x92\x01\n" +
+	"\x14CheckAccountResponse\x12:\n" +
+	"\x06status\x18\x01 \x01(\x0e2\".silo.plugin.v1.CheckAccountStatusR\x06status\x12>\n" +
+	"\aaccount\x18\x02 \x01(\v2$.silo.plugin.v1.AuthenticateResponseR\aaccount\"\xbc\x01\n" +
+	"\x18AuthEndSessionUrlRequest\x12)\n" +
+	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12<\n" +
+	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\x127\n" +
+	"\x18post_logout_redirect_uri\x18\x03 \x01(\tR\x15postLogoutRedirectUri\"-\n" +
+	"\x19AuthEndSessionUrlResponse\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url*m\n" +
+	"\x0fAuthManagedRole\x12!\n" +
+	"\x1dAUTH_MANAGED_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16AUTH_MANAGED_ROLE_USER\x10\x01\x12\x1b\n" +
+	"\x17AUTH_MANAGED_ROLE_ADMIN\x10\x02*\xd7\x01\n" +
+	"\n" +
+	"AuthDenial\x12\x1b\n" +
+	"\x17AUTH_DENIAL_UNSPECIFIED\x10\x00\x12#\n" +
+	"\x1fAUTH_DENIAL_INVALID_CREDENTIALS\x10\x01\x12\x1d\n" +
+	"\x19AUTH_DENIAL_NOT_PERMITTED\x10\x02\x12 \n" +
+	"\x1cAUTH_DENIAL_ACCOUNT_DISABLED\x10\x03\x12 \n" +
+	"\x1cAUTH_DENIAL_PASSWORD_EXPIRED\x10\x04\x12$\n" +
+	" AUTH_DENIAL_PROVIDER_UNAVAILABLE\x10\x05*\x96\x02\n" +
+	"\x12CheckAccountStatus\x12$\n" +
+	" CHECK_ACCOUNT_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bCHECK_ACCOUNT_STATUS_ACTIVE\x10\x01\x12\"\n" +
+	"\x1eCHECK_ACCOUNT_STATUS_NOT_FOUND\x10\x02\x12!\n" +
+	"\x1dCHECK_ACCOUNT_STATUS_DISABLED\x10\x03\x12&\n" +
+	"\"CHECK_ACCOUNT_STATUS_NOT_PERMITTED\x10\x04\x12$\n" +
+	" CHECK_ACCOUNT_STATUS_UNSUPPORTED\x10\x05\x12$\n" +
+	" CHECK_ACCOUNT_STATUS_UNAVAILABLE\x10\x062\x81\x03\n" +
 	"\fAuthProvider\x12Y\n" +
 	"\fAuthenticate\x12#.silo.plugin.v1.AuthenticateRequest\x1a$.silo.plugin.v1.AuthenticateResponse\x12\\\n" +
 	"\rInitAuthorize\x12$.silo.plugin.v1.InitAuthorizeRequest\x1a%.silo.plugin.v1.InitAuthorizeResponse\x12Y\n" +
 	"\fExchangeCode\x12#.silo.plugin.v1.ExchangeCodeRequest\x1a$.silo.plugin.v1.AuthenticateResponse\x12]\n" +
-	"\x0eRefreshSession\x12%.silo.plugin.v1.RefreshSessionRequest\x1a$.silo.plugin.v1.AuthenticateResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
+	"\x0eRefreshSession\x12%.silo.plugin.v1.RefreshSessionRequest\x1a$.silo.plugin.v1.AuthenticateResponse2\xbe\x02\n" +
+	"\x12AuthProviderChecks\x12g\n" +
+	"\x0eTestConnection\x12).silo.plugin.v1.AuthTestConnectionRequest\x1a*.silo.plugin.v1.AuthTestConnectionResponse\x12Y\n" +
+	"\fCheckAccount\x12#.silo.plugin.v1.CheckAccountRequest\x1a$.silo.plugin.v1.CheckAccountResponse\x12d\n" +
+	"\rEndSessionUrl\x12(.silo.plugin.v1.AuthEndSessionUrlRequest\x1a).silo.plugin.v1.AuthEndSessionUrlResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_silo_plugin_v1_auth_provider_proto_rawDescOnce sync.Once
@@ -438,36 +1199,63 @@ func file_silo_plugin_v1_auth_provider_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_auth_provider_proto_rawDescData
 }
 
-var file_silo_plugin_v1_auth_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_silo_plugin_v1_auth_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_silo_plugin_v1_auth_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_silo_plugin_v1_auth_provider_proto_goTypes = []any{
-	(*AuthenticateRequest)(nil),   // 0: silo.plugin.v1.AuthenticateRequest
-	(*AuthenticateResponse)(nil),  // 1: silo.plugin.v1.AuthenticateResponse
-	(*InitAuthorizeRequest)(nil),  // 2: silo.plugin.v1.InitAuthorizeRequest
-	(*InitAuthorizeResponse)(nil), // 3: silo.plugin.v1.InitAuthorizeResponse
-	(*ExchangeCodeRequest)(nil),   // 4: silo.plugin.v1.ExchangeCodeRequest
-	(*RefreshSessionRequest)(nil), // 5: silo.plugin.v1.RefreshSessionRequest
-	(*structpb.Struct)(nil),       // 6: google.protobuf.Struct
+	(AuthManagedRole)(0),               // 0: silo.plugin.v1.AuthManagedRole
+	(AuthDenial)(0),                    // 1: silo.plugin.v1.AuthDenial
+	(CheckAccountStatus)(0),            // 2: silo.plugin.v1.CheckAccountStatus
+	(*AuthenticateRequest)(nil),        // 3: silo.plugin.v1.AuthenticateRequest
+	(*AuthenticateResponse)(nil),       // 4: silo.plugin.v1.AuthenticateResponse
+	(*InitAuthorizeRequest)(nil),       // 5: silo.plugin.v1.InitAuthorizeRequest
+	(*InitAuthorizeResponse)(nil),      // 6: silo.plugin.v1.InitAuthorizeResponse
+	(*ExchangeCodeRequest)(nil),        // 7: silo.plugin.v1.ExchangeCodeRequest
+	(*RefreshSessionRequest)(nil),      // 8: silo.plugin.v1.RefreshSessionRequest
+	(*AuthTestConnectionRequest)(nil),  // 9: silo.plugin.v1.AuthTestConnectionRequest
+	(*AuthTestConnectionResponse)(nil), // 10: silo.plugin.v1.AuthTestConnectionResponse
+	(*AuthTestStep)(nil),               // 11: silo.plugin.v1.AuthTestStep
+	(*CheckAccountRequest)(nil),        // 12: silo.plugin.v1.CheckAccountRequest
+	(*CheckAccountResponse)(nil),       // 13: silo.plugin.v1.CheckAccountResponse
+	(*AuthEndSessionUrlRequest)(nil),   // 14: silo.plugin.v1.AuthEndSessionUrlRequest
+	(*AuthEndSessionUrlResponse)(nil),  // 15: silo.plugin.v1.AuthEndSessionUrlResponse
+	(*structpb.Struct)(nil),            // 16: google.protobuf.Struct
+	(*ConfigEntry)(nil),                // 17: silo.plugin.v1.ConfigEntry
 }
 var file_silo_plugin_v1_auth_provider_proto_depIdxs = []int32{
-	6,  // 0: silo.plugin.v1.AuthenticateRequest.metadata:type_name -> google.protobuf.Struct
-	6,  // 1: silo.plugin.v1.AuthenticateResponse.claims:type_name -> google.protobuf.Struct
-	6,  // 2: silo.plugin.v1.InitAuthorizeRequest.metadata:type_name -> google.protobuf.Struct
-	6,  // 3: silo.plugin.v1.InitAuthorizeResponse.provider_state:type_name -> google.protobuf.Struct
-	6,  // 4: silo.plugin.v1.ExchangeCodeRequest.provider_state:type_name -> google.protobuf.Struct
-	6,  // 5: silo.plugin.v1.RefreshSessionRequest.refresh_state:type_name -> google.protobuf.Struct
-	0,  // 6: silo.plugin.v1.AuthProvider.Authenticate:input_type -> silo.plugin.v1.AuthenticateRequest
-	2,  // 7: silo.plugin.v1.AuthProvider.InitAuthorize:input_type -> silo.plugin.v1.InitAuthorizeRequest
-	4,  // 8: silo.plugin.v1.AuthProvider.ExchangeCode:input_type -> silo.plugin.v1.ExchangeCodeRequest
-	5,  // 9: silo.plugin.v1.AuthProvider.RefreshSession:input_type -> silo.plugin.v1.RefreshSessionRequest
-	1,  // 10: silo.plugin.v1.AuthProvider.Authenticate:output_type -> silo.plugin.v1.AuthenticateResponse
-	3,  // 11: silo.plugin.v1.AuthProvider.InitAuthorize:output_type -> silo.plugin.v1.InitAuthorizeResponse
-	1,  // 12: silo.plugin.v1.AuthProvider.ExchangeCode:output_type -> silo.plugin.v1.AuthenticateResponse
-	1,  // 13: silo.plugin.v1.AuthProvider.RefreshSession:output_type -> silo.plugin.v1.AuthenticateResponse
-	10, // [10:14] is the sub-list for method output_type
-	6,  // [6:10] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	16, // 0: silo.plugin.v1.AuthenticateRequest.metadata:type_name -> google.protobuf.Struct
+	16, // 1: silo.plugin.v1.AuthenticateResponse.claims:type_name -> google.protobuf.Struct
+	0,  // 2: silo.plugin.v1.AuthenticateResponse.managed_role:type_name -> silo.plugin.v1.AuthManagedRole
+	16, // 3: silo.plugin.v1.AuthenticateResponse.refresh_state:type_name -> google.protobuf.Struct
+	1,  // 4: silo.plugin.v1.AuthenticateResponse.denial:type_name -> silo.plugin.v1.AuthDenial
+	16, // 5: silo.plugin.v1.InitAuthorizeRequest.metadata:type_name -> google.protobuf.Struct
+	16, // 6: silo.plugin.v1.InitAuthorizeResponse.provider_state:type_name -> google.protobuf.Struct
+	16, // 7: silo.plugin.v1.ExchangeCodeRequest.provider_state:type_name -> google.protobuf.Struct
+	16, // 8: silo.plugin.v1.RefreshSessionRequest.refresh_state:type_name -> google.protobuf.Struct
+	17, // 9: silo.plugin.v1.AuthTestConnectionRequest.config:type_name -> silo.plugin.v1.ConfigEntry
+	11, // 10: silo.plugin.v1.AuthTestConnectionResponse.steps:type_name -> silo.plugin.v1.AuthTestStep
+	16, // 11: silo.plugin.v1.CheckAccountRequest.refresh_state:type_name -> google.protobuf.Struct
+	2,  // 12: silo.plugin.v1.CheckAccountResponse.status:type_name -> silo.plugin.v1.CheckAccountStatus
+	4,  // 13: silo.plugin.v1.CheckAccountResponse.account:type_name -> silo.plugin.v1.AuthenticateResponse
+	16, // 14: silo.plugin.v1.AuthEndSessionUrlRequest.refresh_state:type_name -> google.protobuf.Struct
+	3,  // 15: silo.plugin.v1.AuthProvider.Authenticate:input_type -> silo.plugin.v1.AuthenticateRequest
+	5,  // 16: silo.plugin.v1.AuthProvider.InitAuthorize:input_type -> silo.plugin.v1.InitAuthorizeRequest
+	7,  // 17: silo.plugin.v1.AuthProvider.ExchangeCode:input_type -> silo.plugin.v1.ExchangeCodeRequest
+	8,  // 18: silo.plugin.v1.AuthProvider.RefreshSession:input_type -> silo.plugin.v1.RefreshSessionRequest
+	9,  // 19: silo.plugin.v1.AuthProviderChecks.TestConnection:input_type -> silo.plugin.v1.AuthTestConnectionRequest
+	12, // 20: silo.plugin.v1.AuthProviderChecks.CheckAccount:input_type -> silo.plugin.v1.CheckAccountRequest
+	14, // 21: silo.plugin.v1.AuthProviderChecks.EndSessionUrl:input_type -> silo.plugin.v1.AuthEndSessionUrlRequest
+	4,  // 22: silo.plugin.v1.AuthProvider.Authenticate:output_type -> silo.plugin.v1.AuthenticateResponse
+	6,  // 23: silo.plugin.v1.AuthProvider.InitAuthorize:output_type -> silo.plugin.v1.InitAuthorizeResponse
+	4,  // 24: silo.plugin.v1.AuthProvider.ExchangeCode:output_type -> silo.plugin.v1.AuthenticateResponse
+	4,  // 25: silo.plugin.v1.AuthProvider.RefreshSession:output_type -> silo.plugin.v1.AuthenticateResponse
+	10, // 26: silo.plugin.v1.AuthProviderChecks.TestConnection:output_type -> silo.plugin.v1.AuthTestConnectionResponse
+	13, // 27: silo.plugin.v1.AuthProviderChecks.CheckAccount:output_type -> silo.plugin.v1.CheckAccountResponse
+	15, // 28: silo.plugin.v1.AuthProviderChecks.EndSessionUrl:output_type -> silo.plugin.v1.AuthEndSessionUrlResponse
+	22, // [22:29] is the sub-list for method output_type
+	15, // [15:22] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_auth_provider_proto_init() }
@@ -475,18 +1263,21 @@ func file_silo_plugin_v1_auth_provider_proto_init() {
 	if File_silo_plugin_v1_auth_provider_proto != nil {
 		return
 	}
+	file_silo_plugin_v1_common_proto_init()
+	file_silo_plugin_v1_auth_provider_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_auth_provider_proto_rawDesc), len(file_silo_plugin_v1_auth_provider_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   6,
+			NumEnums:      3,
+			NumMessages:   13,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_silo_plugin_v1_auth_provider_proto_goTypes,
 		DependencyIndexes: file_silo_plugin_v1_auth_provider_proto_depIdxs,
+		EnumInfos:         file_silo_plugin_v1_auth_provider_proto_enumTypes,
 		MessageInfos:      file_silo_plugin_v1_auth_provider_proto_msgTypes,
 	}.Build()
 	File_silo_plugin_v1_auth_provider_proto = out.File

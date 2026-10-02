@@ -59,6 +59,35 @@ it. The current values are `queued`, `downloading`, `paused`, `stalled`,
 rather than an error. An empty `phase` is not a new value: plugins must always
 set one, as the `TargetStatus.progress` rules below describe.
 
+`CapabilityDescriptor.auth_modes` is open too. The known values are `password`
+and `oauth2`. Hosts ignore modes they do not recognize, and `manifest.Validate`
+accepts any non-empty, non-duplicate mode that is not a case variant of a known
+one, so a plugin built against a newer SDK still loads on a host that validates
+with an older one. A plugin that lists a newer mode should also list a mode
+older hosts understand.
+
+`CheckAccountResponse.status` is an enum that plugins send and hosts read.
+Hosts treat `CHECK_ACCOUNT_STATUS_UNSPECIFIED`, a value they do not recognize,
+and a gRPC error other than `Unimplemented` like
+`CHECK_ACCOUNT_STATUS_UNAVAILABLE`: log, keep the account as it is, and retry
+later. None of them counts as `ACTIVE`, so an empty response or a status added
+later never keeps an account alive by accident. An `AuthManagedRole` value the
+host does not recognize leaves the account's role unchanged. A refused refresh
+token (OIDC `invalid_grant`) is `NOT_PERMITTED` only when the token is known to
+be inside its lifetime, because the host revokes every session and deletes the
+account's API keys on `NOT_PERMITTED`. A refused token that may have expired is
+`UNSUPPORTED`.
+
+## Additive Services
+
+Adding an RPC to a released service adds a method to its Go server interface,
+which breaks plugins that implement the interface directly rather than
+embedding the generated `Unimplemented...Server`. New RPCs for a released
+capability therefore go in a separate service, such as
+`WatchSyncDeviceAuthorizationService` or `AuthProviderChecks`. A plugin that
+does not register the new service answers `Unimplemented`, and hosts treat that
+as "not supported".
+
 ## Presence-Sensitive Optional Fields
 
 Some contract fields use proto3 `optional` because absence and zero have
@@ -69,6 +98,15 @@ Consumers must check presence (`nil` pointer in Go or `HasField` in reflective
 APIs), never infer it from the numeric value. Calling
 `GetSeasonNumber() != 0` silently conflates "no season scope" with "Specials
 (season zero) requested."
+
+`AuthenticateResponse.email_verified` (added in v0.22.0) is `optional bool`:
+unset means the provider did not say, and an explicit `false` means the
+provider reports the address unverified. Check presence before trusting an
+email for account matching.
+
+`AuthenticateResponse.refresh_state` is a message field. Unset keeps the state
+the host stored for the account; an explicitly empty Struct clears it. The
+same rule applies to `CheckAccountResponse.account.refresh_state`.
 
 Watch-sync rating fields (`WatchSyncEvent.rating` and
 `WatchSyncRemoteRatingState.rating`) are deliberately plain `int32`. Valid

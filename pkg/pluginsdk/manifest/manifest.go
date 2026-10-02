@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability"
@@ -36,6 +37,20 @@ const (
 	maxPresentationURLBytes         = 2048
 	maxPresentationIdentityRunes    = 120
 )
+
+// Auth modes this SDK knows for an auth_provider.v1 capability's auth_modes.
+// An empty list means password only. The vocabulary is open: Validate accepts
+// other non-empty modes so a plugin built against a newer SDK still loads on
+// an older host, which ignores modes it does not recognize.
+const (
+	AuthModePassword = "password"
+	AuthModeOAuth2   = "oauth2"
+)
+
+// AuthProviderConnectionTestKey is the auth_provider.v1 capability metadata
+// key that declares support for AuthProviderChecks.TestConnection. Its value
+// must be a boolean.
+const AuthProviderConnectionTestKey = "connection_test"
 
 func knownCapabilityTypeSet() map[string]struct{} {
 	out := make(map[string]struct{}, len(capability.KnownTypes))
@@ -118,6 +133,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 			return err
 		}
 		if err := validateRequestRouterCapability(capability); err != nil {
+			return err
+		}
+		if err := validateAuthProviderCapability(capability); err != nil {
 			return err
 		}
 	}
@@ -317,6 +335,48 @@ func validateWordingValue(name, value string, limit int) error {
 		return fmt.Errorf("request_router wording %s must be a single line", name)
 	}
 	return nil
+}
+
+// validateAuthProviderCapability checks the auth_provider.v1 fields the host
+// acts on. Other capability types keep their free-form metadata.
+func validateAuthProviderCapability(descriptor *pluginv1.CapabilityDescriptor) error {
+	if descriptor.GetType() != capability.AuthProvider {
+		return nil
+	}
+	seen := make(map[string]struct{}, len(descriptor.GetAuthModes()))
+	for _, mode := range descriptor.GetAuthModes() {
+		if strings.TrimSpace(mode) == "" {
+			return fmt.Errorf("plugin capability %q: empty auth mode", descriptor.GetId())
+		}
+		// Unknown modes are allowed, but a case variant of a known one is a
+		// typo the host would silently ignore.
+		for _, known := range []string{AuthModePassword, AuthModeOAuth2} {
+			if mode != known && strings.EqualFold(mode, known) {
+				return fmt.Errorf("plugin capability %q: auth mode %q must be spelled %q", descriptor.GetId(), mode, known)
+			}
+		}
+		if _, dup := seen[mode]; dup {
+			return fmt.Errorf("plugin capability %q: duplicate auth mode %q", descriptor.GetId(), mode)
+		}
+		seen[mode] = struct{}{}
+	}
+	if value, ok := descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey]; ok {
+		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
+			return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), AuthProviderConnectionTestKey)
+		}
+	}
+	return nil
+}
+
+// AuthProviderSupportsConnectionTest reports whether an auth_provider.v1
+// capability declares AuthProviderChecks.TestConnection support through its
+// "connection_test" metadata. Hosts should call TestConnection only when this
+// is true.
+func AuthProviderSupportsConnectionTest(descriptor *pluginv1.CapabilityDescriptor) bool {
+	if descriptor.GetType() != capability.AuthProvider {
+		return false
+	}
+	return descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey].GetBoolValue()
 }
 
 // ValidateCatalogPresentation applies the stricter presentation contract used

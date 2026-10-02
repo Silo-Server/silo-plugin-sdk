@@ -249,3 +249,237 @@ var AuthProvider_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "silo/plugin/v1/auth_provider.proto",
 }
+
+const (
+	AuthProviderChecks_TestConnection_FullMethodName = "/silo.plugin.v1.AuthProviderChecks/TestConnection"
+	AuthProviderChecks_CheckAccount_FullMethodName   = "/silo.plugin.v1.AuthProviderChecks/CheckAccount"
+	AuthProviderChecks_EndSessionUrl_FullMethodName  = "/silo.plugin.v1.AuthProviderChecks/EndSessionUrl"
+)
+
+// AuthProviderChecksClient is the client API for AuthProviderChecks service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// AuthProviderChecks is separate from AuthProvider so adding these RPCs does
+// not add methods to the released AuthProviderServer Go interface. Register it
+// with runtime.WithAuthProviderChecks; the SDK runtime also registers it when
+// the AuthProvider server itself implements AuthProviderChecksServer.
+//
+// Plugins that do not serve it answer Unimplemented. Hosts treat an
+// Unimplemented TestConnection as "no connection test", an Unimplemented
+// CheckAccount like CHECK_ACCOUNT_STATUS_UNSUPPORTED (the account's sessions
+// get an absolute age limit and do not slide), and an Unimplemented
+// EndSessionUrl like an empty url.
+type AuthProviderChecksClient interface {
+	// TestConnection checks staged, unsaved configuration. The plugin tests the
+	// config in the request, never its running configuration, and persists
+	// nothing. Advertise support with the capability metadata key
+	// "connection_test": true.
+	TestConnection(ctx context.Context, in *AuthTestConnectionRequest, opts ...grpc.CallOption) (*AuthTestConnectionResponse, error)
+	// CheckAccount re-checks a previously authenticated account against the
+	// provider without user interaction, for example with a stored refresh
+	// token or a directory lookup. It replaces RefreshSession, which the host
+	// does not call.
+	//
+	// Host guarantees: at most one CheckAccount is in flight per (installation,
+	// external_subject) across all nodes, and the host persists a rotated
+	// account.refresh_state (for example under a row lock or compare-and-swap)
+	// before it makes the next call for that account. A plugin can therefore
+	// rotate a single-use refresh token without two nodes presenting the same
+	// token.
+	CheckAccount(ctx context.Context, in *CheckAccountRequest, opts ...grpc.CallOption) (*CheckAccountResponse, error)
+	// EndSessionUrl returns the provider logout URL the host sends the browser
+	// to on web sign-out, such as an OIDC end_session_endpoint with
+	// id_token_hint. The host ends the Silo session whatever the answer.
+	EndSessionUrl(ctx context.Context, in *AuthEndSessionUrlRequest, opts ...grpc.CallOption) (*AuthEndSessionUrlResponse, error)
+}
+
+type authProviderChecksClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAuthProviderChecksClient(cc grpc.ClientConnInterface) AuthProviderChecksClient {
+	return &authProviderChecksClient{cc}
+}
+
+func (c *authProviderChecksClient) TestConnection(ctx context.Context, in *AuthTestConnectionRequest, opts ...grpc.CallOption) (*AuthTestConnectionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthTestConnectionResponse)
+	err := c.cc.Invoke(ctx, AuthProviderChecks_TestConnection_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authProviderChecksClient) CheckAccount(ctx context.Context, in *CheckAccountRequest, opts ...grpc.CallOption) (*CheckAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckAccountResponse)
+	err := c.cc.Invoke(ctx, AuthProviderChecks_CheckAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authProviderChecksClient) EndSessionUrl(ctx context.Context, in *AuthEndSessionUrlRequest, opts ...grpc.CallOption) (*AuthEndSessionUrlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthEndSessionUrlResponse)
+	err := c.cc.Invoke(ctx, AuthProviderChecks_EndSessionUrl_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuthProviderChecksServer is the server API for AuthProviderChecks service.
+// All implementations should embed UnimplementedAuthProviderChecksServer
+// for forward compatibility.
+//
+// AuthProviderChecks is separate from AuthProvider so adding these RPCs does
+// not add methods to the released AuthProviderServer Go interface. Register it
+// with runtime.WithAuthProviderChecks; the SDK runtime also registers it when
+// the AuthProvider server itself implements AuthProviderChecksServer.
+//
+// Plugins that do not serve it answer Unimplemented. Hosts treat an
+// Unimplemented TestConnection as "no connection test", an Unimplemented
+// CheckAccount like CHECK_ACCOUNT_STATUS_UNSUPPORTED (the account's sessions
+// get an absolute age limit and do not slide), and an Unimplemented
+// EndSessionUrl like an empty url.
+type AuthProviderChecksServer interface {
+	// TestConnection checks staged, unsaved configuration. The plugin tests the
+	// config in the request, never its running configuration, and persists
+	// nothing. Advertise support with the capability metadata key
+	// "connection_test": true.
+	TestConnection(context.Context, *AuthTestConnectionRequest) (*AuthTestConnectionResponse, error)
+	// CheckAccount re-checks a previously authenticated account against the
+	// provider without user interaction, for example with a stored refresh
+	// token or a directory lookup. It replaces RefreshSession, which the host
+	// does not call.
+	//
+	// Host guarantees: at most one CheckAccount is in flight per (installation,
+	// external_subject) across all nodes, and the host persists a rotated
+	// account.refresh_state (for example under a row lock or compare-and-swap)
+	// before it makes the next call for that account. A plugin can therefore
+	// rotate a single-use refresh token without two nodes presenting the same
+	// token.
+	CheckAccount(context.Context, *CheckAccountRequest) (*CheckAccountResponse, error)
+	// EndSessionUrl returns the provider logout URL the host sends the browser
+	// to on web sign-out, such as an OIDC end_session_endpoint with
+	// id_token_hint. The host ends the Silo session whatever the answer.
+	EndSessionUrl(context.Context, *AuthEndSessionUrlRequest) (*AuthEndSessionUrlResponse, error)
+}
+
+// UnimplementedAuthProviderChecksServer should be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAuthProviderChecksServer struct{}
+
+func (UnimplementedAuthProviderChecksServer) TestConnection(context.Context, *AuthTestConnectionRequest) (*AuthTestConnectionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TestConnection not implemented")
+}
+func (UnimplementedAuthProviderChecksServer) CheckAccount(context.Context, *CheckAccountRequest) (*CheckAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckAccount not implemented")
+}
+func (UnimplementedAuthProviderChecksServer) EndSessionUrl(context.Context, *AuthEndSessionUrlRequest) (*AuthEndSessionUrlResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EndSessionUrl not implemented")
+}
+func (UnimplementedAuthProviderChecksServer) testEmbeddedByValue() {}
+
+// UnsafeAuthProviderChecksServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthProviderChecksServer will
+// result in compilation errors.
+type UnsafeAuthProviderChecksServer interface {
+	mustEmbedUnimplementedAuthProviderChecksServer()
+}
+
+func RegisterAuthProviderChecksServer(s grpc.ServiceRegistrar, srv AuthProviderChecksServer) {
+	// If the following call panics, it indicates UnimplementedAuthProviderChecksServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AuthProviderChecks_ServiceDesc, srv)
+}
+
+func _AuthProviderChecks_TestConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthTestConnectionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthProviderChecksServer).TestConnection(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthProviderChecks_TestConnection_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthProviderChecksServer).TestConnection(ctx, req.(*AuthTestConnectionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthProviderChecks_CheckAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthProviderChecksServer).CheckAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthProviderChecks_CheckAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthProviderChecksServer).CheckAccount(ctx, req.(*CheckAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthProviderChecks_EndSessionUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthEndSessionUrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthProviderChecksServer).EndSessionUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthProviderChecks_EndSessionUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthProviderChecksServer).EndSessionUrl(ctx, req.(*AuthEndSessionUrlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AuthProviderChecks_ServiceDesc is the grpc.ServiceDesc for AuthProviderChecks service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AuthProviderChecks_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "silo.plugin.v1.AuthProviderChecks",
+	HandlerType: (*AuthProviderChecksServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "TestConnection",
+			Handler:    _AuthProviderChecks_TestConnection_Handler,
+		},
+		{
+			MethodName: "CheckAccount",
+			Handler:    _AuthProviderChecks_CheckAccount_Handler,
+		},
+		{
+			MethodName: "EndSessionUrl",
+			Handler:    _AuthProviderChecks_EndSessionUrl_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "silo/plugin/v1/auth_provider.proto",
+}

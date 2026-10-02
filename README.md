@@ -17,7 +17,7 @@ release builds resolve the SDK from a published module tag.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding, including `ServeManifestWithOptions` options such as `WithConfigure` and `WithAuthProviderChecks`.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
 
@@ -128,7 +128,25 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 })
 ```
 
-The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
+## Auth providers
+
+`auth_provider.v1` lets people sign in with an account from an external
+identity provider, such as OIDC or LDAP. Password plugins implement
+`Authenticate`; OAuth plugins implement `InitAuthorize` and `ExchangeCode` and
+declare `"auth_modes": ["oauth2"]`. Both return `AuthenticateResponse`, which
+since v0.22.0 also carries typed identity fields (issuer, username,
+`email_verified`, groups, picture, managed role), opaque `refresh_state`, and a
+typed `denial` for refused sign-ins.
+
+The separate `AuthProviderChecks` service adds `TestConnection`, which tests
+staged settings for the admin UI, `CheckAccount`, which re-checks an account
+without the person present, and `EndSessionUrl`, which returns the provider's
+logout URL for web sign-out. Register it with `runtime.WithAuthProviderChecks`.
+Plugins served by `runtime.ServeManifestWithOptions` receive their settings
+through `runtime.WithConfigure`.
+
+See [docs/auth-provider.md](docs/auth-provider.md) for the manifest rules,
+field semantics, denials, and check statuses.
 
 ## Request routers
 

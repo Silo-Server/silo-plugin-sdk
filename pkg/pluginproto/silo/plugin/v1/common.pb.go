@@ -967,11 +967,14 @@ type CapabilityDescriptor struct {
 	// OAuth/OIDC flow modes the plugin supports. Only meaningful for
 	// capabilities of type "auth_provider.v1". Defaults to ["password"]
 	// host-side when absent (backward compat with password-only providers).
-	// Valid values: "password", "oauth2".
+	// Known values: "password", "oauth2". The vocabulary is open: hosts ignore
+	// modes they do not recognize, so list a mode older hosts understand too.
 	AuthModes []string `protobuf:"bytes,8,rep,name=auth_modes,json=authModes,proto3" json:"auth_modes,omitempty"`
-	// Optional URL to a logo for this auth provider, rendered in silo's
-	// login UI as the icon for a "Sign in with X" button. Plugin-served path
-	// (e.g., /api/v1/plugins/<install>/assets/whmcs-logo.svg).
+	// Optional absolute URL of an externally hosted logo for this auth
+	// provider's "Sign in with X" button. The manifest is fixed at build time
+	// and cannot know its installation id, so it cannot name a plugin-served
+	// asset. For an icon the plugin serves itself, set the "icon_url_path"
+	// global config key instead; see docs/auth-provider.md.
 	IconUrl string `protobuf:"bytes,9,opt,name=icon_url,json=iconUrl,proto3" json:"icon_url,omitempty"`
 	// Typed watch-provider contract metadata. Only meaningful for capabilities
 	// of type "watch_sync_provider.v1". Keeping this typed lets the host build

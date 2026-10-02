@@ -81,13 +81,29 @@ func DefaultPluginSetWithWatchSyncDeviceAuthorization(
 	servers CapabilityServers,
 	deviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer,
 ) plugin.PluginSet {
-	if deviceAuthorization == nil {
+	return pluginSetWithOptionalServices(servers, optionalServices{
+		watchSyncDeviceAuthorization: deviceAuthorization,
+	})
+}
+
+// optionalServices are services added after the released CapabilityServers
+// shape. They reach the plugin set through ServeManifest options instead of
+// new struct fields.
+type optionalServices struct {
+	watchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
+	authProviderChecks           pluginv1.AuthProviderChecksServer
+}
+
+func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalServices) plugin.PluginSet {
+	// Compare fields one by one: == on the struct would panic for a server
+	// whose dynamic type is not comparable.
+	if optional.watchSyncDeviceAuthorization == nil && optional.authProviderChecks == nil {
 		return DefaultPluginSet(servers)
 	}
 	return plugin.PluginSet{
-		PluginSetName: &grpcPluginWithWatchSyncDeviceAuthorization{
-			GRPCPlugin:          &GRPCPlugin{Servers: servers},
-			deviceAuthorization: deviceAuthorization,
+		PluginSetName: &grpcPluginWithOptionalServices{
+			GRPCPlugin: &GRPCPlugin{Servers: servers},
+			optional:   optional,
 		},
 	}
 }
@@ -147,6 +163,13 @@ func (c *Client) AuthProvider() pluginv1.AuthProviderClient {
 	return pluginv1.NewAuthProviderClient(c.conn)
 }
 
+// AuthProviderChecks returns the client for the connection-test and
+// account-check RPCs added in v0.22.0. Plugins built before then answer
+// Unimplemented.
+func (c *Client) AuthProviderChecks() pluginv1.AuthProviderChecksClient {
+	return pluginv1.NewAuthProviderChecksClient(c.conn)
+}
+
 func (c *Client) HttpRoutes() pluginv1.HttpRoutesClient {
 	return pluginv1.NewHttpRoutesClient(c.conn)
 }
@@ -168,23 +191,49 @@ type GRPCPlugin struct {
 	Servers CapabilityServers
 }
 
-type grpcPluginWithWatchSyncDeviceAuthorization struct {
+type grpcPluginWithOptionalServices struct {
 	*GRPCPlugin
-	deviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
+	optional optionalServices
 }
 
-func (p *grpcPluginWithWatchSyncDeviceAuthorization) GRPCServer(
+func (p *grpcPluginWithOptionalServices) GRPCServer(
 	broker *plugin.GRPCBroker,
 	server *grpc.Server,
 ) error {
-	if err := p.GRPCPlugin.GRPCServer(broker, server); err != nil {
+	if err := p.registerServers(broker, server, p.optional.authProviderChecks); err != nil {
 		return err
 	}
-	pluginv1.RegisterWatchSyncDeviceAuthorizationServiceServer(server, p.deviceAuthorization)
+	if p.optional.watchSyncDeviceAuthorization != nil {
+		pluginv1.RegisterWatchSyncDeviceAuthorizationServiceServer(server, p.optional.watchSyncDeviceAuthorization)
+	}
 	return nil
 }
 
 func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) error {
+	return p.registerServers(broker, server, nil)
+}
+
+// resolveAuthProviderChecks returns the AuthProviderChecks server to register:
+// the explicit one from WithAuthProviderChecks, else the AuthProvider server
+// when it also implements AuthProviderChecksServer, else nil.
+func resolveAuthProviderChecks(
+	authProvider pluginv1.AuthProviderServer,
+	explicit pluginv1.AuthProviderChecksServer,
+) pluginv1.AuthProviderChecksServer {
+	if explicit != nil {
+		return explicit
+	}
+	if checks, ok := authProvider.(pluginv1.AuthProviderChecksServer); ok {
+		return checks
+	}
+	return nil
+}
+
+func (p *GRPCPlugin) registerServers(
+	broker *plugin.GRPCBroker,
+	server *grpc.Server,
+	authProviderChecks pluginv1.AuthProviderChecksServer,
+) error {
 	pluginHost.setBroker(broker)
 	if p.Servers.Runtime == nil {
 		return fmt.Errorf("runtime server is required")
@@ -217,6 +266,11 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	}
 	if p.Servers.AuthProvider != nil {
 		pluginv1.RegisterAuthProviderServer(server, p.Servers.AuthProvider)
+	}
+	// AuthProviderChecks lives in its own service so the released
+	// AuthProviderServer interface stays unchanged.
+	if checks := resolveAuthProviderChecks(p.Servers.AuthProvider, authProviderChecks); checks != nil {
+		pluginv1.RegisterAuthProviderChecksServer(server, checks)
 	}
 	if p.Servers.HttpRoutes != nil {
 		pluginv1.RegisterHttpRoutesServer(server, p.Servers.HttpRoutes)
