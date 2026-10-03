@@ -28,8 +28,8 @@ Silo accounts, account linking, sessions, roles, and the login UI.
   plugin that adds a newer mode should still list one an older host
   understands. For this capability type `manifest.Validate` rejects empty
   modes, duplicates, and case variants of the known modes such as `OAuth2`. It
-  also rejects `network` combined with any other mode, and `network` in a
-  manifest without a `network_access_provider.v1` capability.
+  also rejects `network` combined with `password` or `oauth2`, and `network`
+  in a manifest without a `network_access_provider.v1` capability.
 - `metadata.connection_test` must be a boolean when present. `true` tells the
   host it may call `AuthProviderChecks.TestConnection`. Hosts read it with
   `manifest.AuthProviderSupportsConnectionTest`. `ServeManifestWithOptions`
@@ -155,16 +155,25 @@ linking the provider to an existing Silo account.
 A plugin that also serves `network_access_provider.v1` can sign people in
 from its overlay network with no password and no browser: the overlay already
 knows who owns the device a request came from. Declare an `auth_provider.v1`
-capability with `"auth_modes": ["network"]` and register the
-`NetworkIdentityAuth` service with `runtime.WithNetworkIdentityAuth(server)`
-(or implement it on the `AuthProvider` server). `ServeManifestWithOptions`
-panics at start when the mode is declared but no server would be registered.
+capability with `"auth_modes": ["network"]` and register two services:
+`NetworkIdentityAuth` with `runtime.WithNetworkIdentityAuth(server)`, and
+`AuthProviderChecks`, which must answer `CheckAccount`, with
+`runtime.WithAuthProviderChecks(server)`. The runtime also registers either
+one when the `AuthProvider` server implements it. `ServeManifestWithOptions`
+panics at start when the mode is declared but either server is missing. That
+check sees only that a server exists: one that embeds
+`UnimplementedNetworkIdentityAuthServer` or
+`UnimplementedAuthProviderChecksServer` without overriding the method passes
+it, so add tests for both. A plugin that calls `runtime.Serve` directly gets no
+startup check.
 
 The flow:
 
-1. The plugin's proxy stamps `X-Silo-Ingress-Peer` on every request it
-   forwards (see the proxy contract in
-   [network-access-provider.md](network-access-provider.md#proxy-contract)).
+1. The plugin's proxy stamps `X-Silo-Ingress-Peer` on a request it forwards
+   when the proxy contract in
+   [network-access-provider.md](network-access-provider.md#proxy-contract)
+   allows it: only for a connection from a peer it identifies on its overlay,
+   and never for a relayed request.
 2. For a request that carried the plugin's ingress token and a peer, the host
    calls `AuthenticatePeer` with that peer address, at sign-in, at account
    linking, and to label the sign-in button.
@@ -177,7 +186,11 @@ The flow:
    the overlay is down.
 4. The host re-checks the account later with `AuthProviderChecks.CheckAccount`,
    which the plugin answers from its own view of the overlay, for example
-   `NOT_FOUND` once the person is no longer on it.
+   `NOT_FOUND` once the person is no longer on it. A network provider must
+   answer it: an `Unimplemented` re-check counts as `UNSUPPORTED`, which
+   leaves a removed person signed in until the session's absolute age limit,
+   and a server with a public URL is still reachable after they leave the
+   overlay.
 
 The host never sends a network provider a password. Hosts built before
 v0.23.0 don't know the mode and treat the capability as a password provider,

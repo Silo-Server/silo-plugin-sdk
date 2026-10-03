@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 	"sync"
 
 	"github.com/hashicorp/go-hclog"
@@ -222,37 +223,27 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 	return p.registerServers(broker, server, optionalServices{})
 }
 
-// resolveAuthProviderChecks returns the AuthProviderChecks server to register:
-// the explicit one from WithAuthProviderChecks, else the AuthProvider server
-// when it also implements AuthProviderChecksServer, else nil.
-func resolveAuthProviderChecks(
-	authProvider pluginv1.AuthProviderServer,
-	explicit pluginv1.AuthProviderChecksServer,
-) pluginv1.AuthProviderChecksServer {
-	if explicit != nil {
+// resolveAuthService returns the server to register for an auth service kept
+// out of AuthProviderServer, such as AuthProviderChecks or
+// NetworkIdentityAuth: the explicit one from its ServeManifest option, else
+// the AuthProvider server when it also implements the service, else nil. A
+// nil pointer passed to the option counts as no server, so the startup checks
+// in manifestServeConfig catch it instead of the first call panicking.
+func resolveAuthService[S any](authProvider pluginv1.AuthProviderServer, explicit S) S {
+	if !isNilServer(explicit) {
 		return explicit
 	}
-	if checks, ok := authProvider.(pluginv1.AuthProviderChecksServer); ok {
-		return checks
+	if server, ok := authProvider.(S); ok {
+		return server
 	}
-	return nil
+	var none S
+	return none
 }
 
-// resolveNetworkIdentityAuth returns the NetworkIdentityAuth server to
-// register: the explicit one from WithNetworkIdentityAuth, else the
-// AuthProvider server when it also implements NetworkIdentityAuthServer, else
-// nil.
-func resolveNetworkIdentityAuth(
-	authProvider pluginv1.AuthProviderServer,
-	explicit pluginv1.NetworkIdentityAuthServer,
-) pluginv1.NetworkIdentityAuthServer {
-	if explicit != nil {
-		return explicit
-	}
-	if network, ok := authProvider.(pluginv1.NetworkIdentityAuthServer); ok {
-		return network
-	}
-	return nil
+// isNilServer reports whether server is nil or a nil pointer.
+func isNilServer(server any) bool {
+	value := reflect.ValueOf(server)
+	return !value.IsValid() || value.Kind() == reflect.Pointer && value.IsNil()
 }
 
 func (p *GRPCPlugin) registerServers(
@@ -295,10 +286,10 @@ func (p *GRPCPlugin) registerServers(
 	}
 	// AuthProviderChecks lives in its own service so the released
 	// AuthProviderServer interface stays unchanged.
-	if checks := resolveAuthProviderChecks(p.Servers.AuthProvider, optional.authProviderChecks); checks != nil {
+	if checks := resolveAuthService(p.Servers.AuthProvider, optional.authProviderChecks); checks != nil {
 		pluginv1.RegisterAuthProviderChecksServer(server, checks)
 	}
-	if network := resolveNetworkIdentityAuth(p.Servers.AuthProvider, optional.networkIdentityAuth); network != nil {
+	if network := resolveAuthService(p.Servers.AuthProvider, optional.networkIdentityAuth); network != nil {
 		pluginv1.RegisterNetworkIdentityAuthServer(server, network)
 	}
 	if p.Servers.HttpRoutes != nil {

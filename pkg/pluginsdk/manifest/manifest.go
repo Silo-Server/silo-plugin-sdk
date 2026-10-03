@@ -47,8 +47,8 @@ const (
 	AuthModeOAuth2   = "oauth2"
 	// AuthModeNetwork signs people in from the overlay network the plugin's
 	// network_access_provider.v1 capability fronts (NetworkIdentityAuth). It
-	// cannot be combined with another mode, and the manifest must also declare
-	// network_access_provider.v1.
+	// cannot be combined with password or oauth2, and the manifest must also
+	// declare network_access_provider.v1.
 	AuthModeNetwork = "network"
 )
 
@@ -368,8 +368,15 @@ func validateAuthProviderCapability(descriptor *pluginv1.CapabilityDescriptor) e
 		}
 		seen[mode] = struct{}{}
 	}
-	if _, network := seen[AuthModeNetwork]; network && len(seen) > 1 {
-		return fmt.Errorf("plugin capability %q: auth mode %q cannot be combined with other modes", descriptor.GetId(), AuthModeNetwork)
+	// A network provider never takes a password or runs a browser flow. Only
+	// the modes this SDK knows are refused beside it, so a newer mode that a
+	// later SDK allows with network still loads here.
+	if _, network := seen[AuthModeNetwork]; network {
+		for _, credentials := range []string{AuthModePassword, AuthModeOAuth2} {
+			if _, ok := seen[credentials]; ok {
+				return fmt.Errorf("plugin capability %q: auth mode %q cannot be combined with %q", descriptor.GetId(), AuthModeNetwork, credentials)
+			}
+		}
 	}
 	if value, ok := descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey]; ok {
 		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {

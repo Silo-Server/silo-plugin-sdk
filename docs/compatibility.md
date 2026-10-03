@@ -65,8 +65,11 @@ not recognize, and `manifest.Validate` accepts any non-empty, non-duplicate
 mode that is not a case variant of a known one, so a plugin built against a
 newer SDK still loads on a host that validates with an older one. A plugin that
 lists a newer mode should also list a mode older hosts understand. `network` is
-the exception: it must stand alone, so a host that predates it treats the
-capability as a password provider, and the plugin refuses every password.
+the exception: `manifest.Validate` refuses it beside `password` or `oauth2`,
+so a host that predates it sees no mode it knows and treats the capability as
+a password provider, and the plugin refuses every password. Validate refuses
+only those two beside `network`, so a mode a later SDK allows with it still
+loads.
 
 `CheckAccountResponse.status` is an enum that plugins send and hosts read.
 Hosts treat `CHECK_ACCOUNT_STATUS_UNSPECIFIED`, a value they do not recognize,
@@ -89,7 +92,10 @@ capability therefore go in a separate service, such as
 `WatchSyncDeviceAuthorizationService`, `AuthProviderChecks` or
 `NetworkIdentityAuth`. A plugin that
 does not register the new service answers `Unimplemented`, and hosts treat that
-as "not supported".
+as "not supported". A network provider cannot fall back that way: without
+`AuthProviderChecks.CheckAccount`, a person removed from the overlay would stay
+signed in until the session's absolute age limit, so `ServeManifestWithOptions`
+refuses to start a plugin that declares the `network` mode without it.
 
 ## Presence-Sensitive Optional Fields
 

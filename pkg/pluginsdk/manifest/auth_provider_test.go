@@ -130,13 +130,22 @@ func TestLoadRejectsNetworkAuthWithoutNetworkAccess(t *testing.T) {
 
 // A network provider never takes a password or runs a browser flow, so mixing
 // modes would let a host route credentials to it.
-func TestLoadRejectsNetworkAuthCombinedWithOtherModes(t *testing.T) {
-	for _, modes := range []string{`["network", "password"]`, `["oauth2", "network"]`, `["network", "saml"]`} {
+func TestLoadRejectsNetworkAuthCombinedWithCredentialModes(t *testing.T) {
+	for _, modes := range []string{`["network", "password"]`, `["oauth2", "network"]`} {
 		raw := authManifest(networkAccessCapability + `, {"type": "auth_provider.v1", "id": "tailscale", "auth_modes": ` + modes + `}`)
 		_, err := manifest.Load(raw)
 		if err == nil || !strings.Contains(err.Error(), "cannot be combined") {
 			t.Errorf("auth_modes %s: Load = %v, want a combination error", modes, err)
 		}
+	}
+}
+
+// auth_modes is an open vocabulary: a mode a later SDK allows beside network
+// must not stop this SDK's Validate from loading the plugin.
+func TestLoadAcceptsNetworkAuthWithUnknownMode(t *testing.T) {
+	raw := authManifest(networkAccessCapability + `, {"type": "auth_provider.v1", "id": "tailscale", "auth_modes": ["network", "network_v2"]}`)
+	if _, err := manifest.Load(raw); err != nil {
+		t.Fatalf("Load = %v, want nil", err)
 	}
 }
 

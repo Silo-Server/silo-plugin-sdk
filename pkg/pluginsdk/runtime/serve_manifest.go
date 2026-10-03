@@ -76,7 +76,10 @@ func WithAuthProviderChecks(server pluginv1.AuthProviderChecksServer) ServeManif
 // WithNetworkIdentityAuth registers the separate NetworkIdentityAuth service
 // (AuthenticatePeer) for an auth provider that declares the "network" auth
 // mode. Without it, the runtime registers the service only when the
-// AuthProvider server itself implements NetworkIdentityAuthServer.
+// AuthProvider server itself implements NetworkIdentityAuthServer. The
+// startup check sees only that a server exists: one that embeds
+// UnimplementedNetworkIdentityAuthServer without overriding AuthenticatePeer
+// passes it and refuses every sign-in.
 func WithNetworkIdentityAuth(server pluginv1.NetworkIdentityAuthServer) ServeManifestOption {
 	return func(options *serveManifestOptions) {
 		options.networkIdentityAuth = server
@@ -123,7 +126,7 @@ func ServeManifest(manifestBytes []byte, version string, servers CapabilityServe
 // Besides manifest errors, it panics when an auth_provider.v1 capability
 // declares "connection_test": true but no AuthProviderChecks server would be
 // registered, or declares the "network" auth mode but no NetworkIdentityAuth
-// server would be registered.
+// or no AuthProviderChecks server would be registered.
 func ServeManifestWithOptions(
 	manifestBytes []byte,
 	version string,
@@ -155,21 +158,29 @@ func manifestServeConfig(
 			option(&resolved)
 		}
 	}
-	if resolveAuthProviderChecks(servers.AuthProvider, resolved.authProviderChecks) == nil {
-		for _, descriptor := range m.GetCapabilities() {
-			if manifest.AuthProviderSupportsConnectionTest(descriptor) {
-				return ServeConfig{}, fmt.Errorf(
-					"plugin capability %q declares %q but no AuthProviderChecks server is registered; pass runtime.WithAuthProviderChecks",
-					descriptor.GetId(), manifest.AuthProviderConnectionTestKey)
-			}
+	hasChecks := resolveAuthService(servers.AuthProvider, resolved.authProviderChecks) != nil
+	hasNetwork := resolveAuthService(servers.AuthProvider, resolved.networkIdentityAuth) != nil
+	networkMode := fmt.Sprintf("auth mode %q", manifest.AuthModeNetwork)
+	// A network provider needs CheckAccount too: the host treats an
+	// Unimplemented re-check as UNSUPPORTED, which would keep a person removed
+	// from the overlay signed in until the absolute session age.
+	for _, rule := range []struct {
+		registered  bool
+		declares    func(*pluginv1.CapabilityDescriptor) bool
+		declaration string
+		service     string
+	}{
+		{hasChecks, manifest.AuthProviderSupportsConnectionTest, fmt.Sprintf("%q", manifest.AuthProviderConnectionTestKey), "AuthProviderChecks"},
+		{hasChecks, manifest.AuthProviderUsesNetworkIdentity, networkMode, "AuthProviderChecks"},
+		{hasNetwork, manifest.AuthProviderUsesNetworkIdentity, networkMode, "NetworkIdentityAuth"},
+	} {
+		if rule.registered {
+			continue
 		}
-	}
-	if resolveNetworkIdentityAuth(servers.AuthProvider, resolved.networkIdentityAuth) == nil {
 		for _, descriptor := range m.GetCapabilities() {
-			if manifest.AuthProviderUsesNetworkIdentity(descriptor) {
-				return ServeConfig{}, fmt.Errorf(
-					"plugin capability %q declares auth mode %q but no NetworkIdentityAuth server is registered; pass runtime.WithNetworkIdentityAuth",
-					descriptor.GetId(), manifest.AuthModeNetwork)
+			if rule.declares(descriptor) {
+				return ServeConfig{}, fmt.Errorf("plugin capability %q declares %s but no %s server is registered; pass runtime.With%s",
+					descriptor.GetId(), rule.declaration, rule.service, rule.service)
 			}
 		}
 	}

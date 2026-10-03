@@ -70,17 +70,20 @@ service AuthProviderChecks {
 // It is a separate service so the released AuthProviderServer interface stays
 // unchanged. Register it with runtime.WithNetworkIdentityAuth; the SDK runtime
 // also registers it when the AuthProvider server itself implements
-// NetworkIdentityAuthServer. A network provider re-checks accounts with
-// AuthProviderChecks.CheckAccount. The host never sends it a password: it
-// should still refuse Authenticate, because a host that predates the "network"
-// mode routes passwords to it as a credentials provider.
+// NetworkIdentityAuthServer. A network provider must also serve
+// AuthProviderChecks.CheckAccount, which the host uses to re-check accounts;
+// runtime.ServeManifestWithOptions refuses to start without both. The host
+// never sends a network provider a password: it should still refuse
+// Authenticate, because a host that predates the "network" mode routes
+// passwords to it as a credentials provider.
 service NetworkIdentityAuth {
   // AuthenticatePeer identifies the overlay peer of a request this plugin
-  // proxied. The host calls it only for a request that carried this plugin's
-  // ingress token and an X-Silo-Ingress-Peer value, and passes that value
-  // here. The answer has the same shape and denials as Authenticate:
-  // NOT_PERMITTED for a peer the plugin will not vouch for (unknown, tagged or
-  // refused by policy) and PROVIDER_UNAVAILABLE while the overlay is down.
+  // proxied. The host calls it only for a request that carried the ingress
+  // token it issued to this plugin installation and an X-Silo-Ingress-Peer
+  // value, and passes that value here. The answer has the same shape and
+  // denials as Authenticate: NOT_PERMITTED for a peer the plugin will not
+  // vouch for (unknown, tagged or refused by policy) and PROVIDER_UNAVAILABLE
+  // while the overlay is down.
   rpc AuthenticatePeer(AuthenticatePeerRequest) returns (AuthenticateResponse);
 }
 

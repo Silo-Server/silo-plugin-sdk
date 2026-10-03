@@ -262,9 +262,11 @@ func (s peerServer) AuthenticatePeer(_ context.Context, req *pluginv1.Authentica
 	return &pluginv1.AuthenticateResponse{ExternalSubject: s.name + "|" + req.GetPeerAddress()}, nil
 }
 
-// providerWithPeer implements AuthProvider and NetworkIdentityAuth on one type.
+// providerWithPeer implements AuthProvider, AuthProviderChecks and
+// NetworkIdentityAuth on one type, as a network provider must.
 type providerWithPeer struct {
 	pluginv1.UnimplementedAuthProviderServer
+	checksServer
 	peerServer
 }
 
@@ -285,7 +287,30 @@ func networkAuthManifest() *pluginv1.PluginManifest {
 }
 
 func TestManifestServeConfigRejectsNetworkModeWithoutService(t *testing.T) {
-	_, err := manifestServeConfig(networkAuthManifest(), CapabilityServers{AuthProvider: onlyAuthProvider{}})
+	_, err := manifestServeConfig(networkAuthManifest(), CapabilityServers{AuthProvider: onlyAuthProvider{}},
+		WithAuthProviderChecks(checksServer{name: "explicit"}))
+	if err == nil || !strings.Contains(err.Error(), "WithNetworkIdentityAuth") {
+		t.Fatalf("manifestServeConfig = %v, want an error naming WithNetworkIdentityAuth", err)
+	}
+}
+
+// A network provider must answer CheckAccount: hosts treat an Unimplemented
+// re-check as UNSUPPORTED, which keeps a person removed from the overlay
+// signed in until the absolute session age.
+func TestManifestServeConfigRejectsNetworkModeWithoutChecks(t *testing.T) {
+	_, err := manifestServeConfig(networkAuthManifest(), CapabilityServers{AuthProvider: onlyAuthProvider{}},
+		WithNetworkIdentityAuth(peerServer{name: "explicit"}))
+	if err == nil || !strings.Contains(err.Error(), "WithAuthProviderChecks") ||
+		!strings.Contains(err.Error(), `auth mode "network"`) {
+		t.Fatalf("manifestServeConfig = %v, want an error naming the network mode and WithAuthProviderChecks", err)
+	}
+}
+
+// A nil pointer passed to an option counts as no server, so startup fails
+// instead of the first AuthenticatePeer panicking.
+func TestManifestServeConfigRejectsNilNetworkIdentityAuth(t *testing.T) {
+	_, err := manifestServeConfig(networkAuthManifest(), CapabilityServers{AuthProvider: onlyAuthProvider{}},
+		WithAuthProviderChecks(checksServer{name: "explicit"}), WithNetworkIdentityAuth((*peerServer)(nil)))
 	if err == nil || !strings.Contains(err.Error(), "WithNetworkIdentityAuth") {
 		t.Fatalf("manifestServeConfig = %v, want an error naming WithNetworkIdentityAuth", err)
 	}
