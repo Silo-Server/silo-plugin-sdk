@@ -235,6 +235,40 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 			return fmt.Errorf("plugin capability %q: invalid external id namespace %q", descriptor.GetId(), namespace)
 		}
 	}
+	return validateWatchSyncConnectionSettings(descriptor.GetId(), watchSync.GetConnectionSettings())
+}
+
+// validateWatchSyncConnectionSettings checks the per-connection settings a
+// watch sync descriptor declares. A type newer than this SDK is accepted so
+// an older SDK can still load the manifest; hosts skip settings whose type
+// they do not know. That includes UNSPECIFIED: decoding a manifest drops an
+// enum name the SDK does not know, which leaves the type unset.
+func validateWatchSyncConnectionSettings(capabilityID string, settings []*pluginv1.WatchSyncConnectionSetting) error {
+	seen := make(map[string]struct{}, len(settings))
+	for _, setting := range settings {
+		if setting == nil {
+			continue
+		}
+		key := setting.GetKey()
+		if !watchSyncSlugPattern.MatchString(key) {
+			return fmt.Errorf("plugin capability %q: connection setting key %q must be a lowercase slug", capabilityID, key)
+		}
+		if _, exists := seen[key]; exists {
+			return fmt.Errorf("plugin capability %q: connection setting %q is duplicated", capabilityID, key)
+		}
+		seen[key] = struct{}{}
+		if strings.TrimSpace(setting.GetLabel()) == "" {
+			return fmt.Errorf("plugin capability %q: connection setting %q requires a label", capabilityID, key)
+		}
+		switch setting.GetType() {
+		case pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN:
+			if defaultValue := setting.GetDefaultValue(); defaultValue != nil {
+				if _, ok := defaultValue.AsInterface().(bool); !ok {
+					return fmt.Errorf("plugin capability %q: connection setting %q default_value must be boolean", capabilityID, key)
+				}
+			}
+		}
+	}
 	return nil
 }
 

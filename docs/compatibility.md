@@ -122,6 +122,12 @@ Watch-sync rating fields (`WatchSyncEvent.rating` and
 ratings run from 1 to 10, so zero never carries a rating and no presence check
 is needed.
 
+`WatchSyncAuthenticatedContext.connection_settings` (added in v0.24.0) is a
+map, so it has no presence: a host that predates it sends an empty map. A
+plugin must treat a missing key as the setting's default rather than as an
+error. A host skips a declared setting whose type it does not know, including
+one an older SDK decoded as `UNSPECIFIED`, and sends no value for it.
+
 `RequestDescriptor.seasons` is a repeated field, so it has no presence: an
 empty list means the whole series, and season `0` in a non-empty list means
 Specials. A plugin built before the field existed decodes it as an unknown

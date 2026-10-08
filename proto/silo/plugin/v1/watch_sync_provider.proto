@@ -153,6 +153,34 @@ message WatchSyncProviderDescriptor {
   // Silo does not mark it watched upstream. Each entry must also be listed in
   // supported_media_types, and export_ratings must be set.
   repeated WatchSyncMediaType rating_export_requires_watched = 20;
+  // Settings a profile can change on its connection at any time, such as
+  // whether to log rewatches. The host shows them with the connection's other
+  // sync options, stores a value per connection, and sends the values in
+  // WatchSyncAuthenticatedContext.connection_settings. They differ from the
+  // capability's config_schema, which is collected once when an API-key
+  // connection is made. Keys are unique lowercase slugs.
+  repeated WatchSyncConnectionSetting connection_settings = 21;
+}
+
+// Hosts skip a setting whose type they do not know, including UNSPECIFIED,
+// which is what an older SDK decodes a newer type name to.
+enum WatchSyncConnectionSettingType {
+  WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED = 0;
+  // An on/off switch. Values are "true" or "false".
+  WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN = 1;
+}
+
+// A per-connection setting a plugin declares in its descriptor.
+message WatchSyncConnectionSetting {
+  // The key of the setting's value in
+  // WatchSyncAuthenticatedContext.connection_settings.
+  string key = 1;
+  string label = 2;
+  string description = 3;
+  WatchSyncConnectionSettingType type = 4;
+  // The value of a connection that has not changed the setting. A BOOLEAN
+  // setting's default must be a bool; when omitted it is false.
+  google.protobuf.Value default_value = 5;
 }
 
 message WatchSyncProviderConfig {
@@ -184,6 +212,12 @@ message WatchSyncAuthenticatedContext {
   string capability_id = 1;
   WatchSyncProviderConfig provider_config = 2;
   WatchSyncCredentials credentials = 3;
+  // The connection's value for every setting in the descriptor's
+  // connection_settings, keyed by setting key, with defaults applied for
+  // settings the profile has not changed. A BOOLEAN value is "true" or
+  // "false". Hosts that predate connection_settings send an empty map, so a
+  // plugin uses the setting's default when its key is absent.
+  map<string, string> connection_settings = 4;
 }
 
 message WatchSyncAccount {

@@ -380,6 +380,19 @@ series that is already dropped, or undropping one that is not, returns
 `APPLIED` or `NO_CHANGE`. Manifest validation requires `SERIES` in
 `supported_media_types` when the flag is set.
 
+`connection_settings` declares preferences a profile can change on its
+connection at any time, such as whether to log rewatches. Each setting has a
+lowercase slug `key`, a `label`, an optional `description`, a `type`, and an
+optional `default_value`. `BOOLEAN` is the only type so far; the host shows it
+as a switch with the connection's other sync options and stores its value per
+connection. Every authenticated RPC carries the values in
+`WatchSyncAuthenticatedContext.connection_settings`, keyed by setting key, as
+`"true"` or `"false"` for a `BOOLEAN`, with defaults applied for settings the
+profile has not changed. A host that predates the field sends an empty map, so
+a plugin uses its default when a key is absent. These settings differ from a
+capability's `config_schema`, which an API-key connection collects once when it
+is made.
+
 `ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
 play count and last-watched time; `progress` carries a fractional percentage and
 paused time; `favorite` and `watchlist` carry list membership; `rating` carries

@@ -3,6 +3,8 @@ package manifest_test
 import (
 	"testing"
 
+	"google.golang.org/protobuf/types/known/structpb"
+
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	publicmanifest "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
 )
@@ -333,5 +335,104 @@ func TestLoadWatchSyncProviderDroppedAndRatingGate(t *testing.T) {
 	if !descriptor.GetSyncDropped() || len(gated) != 1 ||
 		gated[0] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE {
 		t.Fatalf("watch sync descriptor = %#v", descriptor)
+	}
+}
+
+func TestLoadWatchSyncProviderConnectionSettings(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id":"silo.settings", "version":"1.0.0", "silo_api_version":"v1",
+	  "capabilities":[{
+	    "type":"watch_sync_provider.v1", "id":"settings", "display_name":"Settings",
+	    "watch_sync_provider":{
+	      "auth_methods":["WATCH_SYNC_AUTH_METHOD_DEVICE_CODE"],
+	      "export_watched":true,
+	      "supported_media_types":["WATCH_SYNC_MEDIA_TYPE_MOVIE"],
+	      "max_batch_size":10,
+	      "connection_settings":[{
+	        "key":"track_rewatches",
+	        "label":"Log rewatches",
+	        "description":"Send repeat plays as rewatches.",
+	        "type":"WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN",
+	        "default_value":false
+	      }]
+	    }
+	  }]
+	}`)
+	manifest, err := publicmanifest.Load(raw)
+	if err != nil {
+		t.Fatalf("provider with connection settings should load: %v", err)
+	}
+	settings := manifest.GetCapabilities()[0].GetWatchSyncProvider().GetConnectionSettings()
+	if len(settings) != 1 || settings[0].GetKey() != "track_rewatches" || settings[0].GetLabel() != "Log rewatches" ||
+		settings[0].GetType() != pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN ||
+		settings[0].GetDefaultValue().GetBoolValue() {
+		t.Fatalf("connection settings = %v", settings)
+	}
+}
+
+func TestValidateWatchSyncProviderConnectionSettings(t *testing.T) {
+	boolean := pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN
+	setting := func(key string) *pluginv1.WatchSyncConnectionSetting {
+		return &pluginv1.WatchSyncConnectionSetting{Key: key, Label: "Setting", Type: boolean}
+	}
+	for _, tc := range []struct {
+		name     string
+		settings []*pluginv1.WatchSyncConnectionSetting
+		wantErr  bool
+	}{
+		{name: "boolean without default", settings: []*pluginv1.WatchSyncConnectionSetting{setting("track_rewatches")}},
+		{name: "boolean with default", settings: []*pluginv1.WatchSyncConnectionSetting{{
+			Key: "track_rewatches", Label: "Setting", Type: boolean, DefaultValue: structpb.NewBoolValue(true),
+		}}},
+		// A type newer than this SDK must not stop an older SDK from loading
+		// the manifest.
+		{name: "future type", settings: []*pluginv1.WatchSyncConnectionSetting{{
+			Key: "future", Label: "Setting", Type: pluginv1.WatchSyncConnectionSettingType(99),
+		}}},
+		{name: "two settings", settings: []*pluginv1.WatchSyncConnectionSetting{setting("one"), setting("two")}},
+		{name: "duplicate key", settings: []*pluginv1.WatchSyncConnectionSetting{setting("one"), setting("one")}, wantErr: true},
+		{name: "empty key", settings: []*pluginv1.WatchSyncConnectionSetting{setting("")}, wantErr: true},
+		{name: "uppercase key", settings: []*pluginv1.WatchSyncConnectionSetting{setting("TrackRewatches")}, wantErr: true},
+		{name: "missing label", settings: []*pluginv1.WatchSyncConnectionSetting{{Key: "one", Type: boolean}}, wantErr: true},
+		// A type name this SDK does not know decodes as UNSPECIFIED.
+		{name: "unspecified type", settings: []*pluginv1.WatchSyncConnectionSetting{{Key: "one", Label: "Setting"}}},
+		{name: "boolean with string default", settings: []*pluginv1.WatchSyncConnectionSetting{{
+			Key: "one", Label: "Setting", Type: boolean, DefaultValue: structpb.NewStringValue("true"),
+		}}, wantErr: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			manifest := validWatchSyncManifest()
+			manifest.Capabilities[0].WatchSyncProvider.ConnectionSettings = tc.settings
+			err := publicmanifest.Validate(manifest)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("Validate() error = %v, wantErr %t", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+// A manifest naming a setting type newer than this SDK still loads; hosts
+// skip that setting.
+func TestLoadWatchSyncProviderWithAFutureConnectionSettingType(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id":"silo.settings", "version":"1.0.0", "silo_api_version":"v1",
+	  "capabilities":[{
+	    "type":"watch_sync_provider.v1", "id":"settings", "display_name":"Settings",
+	    "watch_sync_provider":{
+	      "auth_methods":["WATCH_SYNC_AUTH_METHOD_DEVICE_CODE"],
+	      "export_watched":true,
+	      "supported_media_types":["WATCH_SYNC_MEDIA_TYPE_MOVIE"],
+	      "max_batch_size":10,
+	      "connection_settings":[{"key":"region","label":"Region","type":"WATCH_SYNC_CONNECTION_SETTING_TYPE_FUTURE_TEXT"}]
+	    }
+	  }]
+	}`)
+	manifest, err := publicmanifest.Load(raw)
+	if err != nil {
+		t.Fatalf("manifest with a future setting type should load: %v", err)
+	}
+	settings := manifest.GetCapabilities()[0].GetWatchSyncProvider().GetConnectionSettings()
+	if len(settings) != 1 || settings[0].GetType() != pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED {
+		t.Fatalf("connection settings = %v", settings)
 	}
 }
