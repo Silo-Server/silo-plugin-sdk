@@ -51,7 +51,7 @@ A typical plugin:
 3. Supports the `manifest` subcommand via `pkg/pluginsdk/runtime` so the host can introspect manifests without launching the plugin.
 4. Is installed either from a catalog or by uploading a trusted binary to a Silo server.
 
-For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host). For a stub overlay-network provider, see [`examples/hello-network-access`](examples/hello-network-access).
+For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host). For a stub overlay-network provider, see [`examples/hello-network-access`](examples/hello-network-access). For an Autoscan source that reports changed paths, see [`examples/hello-scan-source`](examples/hello-scan-source).
 
 ## Operator-facing presentation
 
@@ -434,6 +434,11 @@ source rewrite rules before enqueueing scans.
 The host resolves the configured upstream connection and passes it to
 `PollChanges` for each poll. Plugins should treat request values such as API
 keys as transient secrets and avoid logging them without redaction.
+
+See [docs/scan-source.md](docs/scan-source.md) for the setup descriptor that
+drives the Add-source flow, per-source settings, marker rules, change scopes,
+and installation. [`examples/hello-scan-source`](examples/hello-scan-source)
+is a complete plugin with tests.
 
 ## Self-describing binaries
 

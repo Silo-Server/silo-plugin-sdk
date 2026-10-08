@@ -21,13 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ScanSourceChangeScope says how the host turns a rewritten path into a scan.
+// Prefer FILE for files and SUBTREE for directories.
 type ScanSourceChangeScope int32
 
 const (
+	// Handled like SCAN_SOURCE_CHANGE_SCOPE_AUTO.
 	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_UNSPECIFIED ScanSourceChangeScope = 0
-	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_AUTO        ScanSourceChangeScope = 1
-	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_FILE        ScanSourceChangeScope = 2
-	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_SUBTREE     ScanSourceChangeScope = 3
+	// Scan the parent directory of the path. A directory without a trailing
+	// slash scans its parent, which can be a whole library scan; with a
+	// trailing slash it scans the directory itself.
+	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_AUTO ScanSourceChangeScope = 1
+	// The path is a media file. The host scans it; a video file widens to its
+	// directory except directly at a library root. An existing directory is
+	// scanned as a subtree, a library root is dropped, and a media file that no
+	// longer exists is marked missing while the library root is mounted. Other
+	// files (an .nfo, a subtitle) and every file in a podcast library are
+	// skipped.
+	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_FILE ScanSourceChangeScope = 2
+	// The path is a directory below a library root. The host queues a scan of
+	// it without checking that it exists; a library root itself is rejected.
+	ScanSourceChangeScope_SCAN_SOURCE_CHANGE_SCOPE_SUBTREE ScanSourceChangeScope = 3
 )
 
 // Enum value maps for ScanSourceChangeScope.
@@ -210,16 +224,24 @@ func (x *ResolvedConnection) GetApiKey() string {
 
 type PollChangesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Absolute changed paths in the provider/source namespace. Files or
-	// directories. The host applies autoscan source rewrite rules and validates
-	// the rewritten paths before enqueueing scans.
+	// Legacy: prefer changes. When changes has any entries the host ignores
+	// this field. Absolute changed paths in the provider/source namespace. The
+	// host applies autoscan source rewrite rules, then handles each path like a
+	// SCAN_SOURCE_CHANGE_SCOPE_AUTO change: it scans the path's parent
+	// directory. A directory without a trailing slash therefore scans its
+	// parent, which is a whole library scan when the parent is a library root.
 	SourcePaths []string `protobuf:"bytes,1,rep,name=source_paths,json=sourcePaths,proto3" json:"source_paths,omitempty"`
 	// Opaque continuation token. The host stores it verbatim and echoes it back
 	// on the next PollChanges; the host never parses it.
 	NextMarker string `protobuf:"bytes,2,opt,name=next_marker,json=nextMarker,proto3" json:"next_marker,omitempty"`
-	// Structured changes are preferred over source_paths when present. They let
-	// providers distinguish file-like imports from subtree reconciliation signals,
-	// including delete/rename classes where the path may no longer exist.
+	// Structured changes are preferred over source_paths; when present the host
+	// ignores source_paths. Each change's scope tells the host whether its path
+	// is a file or a directory. A deleted media file reported with
+	// SCAN_SOURCE_CHANGE_SCOPE_FILE is marked missing; that scope lists the
+	// exceptions. A scan of a directory that no longer exists leaves its catalog
+	// rows in place, so for a deleted, moved or renamed directory also report its
+	// parent directory.
+	// docs/scan-source.md in the plugin SDK describes the full behavior.
 	Changes       []*ScanSourceChange `protobuf:"bytes,3,rep,name=changes,proto3" json:"changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
