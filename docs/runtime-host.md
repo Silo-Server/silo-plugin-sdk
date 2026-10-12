@@ -201,7 +201,7 @@ unless every attempt fails:
   server, and any of them may make the call. Only that process sees the
   attempt, so a plugin cannot use events to keep state current in every
   process; keep such state where every process reads it.
-- An error, or no answer within a minute, asks for another attempt. The host
+- An error, or no answer within 10 seconds, asks for another attempt. The host
   retries a few times with growing delays over about 20 minutes, then drops
   the event.
   Return success once the event is handled, including when it is one the
