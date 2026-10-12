@@ -193,11 +193,14 @@ events.
 
 An `event_consumer.v1` capability lists the event names it wants in its
 manifest `subscriptions`, and the host calls `EventConsumer.HandleEvent` for
-each matching event. Silo delivers each event to each subscribing
-installation at least once, however many Silo servers run:
+each matching event. Once Silo has stored an event, it delivers it to each
+subscribing installation at least once, however many Silo servers run,
+unless every attempt fails:
 
 - One server delivers each attempt. A plugin installation runs on every API
-  server, and any of them may make the call.
+  server, and any of them may make the call. Only that process sees the
+  attempt, so a plugin cannot use events to keep state current in every
+  process; keep such state where every process reads it.
 - An error, or no answer within a minute, asks for another attempt. The host
   retries a few times with growing delays over about 20 minutes, then drops
   the event.
@@ -211,6 +214,8 @@ installation at least once, however many Silo servers run:
   kept only in process memory misses some repeats.
 - Events are not ordered. Two events can arrive in either order, and a retry
   can arrive after later events.
+- An event can be lost before Silo stores it, for example when the server
+  that produced it stops first.
 - Hosts before `event_id` deliver each event once per API server without
   retrying, and leave `event_id` empty.
 
