@@ -211,7 +211,8 @@ unless every attempt fails:
   that must not act twice, such as one that sends a notification, skips an
   `event_id` it has handled, or passes it upstream as an idempotency key. A
   retry can reach the plugin's process on another API server, so a record
-  kept only in process memory misses some repeats.
+  kept only in process memory misses some repeats. An empty `event_id` comes
+  from an older host and identifies nothing, so never use it as a key.
 - Events are not ordered. Two events can arrive in either order, and a retry
   can arrive after later events.
 - An event can be lost before Silo stores it, for example when the server

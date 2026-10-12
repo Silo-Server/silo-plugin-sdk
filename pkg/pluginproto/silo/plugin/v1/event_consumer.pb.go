@@ -31,7 +31,8 @@ type HandleEventRequest struct {
 	// with the same event_id, so a consumer that must not act twice skips an
 	// event_id it has already handled. Every installation that receives the
 	// event sees the same event_id. Hosts that predate the field leave it
-	// empty.
+	// empty, and an empty event_id identifies nothing: never deduplicate on
+	// it.
 	EventId       string `protobuf:"bytes,3,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
