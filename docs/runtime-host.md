@@ -189,6 +189,31 @@ All plugin-published event names are still host-stamped as
 `plugin.<caller_plugin_id>.<event_name>` so plugins cannot forge core host
 events.
 
+### Receiving events
+
+An `event_consumer.v1` capability lists the event names it wants in its
+manifest `subscriptions`, and the host calls `EventConsumer.HandleEvent` for
+each matching event. Silo delivers each event to each subscribing
+installation at least once, however many Silo servers run:
+
+- One server delivers each attempt. A plugin installation runs on every API
+  server, and any of them may make the call.
+- An error, or no answer within a minute, asks for another attempt. The host
+  retries a few times with growing delays over about 20 minutes, then drops
+  the event.
+  Return success once the event is handled, including when it is one the
+  plugin chooses to ignore.
+- A retry carries the same `event_id` as the first attempt, and every
+  installation that receives the event sees the same `event_id`. A consumer
+  that must not act twice, such as one that sends a notification, skips an
+  `event_id` it has handled, or passes it upstream as an idempotency key. A
+  retry can reach the plugin's process on another API server, so a record
+  kept only in process memory misses some repeats.
+- Events are not ordered. Two events can arrive in either order, and a retry
+  can arrive after later events.
+- Hosts before `event_id` deliver each event once per API server without
+  retrying, and leave `event_id` empty.
+
 ## End-to-end example
 
 See `examples/hello-runtime-host/` for a minimal plugin that publishes an

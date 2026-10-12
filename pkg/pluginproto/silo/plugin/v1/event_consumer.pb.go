@@ -23,9 +23,16 @@ const (
 )
 
 type HandleEventRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EventName     string                 `protobuf:"bytes,1,opt,name=event_name,json=eventName,proto3" json:"event_name,omitempty"`
-	Payload       *structpb.Struct       `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	EventName string                 `protobuf:"bytes,1,opt,name=event_name,json=eventName,proto3" json:"event_name,omitempty"`
+	Payload   *structpb.Struct       `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
+	// event_id identifies the event. Silo delivers each event to each
+	// subscribing installation at least once and retries a failed delivery
+	// with the same event_id, so a consumer that must not act twice skips an
+	// event_id it has already handled. Every installation that receives the
+	// event sees the same event_id. Hosts that predate the field leave it
+	// empty.
+	EventId       string `protobuf:"bytes,3,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -74,6 +81,13 @@ func (x *HandleEventRequest) GetPayload() *structpb.Struct {
 	return nil
 }
 
+func (x *HandleEventRequest) GetEventId() string {
+	if x != nil {
+		return x.EventId
+	}
+	return ""
+}
+
 type HandleEventResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -114,11 +128,12 @@ var File_silo_plugin_v1_event_consumer_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_event_consumer_proto_rawDesc = "" +
 	"\n" +
-	"#silo/plugin/v1/event_consumer.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"f\n" +
+	"#silo/plugin/v1/event_consumer.proto\x12\x0esilo.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"\x81\x01\n" +
 	"\x12HandleEventRequest\x12\x1d\n" +
 	"\n" +
 	"event_name\x18\x01 \x01(\tR\teventName\x121\n" +
-	"\apayload\x18\x02 \x01(\v2\x17.google.protobuf.StructR\apayload\"\x15\n" +
+	"\apayload\x18\x02 \x01(\v2\x17.google.protobuf.StructR\apayload\x12\x19\n" +
+	"\bevent_id\x18\x03 \x01(\tR\aeventId\"\x15\n" +
 	"\x13HandleEventResponse2g\n" +
 	"\rEventConsumer\x12V\n" +
 	"\vHandleEvent\x12\".silo.plugin.v1.HandleEventRequest\x1a#.silo.plugin.v1.HandleEventResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"

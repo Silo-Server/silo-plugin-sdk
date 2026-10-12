@@ -13,6 +13,13 @@ service EventConsumer {
 message HandleEventRequest {
   string event_name = 1;
   google.protobuf.Struct payload = 2;
+  // event_id identifies the event. Silo delivers each event to each
+  // subscribing installation at least once and retries a failed delivery
+  // with the same event_id, so a consumer that must not act twice skips an
+  // event_id it has already handled. Every installation that receives the
+  // event sees the same event_id. Hosts that predate the field leave it
+  // empty.
+  string event_id = 3;
 }
 
 message HandleEventResponse {}
