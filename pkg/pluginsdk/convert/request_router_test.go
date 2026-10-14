@@ -19,6 +19,7 @@ func TestRequestRouterDescriptorRoundTrip(t *testing.T) {
 		{name: "both", descriptor: &pluginv1.RequestRouterDescriptor{SupportsSeasons: true, ReportsDownloadProgress: true}},
 		{name: "optional credentials", descriptor: &pluginv1.RequestRouterDescriptor{ApiKeyOptional: true, BaseUrlOptional: true}},
 		{name: "optional api key", descriptor: &pluginv1.RequestRouterDescriptor{ApiKeyOptional: true}},
+		{name: "optional base url", descriptor: &pluginv1.RequestRouterDescriptor{BaseUrlOptional: true}},
 		{name: "wording", descriptor: &pluginv1.RequestRouterDescriptor{Wording: &pluginv1.RequestRouterWording{
 			Step:        "Processing",
 			Queued:      &pluginv1.RequestStatusWording{Label: "Sent to Seerr", Detail: "Seerr takes it from here."},
@@ -102,6 +103,24 @@ func TestCapabilityRecordStoresOptionalCredentialFlags(t *testing.T) {
 	stored, _ := records[0].Metadata["request_router"].(map[string]any)
 	if stored["api_key_optional"] != true || stored["base_url_optional"] != true {
 		t.Fatalf("stored request_router = %v, want api_key_optional and base_url_optional true", stored)
+	}
+}
+
+// A plugin that leaves the flags unset stores the same metadata as before they
+// existed, so hosts on older SDKs read it unchanged.
+func TestCapabilityRecordWithoutCredentialFlagsStoresNoNewKeys(t *testing.T) {
+	manifest := &pluginv1.PluginManifest{Capabilities: []*pluginv1.CapabilityDescriptor{{
+		Type:          "request_router.v1",
+		Id:            "arr",
+		RequestRouter: &pluginv1.RequestRouterDescriptor{SupportsSeasons: true},
+	}}}
+	records, err := convert.CapabilityRecordsFromManifest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stored, _ := records[0].Metadata["request_router"].(map[string]any)
+	if len(stored) != 1 || stored["supports_seasons"] != true {
+		t.Fatalf("stored request_router = %v, want only supports_seasons", stored)
 	}
 }
 

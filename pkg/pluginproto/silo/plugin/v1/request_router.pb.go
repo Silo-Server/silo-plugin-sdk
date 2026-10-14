@@ -174,11 +174,11 @@ type RequestRouterDescriptor struct {
 	// api_key_optional declares that the plugin works without an API key, for
 	// example because it talks to a local tool or authenticates some other way.
 	// The host then sends it connections whose api_key is empty, and its admin
-	// form lets an admin save and test a server without a key. Hosts skip a
-	// connection without a key when its plugin does not declare this.
+	// form saves and tests a server without a key. Hosts skip a connection
+	// without a key when its plugin does not declare this.
 	ApiKeyOptional bool `protobuf:"varint,4,opt,name=api_key_optional,json=apiKeyOptional,proto3" json:"api_key_optional,omitempty"`
 	// base_url_optional declares that the plugin works without a base URL. The
-	// host's admin form then lets an admin save and test a server without one.
+	// host's admin form then saves and tests a server without one.
 	BaseUrlOptional bool `protobuf:"varint,5,opt,name=base_url_optional,json=baseUrlOptional,proto3" json:"base_url_optional,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -382,11 +382,12 @@ func (x *RequestStatusWording) GetDetail() string {
 type RouterConnection struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// base_url can be empty for a plugin that declares
-	// RequestRouterDescriptor.base_url_optional.
+	// base_url is empty when none was saved. The host's admin form allows that
+	// only for a plugin that declares RequestRouterDescriptor.base_url_optional.
 	BaseUrl string `protobuf:"bytes,2,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
-	// api_key can be empty for a plugin that declares
-	// RequestRouterDescriptor.api_key_optional.
+	// api_key is empty when none was saved. The host sends such a connection
+	// to Fulfill, CheckStatus and ListConfigOptions only for a plugin that
+	// declares RequestRouterDescriptor.api_key_optional.
 	ApiKey string `protobuf:"bytes,3,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
 	// plugin-declared config blob (e.g. service_kind, root_folder,
 	// quality_profile_id)

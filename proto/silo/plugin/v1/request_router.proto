@@ -67,11 +67,11 @@ message RequestRouterDescriptor {
   // api_key_optional declares that the plugin works without an API key, for
   // example because it talks to a local tool or authenticates some other way.
   // The host then sends it connections whose api_key is empty, and its admin
-  // form lets an admin save and test a server without a key. Hosts skip a
-  // connection without a key when its plugin does not declare this.
+  // form saves and tests a server without a key. Hosts skip a connection
+  // without a key when its plugin does not declare this.
   bool api_key_optional = 4;
   // base_url_optional declares that the plugin works without a base URL. The
-  // host's admin form then lets an admin save and test a server without one.
+  // host's admin form then saves and tests a server without one.
   bool base_url_optional = 5;
 }
 
@@ -106,11 +106,12 @@ message RequestStatusWording {
 
 message RouterConnection {
   string id = 1;
-  // base_url can be empty for a plugin that declares
-  // RequestRouterDescriptor.base_url_optional.
+  // base_url is empty when none was saved. The host's admin form allows that
+  // only for a plugin that declares RequestRouterDescriptor.base_url_optional.
   string base_url = 2;
-  // api_key can be empty for a plugin that declares
-  // RequestRouterDescriptor.api_key_optional.
+  // api_key is empty when none was saved. The host sends such a connection
+  // to Fulfill, CheckStatus and ListConfigOptions only for a plugin that
+  // declares RequestRouterDescriptor.api_key_optional.
   string api_key = 3;
   // plugin-declared config blob (e.g. service_kind, root_folder,
   // quality_profile_id)

@@ -237,7 +237,7 @@ hosts that predate it.
 
 An admin connects a server to a request router with a base URL and an API key,
 which the plugin receives in `RouterConnection`. By default the host needs
-both: an admin can't save a server without them, and the host never sends a
+both: its admin form won't save a server without them, and it never sends a
 request to a connection without a key. A plugin that works without them, for
 example one that talks to a local tool or authenticates some other way,
 declares it in its manifest:
@@ -250,18 +250,16 @@ declares it in its manifest:
 }
 ```
 
-- `api_key_optional`: an admin can save and test a server without a key, and
-  the host sends the plugin connections whose `api_key` is empty.
-- `base_url_optional`: an admin can save and test a server without a base
+- `api_key_optional`: the admin form saves and tests a server without a key,
+  and the host sends the plugin connections whose `api_key` is empty.
+- `base_url_optional`: the admin form saves and tests a server without a base
   URL, and the plugin receives an empty `base_url`.
 
-An admin can still enter a key or URL, and the plugin receives what they
-entered. Plugins without the flags, including every plugin built before they
-existed, need both. A host that predates the flags still skips a connection
-without a key, so a plugin that relies on `api_key_optional` works there only
-with a key entered. The host reads the flags from the manifest it stored when
-the plugin was installed, so after upgrading from a host that predates them,
-reinstall or update the plugin.
+An admin can still enter a key or URL, and the plugin receives them. Plugins
+without the flags, including every plugin built before they existed, need both,
+and a host that predates the flags still skips a connection without a key. The
+SDK's `httpclient` refuses an empty key or base URL, so a plugin that declares
+either flag needs its own client for connections without them.
 
 ### Wording
 

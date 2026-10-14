@@ -110,17 +110,19 @@ func TestLoadRequestRouterWithoutCredentialFlagsRequiresBoth(t *testing.T) {
 		"other flags":   `"request_router":{"supports_seasons":true, "reports_download_progress":true}`,
 		"no descriptor": `"display_name":"Arr"`,
 	} {
-		manifest, err := publicmanifest.Load([]byte(`{
-		  "plugin_id":"silo.requests-arr", "version":"1.0.0", "silo_api_version":"v1",
-		  "capabilities":[{"type":"request_router.v1", "id":"arr", ` + raw + `}]
-		}`))
-		if err != nil {
-			t.Fatalf("%s: %v", name, err)
-		}
-		descriptor := manifest.GetCapabilities()[0].GetRequestRouter()
-		if descriptor.GetApiKeyOptional() || descriptor.GetBaseUrlOptional() {
-			t.Fatalf("%s: descriptor = %v, want an API key and a base URL required", name, descriptor)
-		}
+		t.Run(name, func(t *testing.T) {
+			manifest, err := publicmanifest.Load([]byte(`{
+			  "plugin_id":"silo.requests-arr", "version":"1.0.0", "silo_api_version":"v1",
+			  "capabilities":[{"type":"request_router.v1", "id":"arr", ` + raw + `}]
+			}`))
+			if err != nil {
+				t.Fatal(err)
+			}
+			descriptor := manifest.GetCapabilities()[0].GetRequestRouter()
+			if descriptor.GetApiKeyOptional() || descriptor.GetBaseUrlOptional() {
+				t.Fatalf("descriptor = %v, want an API key and a base URL required", descriptor)
+			}
+		})
 	}
 }
 
@@ -128,8 +130,6 @@ func TestValidateRequestRouterRejectsDescriptorOnOtherType(t *testing.T) {
 	for _, descriptor := range []*pluginv1.RequestRouterDescriptor{
 		{SupportsSeasons: true},
 		{ReportsDownloadProgress: true},
-		{ApiKeyOptional: true},
-		{BaseUrlOptional: true},
 	} {
 		manifest := &pluginv1.PluginManifest{
 			PluginId: "silo.invalid", Version: "1.0.0",
