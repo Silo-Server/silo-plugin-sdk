@@ -233,6 +233,36 @@ last stored. One `DownloadProgress` covers all of a target's downloads:
 `downloading`, so a phase added later still shows as a download in progress on
 hosts that predate it.
 
+### API key and base URL
+
+An admin connects a server to a request router with a base URL and an API key,
+which the plugin receives in `RouterConnection`. By default the host needs
+both: an admin can't save a server without them, and the host never sends a
+request to a connection without a key. A plugin that works without them, for
+example one that talks to a local tool or authenticates some other way,
+declares it in its manifest:
+
+```json
+{
+  "type": "request_router.v1",
+  "id": "local",
+  "request_router": { "api_key_optional": true, "base_url_optional": true }
+}
+```
+
+- `api_key_optional`: an admin can save and test a server without a key, and
+  the host sends the plugin connections whose `api_key` is empty.
+- `base_url_optional`: an admin can save and test a server without a base
+  URL, and the plugin receives an empty `base_url`.
+
+An admin can still enter a key or URL, and the plugin receives what they
+entered. Plugins without the flags, including every plugin built before they
+existed, need both. A host that predates the flags still skips a connection
+without a key, so a plugin that relies on `api_key_optional` works there only
+with a key entered. The host reads the flags from the manifest it stored when
+the plugin was installed, so after upgrading from a host that predates them,
+reinstall or update the plugin.
+
 ### Wording
 
 Silo clients draw a request as four steps: requested, approved, the router's

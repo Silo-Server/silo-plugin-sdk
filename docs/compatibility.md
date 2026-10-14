@@ -160,6 +160,16 @@ newer host stored could reject it. An absent wording, or any empty value in it,
 means the host's own neutral words. Plugins can therefore declare wording
 without raising their minimum host version.
 
+`RequestRouterDescriptor.api_key_optional` and `base_url_optional` (added in
+v0.26.0) are plain booleans, so they have no presence: unset, or an absent
+descriptor, means a connection needs an API key and a base URL, which is how
+hosts treated every router before the flags existed. Hosts that predate them
+drop them as unknown fields and keep skipping connections without a key, so a
+plugin that sets `api_key_optional` gets requests without a key only from a
+host that reads it. Hosts read the flags from the capability metadata stored
+at install: a plugin installed while the host ran an older SDK was stored
+without them, and needs reinstalling or updating after the host upgrade.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and

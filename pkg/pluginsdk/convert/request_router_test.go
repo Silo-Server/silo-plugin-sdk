@@ -17,6 +17,8 @@ func TestRequestRouterDescriptorRoundTrip(t *testing.T) {
 		{name: "seasons", descriptor: &pluginv1.RequestRouterDescriptor{SupportsSeasons: true}},
 		{name: "download progress", descriptor: &pluginv1.RequestRouterDescriptor{ReportsDownloadProgress: true}},
 		{name: "both", descriptor: &pluginv1.RequestRouterDescriptor{SupportsSeasons: true, ReportsDownloadProgress: true}},
+		{name: "optional credentials", descriptor: &pluginv1.RequestRouterDescriptor{ApiKeyOptional: true, BaseUrlOptional: true}},
+		{name: "optional api key", descriptor: &pluginv1.RequestRouterDescriptor{ApiKeyOptional: true}},
 		{name: "wording", descriptor: &pluginv1.RequestRouterDescriptor{Wording: &pluginv1.RequestRouterWording{
 			Step:        "Processing",
 			Queued:      &pluginv1.RequestStatusWording{Label: "Sent to Seerr", Detail: "Seerr takes it from here."},
@@ -82,6 +84,44 @@ func TestCapabilityRecordStoresWording(t *testing.T) {
 	queued, _ := wording["queued"].(map[string]any)
 	if wording["step"] != "Processing" || queued["label"] != "Sent to Seerr" {
 		t.Fatalf("stored request_router = %v, want wording step and queued label", stored)
+	}
+}
+
+// Other nodes read the flags back from the stored JSON, so they are stored
+// under their proto field names.
+func TestCapabilityRecordStoresOptionalCredentialFlags(t *testing.T) {
+	manifest := &pluginv1.PluginManifest{Capabilities: []*pluginv1.CapabilityDescriptor{{
+		Type:          "request_router.v1",
+		Id:            "local",
+		RequestRouter: &pluginv1.RequestRouterDescriptor{ApiKeyOptional: true, BaseUrlOptional: true},
+	}}}
+	records, err := convert.CapabilityRecordsFromManifest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stored, _ := records[0].Metadata["request_router"].(map[string]any)
+	if stored["api_key_optional"] != true || stored["base_url_optional"] != true {
+		t.Fatalf("stored request_router = %v, want api_key_optional and base_url_optional true", stored)
+	}
+}
+
+// Metadata stored for a request router built on an SDK without the flags must
+// decode as needing an API key and a base URL.
+func TestDecodeCapabilityStoredWithoutCredentialFlagsRequiresBoth(t *testing.T) {
+	record := convert.CapabilityRecord{
+		Type: "request_router.v1",
+		ID:   "arr",
+		Metadata: map[string]any{
+			"request_router": map[string]any{"supports_seasons": true, "reports_download_progress": true},
+		},
+	}
+	decoded, err := convert.DecodeCapability(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	descriptor := decoded.GetRequestRouter()
+	if descriptor.GetApiKeyOptional() || descriptor.GetBaseUrlOptional() {
+		t.Fatalf("decoded descriptor = %v, want an API key and a base URL required", descriptor)
 	}
 }
 

@@ -82,10 +82,54 @@ func TestLoadRequestRouterWithoutDescriptorDeclaresNoSeasonSupport(t *testing.T)
 	}
 }
 
+func TestLoadRequestRouterDeclaresOptionalCredentials(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id":"silo.requests-local", "version":"1.0.0", "silo_api_version":"v1",
+	  "capabilities":[{
+	    "type":"request_router.v1", "id":"local", "display_name":"Local",
+	    "request_router":{"api_key_optional":true, "base_url_optional":true}
+	  }]
+	}`)
+	manifest, err := publicmanifest.Load(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	descriptor := manifest.GetCapabilities()[0].GetRequestRouter()
+	if !descriptor.GetApiKeyOptional() {
+		t.Fatal("api_key_optional = false, want true")
+	}
+	if !descriptor.GetBaseUrlOptional() {
+		t.Fatal("base_url_optional = false, want true")
+	}
+}
+
+// A manifest that leaves the flags out, or has no descriptor, needs an API key
+// and a base URL, so routers written before the flags existed are unchanged.
+func TestLoadRequestRouterWithoutCredentialFlagsRequiresBoth(t *testing.T) {
+	for name, raw := range map[string]string{
+		"other flags":   `"request_router":{"supports_seasons":true, "reports_download_progress":true}`,
+		"no descriptor": `"display_name":"Arr"`,
+	} {
+		manifest, err := publicmanifest.Load([]byte(`{
+		  "plugin_id":"silo.requests-arr", "version":"1.0.0", "silo_api_version":"v1",
+		  "capabilities":[{"type":"request_router.v1", "id":"arr", ` + raw + `}]
+		}`))
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		descriptor := manifest.GetCapabilities()[0].GetRequestRouter()
+		if descriptor.GetApiKeyOptional() || descriptor.GetBaseUrlOptional() {
+			t.Fatalf("%s: descriptor = %v, want an API key and a base URL required", name, descriptor)
+		}
+	}
+}
+
 func TestValidateRequestRouterRejectsDescriptorOnOtherType(t *testing.T) {
 	for _, descriptor := range []*pluginv1.RequestRouterDescriptor{
 		{SupportsSeasons: true},
 		{ReportsDownloadProgress: true},
+		{ApiKeyOptional: true},
+		{BaseUrlOptional: true},
 	} {
 		manifest := &pluginv1.PluginManifest{
 			PluginId: "silo.invalid", Version: "1.0.0",

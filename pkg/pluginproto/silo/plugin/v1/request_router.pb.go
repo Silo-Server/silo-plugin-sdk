@@ -170,9 +170,18 @@ type RequestRouterDescriptor struct {
 	ReportsDownloadProgress bool `protobuf:"varint,2,opt,name=reports_download_progress,json=reportsDownloadProgress,proto3" json:"reports_download_progress,omitempty"`
 	// wording is how clients describe a request while this plugin fulfils it.
 	// Unset, or any field left empty, means the host's own neutral words.
-	Wording       *RequestRouterWording `protobuf:"bytes,3,opt,name=wording,proto3" json:"wording,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Wording *RequestRouterWording `protobuf:"bytes,3,opt,name=wording,proto3" json:"wording,omitempty"`
+	// api_key_optional declares that the plugin works without an API key, for
+	// example because it talks to a local tool or authenticates some other way.
+	// The host then sends it connections whose api_key is empty, and its admin
+	// form lets an admin save and test a server without a key. Hosts skip a
+	// connection without a key when its plugin does not declare this.
+	ApiKeyOptional bool `protobuf:"varint,4,opt,name=api_key_optional,json=apiKeyOptional,proto3" json:"api_key_optional,omitempty"`
+	// base_url_optional declares that the plugin works without a base URL. The
+	// host's admin form then lets an admin save and test a server without one.
+	BaseUrlOptional bool `protobuf:"varint,5,opt,name=base_url_optional,json=baseUrlOptional,proto3" json:"base_url_optional,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RequestRouterDescriptor) Reset() {
@@ -224,6 +233,20 @@ func (x *RequestRouterDescriptor) GetWording() *RequestRouterWording {
 		return x.Wording
 	}
 	return nil
+}
+
+func (x *RequestRouterDescriptor) GetApiKeyOptional() bool {
+	if x != nil {
+		return x.ApiKeyOptional
+	}
+	return false
+}
+
+func (x *RequestRouterDescriptor) GetBaseUrlOptional() bool {
+	if x != nil {
+		return x.BaseUrlOptional
+	}
+	return false
 }
 
 // RequestRouterWording names the part of a request that a request router
@@ -357,10 +380,14 @@ func (x *RequestStatusWording) GetDetail() string {
 }
 
 type RouterConnection struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BaseUrl string                 `protobuf:"bytes,2,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
-	ApiKey  string                 `protobuf:"bytes,3,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// base_url can be empty for a plugin that declares
+	// RequestRouterDescriptor.base_url_optional.
+	BaseUrl string `protobuf:"bytes,2,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
+	// api_key can be empty for a plugin that declares
+	// RequestRouterDescriptor.api_key_optional.
+	ApiKey string `protobuf:"bytes,3,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
 	// plugin-declared config blob (e.g. service_kind, root_folder,
 	// quality_profile_id)
 	Config        *structpb.Struct `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
@@ -1509,11 +1536,13 @@ const file_silo_plugin_v1_request_router_proto_rawDesc = "" +
 	" \x03(\x05R\aseasons\x1a>\n" +
 	"\x10ExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc0\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x96\x02\n" +
 	"\x17RequestRouterDescriptor\x12)\n" +
 	"\x10supports_seasons\x18\x01 \x01(\bR\x0fsupportsSeasons\x12:\n" +
 	"\x19reports_download_progress\x18\x02 \x01(\bR\x17reportsDownloadProgress\x12>\n" +
-	"\awording\x18\x03 \x01(\v2$.silo.plugin.v1.RequestRouterWordingR\awording\"\xb0\x01\n" +
+	"\awording\x18\x03 \x01(\v2$.silo.plugin.v1.RequestRouterWordingR\awording\x12(\n" +
+	"\x10api_key_optional\x18\x04 \x01(\bR\x0eapiKeyOptional\x12*\n" +
+	"\x11base_url_optional\x18\x05 \x01(\bR\x0fbaseUrlOptional\"\xb0\x01\n" +
 	"\x14RequestRouterWording\x12\x12\n" +
 	"\x04step\x18\x01 \x01(\tR\x04step\x12<\n" +
 	"\x06queued\x18\x02 \x01(\v2$.silo.plugin.v1.RequestStatusWordingR\x06queued\x12F\n" +
