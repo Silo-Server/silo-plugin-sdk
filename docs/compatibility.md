@@ -164,12 +164,15 @@ without raising their minimum host version.
 v0.26.0) are plain booleans, so they have no presence: unset, or an absent
 descriptor, keeps the behaviour hosts had before the flags existed. The host
 skips a connection without an API key, and its admin form asks for a key and a
-base URL. Hosts that predate the flags drop them as unknown fields, so a plugin
-that sets `api_key_optional` gets requests without a key only from a host that
-reads it. Hosts read the flags from the capability metadata stored when the
-plugin was installed or updated. A host built on an older SDK stored that
-metadata without them, so they take effect after the plugin is next updated
-on a host that reads them.
+base URL. Hosts that predate the flags drop them as unknown fields when they
+install a plugin archive, so a plugin that sets `api_key_optional` gets
+requests without a key only from a host that reads it. Silo reads a bare
+plugin binary's manifest strictly, so a Silo host that predates the flags
+refuses to install a binary that declares them; install it from an archive
+there (Silo-Server/silo-server#2436). Hosts read the flags from the capability
+metadata stored when the plugin was installed or updated. A host built on an
+older SDK stored that metadata without them, so they take effect after the
+plugin is next updated on a host that reads them.
 
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate

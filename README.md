@@ -256,10 +256,12 @@ declares it in its manifest:
   URL, and the plugin receives an empty `base_url`.
 
 An admin can still enter a key or URL, and the plugin receives them. Plugins
-without the flags, including every plugin built before they existed, need both,
-and a host that predates the flags still skips a connection without a key. The
-SDK's `httpclient` refuses an empty key or base URL, so a plugin that declares
-either flag needs its own client for connections without them.
+without the flags, including every plugin built before they existed, need both.
+A host that predates the flags still skips a connection without a key, and
+refuses to install a bare plugin binary that declares them; see
+[docs/compatibility.md](docs/compatibility.md). The SDK's `httpclient` refuses
+an empty key or base URL, so a plugin that declares either flag needs its own
+client for connections without them.
 
 ### Wording
 
