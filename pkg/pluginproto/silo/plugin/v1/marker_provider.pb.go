@@ -95,8 +95,12 @@ func (x *MarkerExternalIDs) GetProviderIds() *structpb.Struct {
 // (season 0 holds specials). episode_external_ids names the provider episode
 // records the host matched at those numbers. The host matches each
 // provider's episodes by number alone, so IDs from two providers can name
-// different episodes where the providers number a series differently. Both
-// episode fields are empty for a movie and when the host has no value.
+// different episodes where the providers number a series differently.
+// episode_numbering resolves that: it is the external ID key ("tvdb" or
+// "tmdb") of the provider whose numbering the episode follows, the first in
+// the library's episode chain that supplied it. episode_title is in the
+// library's metadata language. The episode fields are empty for a movie and
+// when the host has no value.
 type FetchMarkersRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	ItemType           string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
@@ -107,6 +111,7 @@ type FetchMarkersRequest struct {
 	Metadata           *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,7,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
 	EpisodeTitle       string                 `protobuf:"bytes,8,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
+	EpisodeNumbering   string                 `protobuf:"bytes,9,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -193,6 +198,13 @@ func (x *FetchMarkersRequest) GetEpisodeExternalIds() *MarkerExternalIDs {
 func (x *FetchMarkersRequest) GetEpisodeTitle() string {
 	if x != nil {
 		return x.EpisodeTitle
+	}
+	return ""
+}
+
+func (x *FetchMarkersRequest) GetEpisodeNumbering() string {
+	if x != nil {
+		return x.EpisodeNumbering
 	}
 	return ""
 }
@@ -355,6 +367,7 @@ type SubmitMarkerRequest struct {
 	Metadata           *structpb.Struct       `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,10,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
 	EpisodeTitle       string                 `protobuf:"bytes,11,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
+	EpisodeNumbering   string                 `protobuf:"bytes,12,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -462,6 +475,13 @@ func (x *SubmitMarkerRequest) GetEpisodeExternalIds() *MarkerExternalIDs {
 func (x *SubmitMarkerRequest) GetEpisodeTitle() string {
 	if x != nil {
 		return x.EpisodeTitle
+	}
+	return ""
+}
+
+func (x *SubmitMarkerRequest) GetEpisodeNumbering() string {
+	if x != nil {
+		return x.EpisodeNumbering
 	}
 	return ""
 }
@@ -679,7 +699,7 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\atmdb_id\x18\x01 \x01(\tR\x06tmdbId\x12\x17\n" +
 	"\aimdb_id\x18\x02 \x01(\tR\x06imdbId\x12\x17\n" +
 	"\atvdb_id\x18\x03 \x01(\tR\x06tvdbId\x12:\n" +
-	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\x9e\x03\n" +
+	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\xcb\x03\n" +
 	"\x13FetchMarkersRequest\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
 	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
@@ -688,7 +708,8 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\x10duration_seconds\x18\x05 \x01(\x01R\x0fdurationSeconds\x123\n" +
 	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12S\n" +
 	"\x14episode_external_ids\x18\a \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
-	"\repisode_title\x18\b \x01(\tR\fepisodeTitle\"\xb9\x02\n" +
+	"\repisode_title\x18\b \x01(\tR\fepisodeTitle\x12+\n" +
+	"\x11episode_numbering\x18\t \x01(\tR\x10episodeNumbering\"\xb9\x02\n" +
 	"\rMarkerSegment\x12\x18\n" +
 	"\asegment\x18\x01 \x01(\tR\asegment\x12(\n" +
 	"\rstart_seconds\x18\x02 \x01(\x01H\x00R\fstartSeconds\x88\x01\x01\x12$\n" +
@@ -704,7 +725,7 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\f_end_seconds\"\x84\x01\n" +
 	"\x14FetchMarkersResponse\x127\n" +
 	"\amarkers\x18\x01 \x03(\v2\x1d.silo.plugin.v1.MarkerSegmentR\amarkers\x123\n" +
-	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xaa\x04\n" +
+	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xd7\x04\n" +
 	"\x13SubmitMarkerRequest\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
 	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
@@ -718,7 +739,8 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12S\n" +
 	"\x14episode_external_ids\x18\n" +
 	" \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
-	"\repisode_title\x18\v \x01(\tR\fepisodeTitleB\x10\n" +
+	"\repisode_title\x18\v \x01(\tR\fepisodeTitle\x12+\n" +
+	"\x11episode_numbering\x18\f \x01(\tR\x10episodeNumberingB\x10\n" +
 	"\x0e_start_secondsB\x0e\n" +
 	"\f_end_seconds\"\xa0\x01\n" +
 	"\x14SubmitMarkerResponse\x12#\n" +

@@ -24,8 +24,12 @@ message MarkerExternalIDs {
 // (season 0 holds specials). episode_external_ids names the provider episode
 // records the host matched at those numbers. The host matches each
 // provider's episodes by number alone, so IDs from two providers can name
-// different episodes where the providers number a series differently. Both
-// episode fields are empty for a movie and when the host has no value.
+// different episodes where the providers number a series differently.
+// episode_numbering resolves that: it is the external ID key ("tvdb" or
+// "tmdb") of the provider whose numbering the episode follows, the first in
+// the library's episode chain that supplied it. episode_title is in the
+// library's metadata language. The episode fields are empty for a movie and
+// when the host has no value.
 message FetchMarkersRequest {
   string item_type = 1; // "movie" | "episode"
   MarkerExternalIDs external_ids = 2;
@@ -35,6 +39,7 @@ message FetchMarkersRequest {
   google.protobuf.Struct metadata = 6;
   MarkerExternalIDs episode_external_ids = 7;
   string episode_title = 8;
+  string episode_numbering = 9;
 }
 
 message MarkerSegment {
@@ -65,6 +70,7 @@ message SubmitMarkerRequest {
   google.protobuf.Struct metadata = 9;
   MarkerExternalIDs episode_external_ids = 10;
   string episode_title = 11;
+  string episode_numbering = 12;
 }
 
 message SubmitMarkerResponse {

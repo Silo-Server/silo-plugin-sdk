@@ -52,6 +52,11 @@ with a `default` arm rather than an exhaustive match, and do not assume the
 constants shipped in any given SDK tag are the complete set. The same rule
 applies to any future open vocabulary added to `v1`.
 
+`FetchMarkersRequest.episode_numbering` and `SubmitMarkerRequest.episode_numbering`
+are open too. Hosts send an external ID key, today `tvdb` or `tmdb`, or leave the
+field empty when they cannot tell. A marker provider treats a value it does not
+recognize like an empty one.
+
 `DownloadProgress.phase` runs the other way: plugins send it and the host reads
 it. The current values are `queued`, `downloading`, `paused`, `stalled`,
 `importing`, and `import_blocked`. Hosts treat a value they do not recognize as

@@ -11,6 +11,8 @@ func TestMarkerRequests_EpisodeIdentityFieldNumbers(t *testing.T) {
 	assertFieldNumber(t, &FetchMarkersRequest{}, "episode_title", 8)
 	assertFieldNumber(t, &SubmitMarkerRequest{}, "episode_external_ids", 10)
 	assertFieldNumber(t, &SubmitMarkerRequest{}, "episode_title", 11)
+	assertFieldNumber(t, &FetchMarkersRequest{}, "episode_numbering", 9)
+	assertFieldNumber(t, &SubmitMarkerRequest{}, "episode_numbering", 12)
 }
 
 // A host that predates the episode fields sends requests without them; the
@@ -32,8 +34,8 @@ func TestFetchMarkersRequest_OldPayloadDecodesWithoutEpisodeIdentity(t *testing.
 	if decoded.GetExternalIds().GetTvdbId() != "121361" || decoded.GetSeasonNumber() != 1 || decoded.GetEpisodeNumber() != 2 {
 		t.Fatalf("decoded series identity = %+v", &decoded)
 	}
-	if decoded.GetEpisodeExternalIds().GetTvdbId() != "" || decoded.GetEpisodeTitle() != "" {
-		t.Fatalf("episode identity = %q/%q, want empty", decoded.GetEpisodeExternalIds().GetTvdbId(), decoded.GetEpisodeTitle())
+	if decoded.GetEpisodeExternalIds().GetTvdbId() != "" || decoded.GetEpisodeTitle() != "" || decoded.GetEpisodeNumbering() != "" {
+		t.Fatalf("episode identity = %q/%q/%q, want empty", decoded.GetEpisodeExternalIds().GetTvdbId(), decoded.GetEpisodeTitle(), decoded.GetEpisodeNumbering())
 	}
 }
 
@@ -46,6 +48,7 @@ func TestSubmitMarkerRequest_EpisodeIdentityRoundTrips(t *testing.T) {
 		Segment:            "intro",
 		EpisodeExternalIds: &MarkerExternalIDs{TvdbId: "3254641", TmdbId: "63056"},
 		EpisodeTitle:       "Winter Is Coming",
+		EpisodeNumbering:   "tvdb",
 	})
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
@@ -55,7 +58,7 @@ func TestSubmitMarkerRequest_EpisodeIdentityRoundTrips(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 	if decoded.GetEpisodeExternalIds().GetTvdbId() != "3254641" || decoded.GetEpisodeExternalIds().GetTmdbId() != "63056" ||
-		decoded.GetEpisodeTitle() != "Winter Is Coming" {
+		decoded.GetEpisodeTitle() != "Winter Is Coming" || decoded.GetEpisodeNumbering() != "tvdb" {
 		t.Fatalf("decoded episode identity = %+v", &decoded)
 	}
 }
