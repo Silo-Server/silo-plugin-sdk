@@ -19,6 +19,13 @@ message MarkerExternalIDs {
   google.protobuf.Struct provider_ids = 4;
 }
 
+// For an episode, external_ids names the series, and season_number and
+// episode_number place the episode in it using the host catalog's numbering
+// (season 0 holds specials). episode_external_ids names the provider episode
+// records the host matched at those numbers. The host matches each
+// provider's episodes by number alone, so IDs from two providers can name
+// different episodes where the providers number a series differently. Both
+// episode fields are empty for a movie and when the host has no value.
 message FetchMarkersRequest {
   string item_type = 1; // "movie" | "episode"
   MarkerExternalIDs external_ids = 2;
@@ -26,6 +33,8 @@ message FetchMarkersRequest {
   int32 episode_number = 4;
   double duration_seconds = 5;
   google.protobuf.Struct metadata = 6;
+  MarkerExternalIDs episode_external_ids = 7;
+  string episode_title = 8;
 }
 
 message MarkerSegment {
@@ -43,6 +52,7 @@ message FetchMarkersResponse {
   google.protobuf.Struct metadata = 2;
 }
 
+// The item fields follow FetchMarkersRequest.
 message SubmitMarkerRequest {
   string item_type = 1; // "movie" | "episode"
   MarkerExternalIDs external_ids = 2;
@@ -53,6 +63,8 @@ message SubmitMarkerRequest {
   optional double end_seconds = 7;
   double duration_seconds = 8;
   google.protobuf.Struct metadata = 9;
+  MarkerExternalIDs episode_external_ids = 10;
+  string episode_title = 11;
 }
 
 message SubmitMarkerResponse {
