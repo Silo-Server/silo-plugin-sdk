@@ -90,16 +90,25 @@ func (x *MarkerExternalIDs) GetProviderIds() *structpb.Struct {
 	return nil
 }
 
+// For an episode, external_ids names the series, and season_number and
+// episode_number place the episode in it using the host catalog's numbering
+// (season 0 holds specials). episode_external_ids names the provider episode
+// records the host matched at those numbers. The host matches each
+// provider's episodes by number alone, so IDs from two providers can name
+// different episodes where the providers number a series differently. Both
+// episode fields are empty for a movie and when the host has no value.
 type FetchMarkersRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	ItemType        string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
-	ExternalIds     *MarkerExternalIDs     `protobuf:"bytes,2,opt,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
-	SeasonNumber    int32                  `protobuf:"varint,3,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
-	EpisodeNumber   int32                  `protobuf:"varint,4,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
-	DurationSeconds float64                `protobuf:"fixed64,5,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
-	Metadata        *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ItemType           string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
+	ExternalIds        *MarkerExternalIDs     `protobuf:"bytes,2,opt,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
+	SeasonNumber       int32                  `protobuf:"varint,3,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	EpisodeNumber      int32                  `protobuf:"varint,4,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
+	DurationSeconds    float64                `protobuf:"fixed64,5,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	Metadata           *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,7,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
+	EpisodeTitle       string                 `protobuf:"bytes,8,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *FetchMarkersRequest) Reset() {
@@ -172,6 +181,20 @@ func (x *FetchMarkersRequest) GetMetadata() *structpb.Struct {
 		return x.Metadata
 	}
 	return nil
+}
+
+func (x *FetchMarkersRequest) GetEpisodeExternalIds() *MarkerExternalIDs {
+	if x != nil {
+		return x.EpisodeExternalIds
+	}
+	return nil
+}
+
+func (x *FetchMarkersRequest) GetEpisodeTitle() string {
+	if x != nil {
+		return x.EpisodeTitle
+	}
+	return ""
 }
 
 type MarkerSegment struct {
@@ -318,19 +341,22 @@ func (x *FetchMarkersResponse) GetMetadata() *structpb.Struct {
 	return nil
 }
 
+// The item fields follow FetchMarkersRequest.
 type SubmitMarkerRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	ItemType        string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
-	ExternalIds     *MarkerExternalIDs     `protobuf:"bytes,2,opt,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
-	SeasonNumber    int32                  `protobuf:"varint,3,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
-	EpisodeNumber   int32                  `protobuf:"varint,4,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
-	Segment         string                 `protobuf:"bytes,5,opt,name=segment,proto3" json:"segment,omitempty"` // "intro" | "credits" | "recap" | "preview"
-	StartSeconds    *float64               `protobuf:"fixed64,6,opt,name=start_seconds,json=startSeconds,proto3,oneof" json:"start_seconds,omitempty"`
-	EndSeconds      *float64               `protobuf:"fixed64,7,opt,name=end_seconds,json=endSeconds,proto3,oneof" json:"end_seconds,omitempty"`
-	DurationSeconds float64                `protobuf:"fixed64,8,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
-	Metadata        *structpb.Struct       `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ItemType           string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
+	ExternalIds        *MarkerExternalIDs     `protobuf:"bytes,2,opt,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
+	SeasonNumber       int32                  `protobuf:"varint,3,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	EpisodeNumber      int32                  `protobuf:"varint,4,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
+	Segment            string                 `protobuf:"bytes,5,opt,name=segment,proto3" json:"segment,omitempty"` // "intro" | "credits" | "recap" | "preview"
+	StartSeconds       *float64               `protobuf:"fixed64,6,opt,name=start_seconds,json=startSeconds,proto3,oneof" json:"start_seconds,omitempty"`
+	EndSeconds         *float64               `protobuf:"fixed64,7,opt,name=end_seconds,json=endSeconds,proto3,oneof" json:"end_seconds,omitempty"`
+	DurationSeconds    float64                `protobuf:"fixed64,8,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	Metadata           *structpb.Struct       `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,10,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
+	EpisodeTitle       string                 `protobuf:"bytes,11,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *SubmitMarkerRequest) Reset() {
@@ -424,6 +450,20 @@ func (x *SubmitMarkerRequest) GetMetadata() *structpb.Struct {
 		return x.Metadata
 	}
 	return nil
+}
+
+func (x *SubmitMarkerRequest) GetEpisodeExternalIds() *MarkerExternalIDs {
+	if x != nil {
+		return x.EpisodeExternalIds
+	}
+	return nil
+}
+
+func (x *SubmitMarkerRequest) GetEpisodeTitle() string {
+	if x != nil {
+		return x.EpisodeTitle
+	}
+	return ""
 }
 
 type SubmitMarkerResponse struct {
@@ -639,14 +679,16 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\atmdb_id\x18\x01 \x01(\tR\x06tmdbId\x12\x17\n" +
 	"\aimdb_id\x18\x02 \x01(\tR\x06imdbId\x12\x17\n" +
 	"\atvdb_id\x18\x03 \x01(\tR\x06tvdbId\x12:\n" +
-	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\xa4\x02\n" +
+	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\x9e\x03\n" +
 	"\x13FetchMarkersRequest\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
 	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
 	"\rseason_number\x18\x03 \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\x04 \x01(\x05R\repisodeNumber\x12)\n" +
 	"\x10duration_seconds\x18\x05 \x01(\x01R\x0fdurationSeconds\x123\n" +
-	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xb9\x02\n" +
+	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12S\n" +
+	"\x14episode_external_ids\x18\a \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
+	"\repisode_title\x18\b \x01(\tR\fepisodeTitle\"\xb9\x02\n" +
 	"\rMarkerSegment\x12\x18\n" +
 	"\asegment\x18\x01 \x01(\tR\asegment\x12(\n" +
 	"\rstart_seconds\x18\x02 \x01(\x01H\x00R\fstartSeconds\x88\x01\x01\x12$\n" +
@@ -662,7 +704,7 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\f_end_seconds\"\x84\x01\n" +
 	"\x14FetchMarkersResponse\x127\n" +
 	"\amarkers\x18\x01 \x03(\v2\x1d.silo.plugin.v1.MarkerSegmentR\amarkers\x123\n" +
-	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xb0\x03\n" +
+	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xaa\x04\n" +
 	"\x13SubmitMarkerRequest\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
 	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
@@ -673,7 +715,10 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\vend_seconds\x18\a \x01(\x01H\x01R\n" +
 	"endSeconds\x88\x01\x01\x12)\n" +
 	"\x10duration_seconds\x18\b \x01(\x01R\x0fdurationSeconds\x123\n" +
-	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadataB\x10\n" +
+	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12S\n" +
+	"\x14episode_external_ids\x18\n" +
+	" \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
+	"\repisode_title\x18\v \x01(\tR\fepisodeTitleB\x10\n" +
 	"\x0e_start_secondsB\x0e\n" +
 	"\f_end_seconds\"\xa0\x01\n" +
 	"\x14SubmitMarkerResponse\x12#\n" +
@@ -725,24 +770,26 @@ var file_silo_plugin_v1_marker_provider_proto_depIdxs = []int32{
 	8,  // 0: silo.plugin.v1.MarkerExternalIDs.provider_ids:type_name -> google.protobuf.Struct
 	0,  // 1: silo.plugin.v1.FetchMarkersRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
 	8,  // 2: silo.plugin.v1.FetchMarkersRequest.metadata:type_name -> google.protobuf.Struct
-	8,  // 3: silo.plugin.v1.MarkerSegment.metadata:type_name -> google.protobuf.Struct
-	2,  // 4: silo.plugin.v1.FetchMarkersResponse.markers:type_name -> silo.plugin.v1.MarkerSegment
-	8,  // 5: silo.plugin.v1.FetchMarkersResponse.metadata:type_name -> google.protobuf.Struct
-	0,  // 6: silo.plugin.v1.SubmitMarkerRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
-	8,  // 7: silo.plugin.v1.SubmitMarkerRequest.metadata:type_name -> google.protobuf.Struct
-	8,  // 8: silo.plugin.v1.SubmitMarkerResponse.metadata:type_name -> google.protobuf.Struct
-	8,  // 9: silo.plugin.v1.MarkerProviderStatsResponse.metadata:type_name -> google.protobuf.Struct
-	1,  // 10: silo.plugin.v1.MarkerProvider.FetchMarkers:input_type -> silo.plugin.v1.FetchMarkersRequest
-	4,  // 11: silo.plugin.v1.MarkerProvider.SubmitMarker:input_type -> silo.plugin.v1.SubmitMarkerRequest
-	6,  // 12: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:input_type -> silo.plugin.v1.GetMarkerProviderStatsRequest
-	3,  // 13: silo.plugin.v1.MarkerProvider.FetchMarkers:output_type -> silo.plugin.v1.FetchMarkersResponse
-	5,  // 14: silo.plugin.v1.MarkerProvider.SubmitMarker:output_type -> silo.plugin.v1.SubmitMarkerResponse
-	7,  // 15: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:output_type -> silo.plugin.v1.MarkerProviderStatsResponse
-	13, // [13:16] is the sub-list for method output_type
-	10, // [10:13] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	0,  // 3: silo.plugin.v1.FetchMarkersRequest.episode_external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	8,  // 4: silo.plugin.v1.MarkerSegment.metadata:type_name -> google.protobuf.Struct
+	2,  // 5: silo.plugin.v1.FetchMarkersResponse.markers:type_name -> silo.plugin.v1.MarkerSegment
+	8,  // 6: silo.plugin.v1.FetchMarkersResponse.metadata:type_name -> google.protobuf.Struct
+	0,  // 7: silo.plugin.v1.SubmitMarkerRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	8,  // 8: silo.plugin.v1.SubmitMarkerRequest.metadata:type_name -> google.protobuf.Struct
+	0,  // 9: silo.plugin.v1.SubmitMarkerRequest.episode_external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	8,  // 10: silo.plugin.v1.SubmitMarkerResponse.metadata:type_name -> google.protobuf.Struct
+	8,  // 11: silo.plugin.v1.MarkerProviderStatsResponse.metadata:type_name -> google.protobuf.Struct
+	1,  // 12: silo.plugin.v1.MarkerProvider.FetchMarkers:input_type -> silo.plugin.v1.FetchMarkersRequest
+	4,  // 13: silo.plugin.v1.MarkerProvider.SubmitMarker:input_type -> silo.plugin.v1.SubmitMarkerRequest
+	6,  // 14: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:input_type -> silo.plugin.v1.GetMarkerProviderStatsRequest
+	3,  // 15: silo.plugin.v1.MarkerProvider.FetchMarkers:output_type -> silo.plugin.v1.FetchMarkersResponse
+	5,  // 16: silo.plugin.v1.MarkerProvider.SubmitMarker:output_type -> silo.plugin.v1.SubmitMarkerResponse
+	7,  // 17: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:output_type -> silo.plugin.v1.MarkerProviderStatsResponse
+	15, // [15:18] is the sub-list for method output_type
+	12, // [12:15] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_marker_provider_proto_init() }
