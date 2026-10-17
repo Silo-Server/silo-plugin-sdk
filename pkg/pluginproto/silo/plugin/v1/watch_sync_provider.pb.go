@@ -560,13 +560,17 @@ type WatchSyncProviderDescriptor struct {
 	ImportProgress       bool                   `protobuf:"varint,5,opt,name=import_progress,json=importProgress,proto3" json:"import_progress,omitempty"`
 	SupportedMediaTypes  []WatchSyncMediaType   `protobuf:"varint,6,rep,packed,name=supported_media_types,json=supportedMediaTypes,proto3,enum=silo.plugin.v1.WatchSyncMediaType" json:"supported_media_types,omitempty"`
 	ExternalIdNamespaces []string               `protobuf:"bytes,7,rep,name=external_id_namespaces,json=externalIdNamespaces,proto3" json:"external_id_namespaces,omitempty"`
-	MaxBatchSize         int32                  `protobuf:"varint,8,opt,name=max_batch_size,json=maxBatchSize,proto3" json:"max_batch_size,omitempty"`
-	ImportFavorites      bool                   `protobuf:"varint,9,opt,name=import_favorites,json=importFavorites,proto3" json:"import_favorites,omitempty"`
-	ExportFavorites      bool                   `protobuf:"varint,10,opt,name=export_favorites,json=exportFavorites,proto3" json:"export_favorites,omitempty"`
-	RemoveFavorites      bool                   `protobuf:"varint,11,opt,name=remove_favorites,json=removeFavorites,proto3" json:"remove_favorites,omitempty"`
-	ImportWatchlist      bool                   `protobuf:"varint,12,opt,name=import_watchlist,json=importWatchlist,proto3" json:"import_watchlist,omitempty"`
-	ExportWatchlist      bool                   `protobuf:"varint,13,opt,name=export_watchlist,json=exportWatchlist,proto3" json:"export_watchlist,omitempty"`
-	RemoveWatchlist      bool                   `protobuf:"varint,14,opt,name=remove_watchlist,json=removeWatchlist,proto3" json:"remove_watchlist,omitempty"`
+	// The most events the host sends in one ApplyEvents call, and the page size
+	// it requests from ListRemoteState, from 1 to 1000. SDK releases before
+	// v0.27.0 accept only 1 to 100, so a larger value needs a host built on
+	// v0.27.0 or later.
+	MaxBatchSize    int32 `protobuf:"varint,8,opt,name=max_batch_size,json=maxBatchSize,proto3" json:"max_batch_size,omitempty"`
+	ImportFavorites bool  `protobuf:"varint,9,opt,name=import_favorites,json=importFavorites,proto3" json:"import_favorites,omitempty"`
+	ExportFavorites bool  `protobuf:"varint,10,opt,name=export_favorites,json=exportFavorites,proto3" json:"export_favorites,omitempty"`
+	RemoveFavorites bool  `protobuf:"varint,11,opt,name=remove_favorites,json=removeFavorites,proto3" json:"remove_favorites,omitempty"`
+	ImportWatchlist bool  `protobuf:"varint,12,opt,name=import_watchlist,json=importWatchlist,proto3" json:"import_watchlist,omitempty"`
+	ExportWatchlist bool  `protobuf:"varint,13,opt,name=export_watchlist,json=exportWatchlist,proto3" json:"export_watchlist,omitempty"`
+	RemoveWatchlist bool  `protobuf:"varint,14,opt,name=remove_watchlist,json=removeWatchlist,proto3" json:"remove_watchlist,omitempty"`
 	// The order of WATCHLIST states returned by ListRemoteState is meaningful.
 	// WATCHLIST traversals must set complete_snapshot=true when this is enabled;
 	// an incremental subset cannot define positions relative to omitted items.

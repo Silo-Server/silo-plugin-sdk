@@ -202,8 +202,8 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 	if watchSync.GetProvidesWatchlistOrder() && !watchSync.GetImportWatchlist() {
 		return fmt.Errorf("plugin capability %q: watchlist order requires watchlist import", descriptor.GetId())
 	}
-	if watchSync.GetMaxBatchSize() < 1 || watchSync.GetMaxBatchSize() > 100 {
-		return fmt.Errorf("plugin capability %q: watch sync max_batch_size must be between 1 and 100", descriptor.GetId())
+	if watchSync.GetMaxBatchSize() < 1 || watchSync.GetMaxBatchSize() > MaxWatchSyncBatchSize {
+		return fmt.Errorf("plugin capability %q: watch sync max_batch_size must be between 1 and %d", descriptor.GetId(), MaxWatchSyncBatchSize)
 	}
 	if len(watchSync.GetSupportedMediaTypes()) == 0 {
 		return fmt.Errorf("plugin capability %q: at least one supported media type is required", descriptor.GetId())
@@ -323,6 +323,11 @@ func validateRequestRouterCapability(descriptor *pluginv1.CapabilityDescriptor) 
 	}
 	return nil
 }
+
+// MaxWatchSyncBatchSize is the largest max_batch_size a watch sync provider
+// may declare. A host sends at most max_batch_size events in one ApplyEvents
+// call and asks ListRemoteState for pages of that size.
+const MaxWatchSyncBatchSize = 1000
 
 // Limits on RequestRouterWording values, in characters.
 const (

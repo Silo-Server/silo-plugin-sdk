@@ -120,6 +120,10 @@ message WatchSyncProviderDescriptor {
   bool import_progress = 5;
   repeated WatchSyncMediaType supported_media_types = 6;
   repeated string external_id_namespaces = 7;
+  // The most events the host sends in one ApplyEvents call, and the page size
+  // it requests from ListRemoteState, from 1 to 1000. SDK releases before
+  // v0.27.0 accept only 1 to 100, so a larger value needs a host built on
+  // v0.27.0 or later.
   int32 max_batch_size = 8;
   bool import_favorites = 9;
   bool export_favorites = 10;

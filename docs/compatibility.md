@@ -186,6 +186,17 @@ verify images by the per-image field rather than assume a filtered response.
 - A plugin binary should return the same manifest shape that Silo installs, except that binaries may compute their checksum dynamically at runtime.
 - From this version, `convert.DecodeCapability` ignores fields and enum values it does not know, so a server node built on this SDK or later, in a mixed-version cluster sharing one database, still loads capability metadata written by a newer SDK; it only loses the parts added after its own SDK version. Nodes built on an earlier SDK decode strictly and reject such metadata, so upgrade every node past them before installing plugins that publish newer fields.
 
+### Watch-sync batch size
+
+`WatchSyncProviderDescriptor.max_batch_size` accepts 1 to 1000 from v0.27.0;
+earlier releases accept 1 to 100. The value bounds every `ApplyEvents` call
+(watched history, watchlist, favorites, and ratings) and sets the page size a
+host asks for in `ListRemoteState`, so a plugin that raises it should handle
+batches and pages of that size for every flow it declares. Manifest validation runs in the host when it
+installs or loads a plugin and in the catalog tooling when it publishes one, so
+a plugin that declares more than 100 needs both built on v0.27.0 or later. An
+older host refuses to install or load it.
+
 ## Go Support
 
 The supported public authoring path today is Go-only.

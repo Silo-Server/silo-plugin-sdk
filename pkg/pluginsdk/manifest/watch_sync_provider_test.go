@@ -1,6 +1,7 @@
 package manifest_test
 
 import (
+	"strconv"
 	"testing"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -434,5 +435,27 @@ func TestLoadWatchSyncProviderWithAFutureConnectionSettingType(t *testing.T) {
 	settings := manifest.GetCapabilities()[0].GetWatchSyncProvider().GetConnectionSettings()
 	if len(settings) != 1 || settings[0].GetType() != pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED {
 		t.Fatalf("connection settings = %v", settings)
+	}
+}
+
+func TestValidateWatchSyncProviderBatchSizeBounds(t *testing.T) {
+	for _, tc := range []struct {
+		size    int32
+		wantErr bool
+	}{
+		{size: 0, wantErr: true},
+		{size: 1},
+		{size: 100},
+		{size: publicmanifest.MaxWatchSyncBatchSize},
+		{size: publicmanifest.MaxWatchSyncBatchSize + 1, wantErr: true},
+	} {
+		t.Run(strconv.Itoa(int(tc.size)), func(t *testing.T) {
+			manifest := validWatchSyncManifest()
+			manifest.Capabilities[0].WatchSyncProvider.MaxBatchSize = tc.size
+			err := publicmanifest.Validate(manifest)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("Validate(max_batch_size=%d) error = %v, wantErr %v", tc.size, err, tc.wantErr)
+			}
+		})
 	}
 }
