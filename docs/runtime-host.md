@@ -200,11 +200,14 @@ plugins, err := host.ListInstalledPluginsByCapability(ctx, capability.EventConsu
 if err != nil {
     return
 }
+// PublishEventTo reaches every installation of a plugin_id, so send once per ID.
+sent := map[string]bool{}
 for _, p := range plugins {
     consumer := runtimehost.Capability(p, capability.EventConsumer)
-    if !p.GetEnabled() || !slices.Contains(consumer.GetSubscriptions(), subscription) {
+    if !p.GetEnabled() || !slices.Contains(consumer.GetSubscriptions(), subscription) || sent[p.GetPluginId()] {
         continue
     }
+    sent[p.GetPluginId()] = true
     err = host.PublishEventTo(ctx, p.GetPluginId(), "title.requested", map[string]any{
         "title": "The Matrix",
     })
