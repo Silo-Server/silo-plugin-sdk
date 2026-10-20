@@ -34,6 +34,11 @@ type CallPluginHTTPResponse struct {
 	Body       []byte
 }
 
+// CallPluginHTTP invokes another installed plugin's http_routes.v1 handler
+// through the host.
+//
+// Silo does not implement this RPC yet, so a call that reaches the host fails
+// with the gRPC status codes.Unimplemented.
 func (c *Client) CallPluginHTTP(ctx context.Context, req CallPluginHTTPRequest) (*CallPluginHTTPResponse, error) {
 	if req.InstallationID <= 0 {
 		return nil, fmt.Errorf("runtimehost: installation id is required")
@@ -92,6 +97,11 @@ type ScopedStreamGrant struct {
 	ExpiresAt  time.Time
 }
 
+// MintScopedStream asks the host for a short-lived, narrowly scoped stream URL
+// for a plugin-owned public access workflow.
+//
+// Silo does not implement this RPC yet, so a call that reaches the host fails
+// with the gRPC status codes.Unimplemented.
 func (c *Client) MintScopedStream(ctx context.Context, req ScopedStreamRequest) (*ScopedStreamGrant, error) {
 	if req.MediaFileID <= 0 {
 		return nil, fmt.Errorf("runtimehost: media file id is required")
@@ -275,6 +285,10 @@ type ListLibraryMediaResponse struct {
 	TotalCount    int
 }
 
+// ListLibraryMedia returns public-safe catalog rows from the host libraries.
+//
+// Silo does not implement this RPC yet, so a call that reaches the host fails
+// with the gRPC status codes.Unimplemented.
 func (c *Client) ListLibraryMedia(ctx context.Context, req ListLibraryMediaRequest) (*ListLibraryMediaResponse, error) {
 	resp, err := c.rpc.ListLibraryMedia(ctx, &pluginv1.ListLibraryMediaRequest{
 		LibraryIds: req.LibraryIDs,
@@ -336,6 +350,10 @@ type CatalogLibraryCount struct {
 	Count       int
 }
 
+// GetCatalogStats returns aggregate public-safe catalog counts.
+//
+// Silo does not implement this RPC yet, so a call that reaches the host fails
+// with the gRPC status codes.Unimplemented.
 func (c *Client) GetCatalogStats(ctx context.Context, libraryIDs []string) (*CatalogStats, error) {
 	resp, err := c.rpc.GetCatalogStats(ctx, &pluginv1.GetCatalogStatsRequest{LibraryIds: libraryIDs})
 	if err != nil {
@@ -367,6 +385,9 @@ func (c *Client) GetCatalogStats(ctx context.Context, libraryIDs []string) (*Cat
 // or backdrop paths returned by ListLibraryMedia, into browser-usable URLs via
 // the host's configured image resolver. The variant argument selects a
 // host-supported size or quality; pass empty to use the host default.
+//
+// Silo does not implement this RPC yet, so a call that reaches the host fails
+// with the gRPC status codes.Unimplemented.
 func (c *Client) ResolveCatalogImageURLs(ctx context.Context, paths []string, variant string) (map[string]string, error) {
 	if len(paths) == 0 {
 		return map[string]string{}, nil

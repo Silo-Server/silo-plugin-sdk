@@ -7,6 +7,11 @@ import (
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 )
 
+// PublishEventToInstallation publishes an event addressed to one plugin
+// installation.
+//
+// Silo does not implement this RPC yet, so a call that reaches the host fails
+// with the gRPC status codes.Unimplemented.
 func (c *Client) PublishEventToInstallation(ctx context.Context, targetInstallationID int, name string, payload map[string]any) error {
 	if targetInstallationID <= 0 {
 		return fmt.Errorf("runtimehost: target installation id is required")

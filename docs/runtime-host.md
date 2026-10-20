@@ -6,24 +6,55 @@ plugin, the plugin calls back into the host.
 
 ## Available RPCs (v1)
 
+Silo implements these RPCs:
+
 | RPC | Purpose |
 |---|---|
 | `PublishEvent(name, payload)` | Publish onto the host's event bus. The host stamps `plugin.<plugin_id>.` in front of `name` server-side. |
 | `PublishEventTo(target_plugin_id, name, payload)` | Publish an event addressed to one installed plugin by stable `plugin_id`. |
-| `PublishEventToInstallation(target_installation_id, name, payload)` | Publish an event addressed to one specific plugin installation. |
 | `GetHostInfo()` | Return public-safe host URLs for callbacks and plugin-served links, plus host role, listeners, and the ingress token for network access providers. |
 | `ListLibraries(user_id)` | Return libraries (optionally scoped to a user). |
 | `CheckMediaPresence(provider, media_type, ids)` | Batched lookup: which external IDs already exist in the host catalog. v1 supports provider="tmdb" only. |
 | `ListInstalledPlugins()` | Return installed plugins and their advertised capabilities. |
 | `SetGlobalConfigEntry(key, value)` | Persist a plugin-owned global config entry for the calling plugin installation. |
+| `ReadInstanceState(key)` | Read one key of the calling instance's encrypted, host-scoped state. |
+| `WriteInstanceState(key, value)` | Write one key of that state. Key ≤ 256 bytes, value ≤ 256 KiB, ≤ 256 keys per scope. |
+| `ReportNetworkAccessStatus(status)` | Push a `network_access_provider.v1` status change so the host does not poll. Network access providers only; other plugins get `PermissionDenied`. |
+
+### Declared but not implemented
+
+The contract and the `runtimehost` client also declare these RPCs, but Silo
+does not implement them yet:
+
+| RPC | Purpose |
+|---|---|
+| `PublishEventToInstallation(target_installation_id, name, payload)` | Publish an event addressed to one specific plugin installation. |
 | `ListLibraryMedia(filters)` | Return public-safe catalog media rows for browse/search workflows. |
 | `GetCatalogStats(library_ids)` | Return aggregate public-safe catalog counts. |
 | `ResolveCatalogImageURLs(paths, variant)` | Resolve stored catalog image paths into host-generated browser URL targets. |
 | `MintScopedStream(request)` | Mint a short-lived stream grant for plugin-owned public access workflows. |
-| `CallPluginHTTP(request)` | Invoke another installed plugin's HTTP route through the host control plane. |
-| `ReadInstanceState(key)` | Read one key of the calling instance's encrypted, host-scoped state. |
-| `WriteInstanceState(key, value)` | Write one key of that state. Key ≤ 256 bytes, value ≤ 256 KiB, ≤ 256 keys per scope. |
-| `ReportNetworkAccessStatus(status)` | Push a `network_access_provider.v1` status change so the host does not poll. |
+| `CallPluginHTTP(request)` | Invoke another installed plugin's HTTP route through the host control plane. `CallPluginJSON` is built on it. |
+
+A call to one of them that reaches the host fails with the gRPC status
+`codes.Unimplemented`. A plugin that uses one has to handle that error, for
+example by skipping the feature that needs it:
+
+```go
+import (
+    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
+)
+
+stats, err := host.GetCatalogStats(ctx, nil)
+switch {
+case status.Code(err) == codes.Unimplemented:
+    // This Silo host does not offer the call: skip the feature.
+case err != nil:
+    return err
+default:
+    useStats(stats)
+}
+```
 
 ## Using it from a plugin
 
@@ -108,6 +139,10 @@ for _, id := range []string{"603", "550"} {
 
 ### Catalog image URLs
 
+Silo does not implement `ResolveCatalogImageURLs` or `ListLibraryMedia` yet
+(see [Declared but not implemented](#declared-but-not-implemented)). The
+contract below describes how they are meant to work together.
+
 Catalog image fields are host-owned opaque paths. Pass poster or backdrop paths
 back unchanged to resolve them into browser targets:
 
@@ -152,38 +187,49 @@ when finding another plugin:
 
 ```go
 import (
+    "slices"
+
     "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability"
     "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost"
 )
 
-plugins, err := host.ListInstalledPluginsByCapability(ctx, capability.RequestRouter)
-if err != nil || len(plugins) == 0 {
+// The host delivers the event as plugin.<your plugin_id>.title.requested.
+subscription := "plugin." + myPluginID + ".title.requested"
+
+plugins, err := host.ListInstalledPluginsByCapability(ctx, capability.EventConsumer)
+if err != nil {
     return
 }
-
-var response struct {
-    Accepted bool `json:"accepted"`
+for _, p := range plugins {
+    consumer := runtimehost.Capability(p, capability.EventConsumer)
+    if !p.GetEnabled() || !slices.Contains(consumer.GetSubscriptions(), subscription) {
+        continue
+    }
+    err = host.PublishEventTo(ctx, p.GetPluginId(), "title.requested", map[string]any{
+        "title": "The Matrix",
+    })
 }
-err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
-    InstallationID: int(plugins[0].GetInstallationId()),
-    Path:           "/api/request",
-    Request:        map[string]any{"title": "The Matrix"},
-    Response:       &response,
-})
 ```
 
-`CallPluginJSON` sets JSON request/response headers, marshals the request
-body, decodes the response into `Response`, and returns `*runtimehost.HTTPStatusError`
-for HTTP status codes 400 and above. The lower-level `CallPluginHTTP` remains
-available when a plugin needs custom content types or raw bytes.
+A peer receives the event only when its `event_consumer.v1` capability
+subscribes to that exact name. The host drops an event nobody subscribes to
+without returning an error. Events are one-way, so a reply has to come back as
+another event.
+
+`CallPluginJSON` and the lower-level `CallPluginHTTP` are meant for
+request/response calls to a peer's `http_routes.v1` handler, but Silo does not
+implement `CallPluginHTTP` yet, so both fail with `codes.Unimplemented`. When a
+host implements it, `CallPluginJSON` sets JSON request/response headers,
+marshals the request body, decodes the response into `Response`, and returns
+`*runtimehost.HTTPStatusError` for HTTP status codes 400 and above.
 
 ### Addressing events
 
 `PublishEvent` broadcasts to every matching `event_consumer.v1` subscription.
 `PublishEventTo` restricts delivery to subscribers from a specific `plugin_id`.
-`PublishEventToInstallation` is the most precise form: use it after
-`ListInstalledPlugins` when multiple installations of the same plugin may
-exist.
+`PublishEventToInstallation` is meant to address one specific installation,
+but Silo does not implement it yet; use `PublishEventTo`, which reaches every
+installation of the target `plugin_id`.
 
 All plugin-published event names are still host-stamped as
 `plugin.<caller_plugin_id>.<event_name>` so plugins cannot forge core host
