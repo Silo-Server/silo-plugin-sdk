@@ -40,6 +40,16 @@ message FetchMarkersRequest {
   MarkerExternalIDs episode_external_ids = 7;
   string episode_title = 8;
   string episode_numbering = 9;
+  // OpenSubtitles hash of the file (16 lowercase hex), or empty when the host
+  // has none. Identifies exact bytes only. A provider must not send it off
+  // the machine unhashed.
+  string file_hash = 10;
+  // File size in bytes, or 0 when unknown.
+  int64 file_size = 11;
+  // The host understands MarkerSegment.absent. A provider must not return
+  // absent segments when this is false: older hosts read a segment without
+  // bounds as covering the whole file.
+  bool accepts_absent = 12;
 }
 
 message MarkerSegment {
@@ -50,6 +60,9 @@ message MarkerSegment {
   int32 submission_count = 5;
   string algorithm = 6;
   google.protobuf.Struct metadata = 7;
+  // The provider asserts the item has no segment of this kind. start_seconds
+  // and end_seconds are unset; confidence applies to the absence.
+  bool absent = 8;
 }
 
 message FetchMarkersResponse {
@@ -71,6 +84,20 @@ message SubmitMarkerRequest {
   MarkerExternalIDs episode_external_ids = 10;
   string episode_title = 11;
   string episode_numbering = 12;
+  string file_hash = 13; // as FetchMarkersRequest.file_hash
+  int64 file_size = 14;
+  // Where the host's marker came from: "scanner" (local detection, including
+  // chapters) or "manual" (edited by a person). Empty from hosts older than
+  // this field.
+  string source = 15;
+  // The host's algorithm ID for the marker, e.g. "chromaprint:dialogue:v4",
+  // or "manual:v1".
+  string algorithm = 16;
+  // The host's confidence in the marker, 0-1.
+  double confidence = 17;
+  // The submission says the item has no segment of this kind. start_seconds
+  // and end_seconds are unset.
+  bool absent = 18;
 }
 
 message SubmitMarkerResponse {

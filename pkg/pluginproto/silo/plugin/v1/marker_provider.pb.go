@@ -112,8 +112,18 @@ type FetchMarkersRequest struct {
 	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,7,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
 	EpisodeTitle       string                 `protobuf:"bytes,8,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
 	EpisodeNumbering   string                 `protobuf:"bytes,9,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// OpenSubtitles hash of the file (16 lowercase hex), or empty when the host
+	// has none. Identifies exact bytes only. A provider must not send it off
+	// the machine unhashed.
+	FileHash string `protobuf:"bytes,10,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
+	// File size in bytes, or 0 when unknown.
+	FileSize int64 `protobuf:"varint,11,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
+	// The host understands MarkerSegment.absent. A provider must not return
+	// absent segments when this is false: older hosts read a segment without
+	// bounds as covering the whole file.
+	AcceptsAbsent bool `protobuf:"varint,12,opt,name=accepts_absent,json=acceptsAbsent,proto3" json:"accepts_absent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FetchMarkersRequest) Reset() {
@@ -209,6 +219,27 @@ func (x *FetchMarkersRequest) GetEpisodeNumbering() string {
 	return ""
 }
 
+func (x *FetchMarkersRequest) GetFileHash() string {
+	if x != nil {
+		return x.FileHash
+	}
+	return ""
+}
+
+func (x *FetchMarkersRequest) GetFileSize() int64 {
+	if x != nil {
+		return x.FileSize
+	}
+	return 0
+}
+
+func (x *FetchMarkersRequest) GetAcceptsAbsent() bool {
+	if x != nil {
+		return x.AcceptsAbsent
+	}
+	return false
+}
+
 type MarkerSegment struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Segment         string                 `protobuf:"bytes,1,opt,name=segment,proto3" json:"segment,omitempty"` // "intro" | "credits" | "recap" | "preview"
@@ -218,8 +249,11 @@ type MarkerSegment struct {
 	SubmissionCount int32                  `protobuf:"varint,5,opt,name=submission_count,json=submissionCount,proto3" json:"submission_count,omitempty"`
 	Algorithm       string                 `protobuf:"bytes,6,opt,name=algorithm,proto3" json:"algorithm,omitempty"`
 	Metadata        *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// The provider asserts the item has no segment of this kind. start_seconds
+	// and end_seconds are unset; confidence applies to the absence.
+	Absent        bool `protobuf:"varint,8,opt,name=absent,proto3" json:"absent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MarkerSegment) Reset() {
@@ -301,6 +335,13 @@ func (x *MarkerSegment) GetMetadata() *structpb.Struct {
 	return nil
 }
 
+func (x *MarkerSegment) GetAbsent() bool {
+	if x != nil {
+		return x.Absent
+	}
+	return false
+}
+
 type FetchMarkersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Markers       []*MarkerSegment       `protobuf:"bytes,1,rep,name=markers,proto3" json:"markers,omitempty"`
@@ -368,8 +409,22 @@ type SubmitMarkerRequest struct {
 	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,10,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
 	EpisodeTitle       string                 `protobuf:"bytes,11,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
 	EpisodeNumbering   string                 `protobuf:"bytes,12,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	FileHash           string                 `protobuf:"bytes,13,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"` // as FetchMarkersRequest.file_hash
+	FileSize           int64                  `protobuf:"varint,14,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
+	// Where the host's marker came from: "scanner" (local detection, including
+	// chapters) or "manual" (edited by a person). Empty from hosts older than
+	// this field.
+	Source string `protobuf:"bytes,15,opt,name=source,proto3" json:"source,omitempty"`
+	// The host's algorithm ID for the marker, e.g. "chromaprint:dialogue:v4",
+	// or "manual:v1".
+	Algorithm string `protobuf:"bytes,16,opt,name=algorithm,proto3" json:"algorithm,omitempty"`
+	// The host's confidence in the marker, 0-1.
+	Confidence float64 `protobuf:"fixed64,17,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	// The submission says the item has no segment of this kind. start_seconds
+	// and end_seconds are unset.
+	Absent        bool `protobuf:"varint,18,opt,name=absent,proto3" json:"absent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SubmitMarkerRequest) Reset() {
@@ -484,6 +539,48 @@ func (x *SubmitMarkerRequest) GetEpisodeNumbering() string {
 		return x.EpisodeNumbering
 	}
 	return ""
+}
+
+func (x *SubmitMarkerRequest) GetFileHash() string {
+	if x != nil {
+		return x.FileHash
+	}
+	return ""
+}
+
+func (x *SubmitMarkerRequest) GetFileSize() int64 {
+	if x != nil {
+		return x.FileSize
+	}
+	return 0
+}
+
+func (x *SubmitMarkerRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *SubmitMarkerRequest) GetAlgorithm() string {
+	if x != nil {
+		return x.Algorithm
+	}
+	return ""
+}
+
+func (x *SubmitMarkerRequest) GetConfidence() float64 {
+	if x != nil {
+		return x.Confidence
+	}
+	return 0
+}
+
+func (x *SubmitMarkerRequest) GetAbsent() bool {
+	if x != nil {
+		return x.Absent
+	}
+	return false
 }
 
 type SubmitMarkerResponse struct {
@@ -699,7 +796,7 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\atmdb_id\x18\x01 \x01(\tR\x06tmdbId\x12\x17\n" +
 	"\aimdb_id\x18\x02 \x01(\tR\x06imdbId\x12\x17\n" +
 	"\atvdb_id\x18\x03 \x01(\tR\x06tvdbId\x12:\n" +
-	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\xcb\x03\n" +
+	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\xac\x04\n" +
 	"\x13FetchMarkersRequest\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
 	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
@@ -709,7 +806,11 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12S\n" +
 	"\x14episode_external_ids\x18\a \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
 	"\repisode_title\x18\b \x01(\tR\fepisodeTitle\x12+\n" +
-	"\x11episode_numbering\x18\t \x01(\tR\x10episodeNumbering\"\xb9\x02\n" +
+	"\x11episode_numbering\x18\t \x01(\tR\x10episodeNumbering\x12\x1b\n" +
+	"\tfile_hash\x18\n" +
+	" \x01(\tR\bfileHash\x12\x1b\n" +
+	"\tfile_size\x18\v \x01(\x03R\bfileSize\x12%\n" +
+	"\x0eaccepts_absent\x18\f \x01(\bR\racceptsAbsent\"\xd1\x02\n" +
 	"\rMarkerSegment\x12\x18\n" +
 	"\asegment\x18\x01 \x01(\tR\asegment\x12(\n" +
 	"\rstart_seconds\x18\x02 \x01(\x01H\x00R\fstartSeconds\x88\x01\x01\x12$\n" +
@@ -720,12 +821,13 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"confidence\x12)\n" +
 	"\x10submission_count\x18\x05 \x01(\x05R\x0fsubmissionCount\x12\x1c\n" +
 	"\talgorithm\x18\x06 \x01(\tR\talgorithm\x123\n" +
-	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadataB\x10\n" +
+	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x16\n" +
+	"\x06absent\x18\b \x01(\bR\x06absentB\x10\n" +
 	"\x0e_start_secondsB\x0e\n" +
 	"\f_end_seconds\"\x84\x01\n" +
 	"\x14FetchMarkersResponse\x127\n" +
 	"\amarkers\x18\x01 \x03(\v2\x1d.silo.plugin.v1.MarkerSegmentR\amarkers\x123\n" +
-	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xd7\x04\n" +
+	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xff\x05\n" +
 	"\x13SubmitMarkerRequest\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
 	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
@@ -740,7 +842,15 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\x14episode_external_ids\x18\n" +
 	" \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
 	"\repisode_title\x18\v \x01(\tR\fepisodeTitle\x12+\n" +
-	"\x11episode_numbering\x18\f \x01(\tR\x10episodeNumberingB\x10\n" +
+	"\x11episode_numbering\x18\f \x01(\tR\x10episodeNumbering\x12\x1b\n" +
+	"\tfile_hash\x18\r \x01(\tR\bfileHash\x12\x1b\n" +
+	"\tfile_size\x18\x0e \x01(\x03R\bfileSize\x12\x16\n" +
+	"\x06source\x18\x0f \x01(\tR\x06source\x12\x1c\n" +
+	"\talgorithm\x18\x10 \x01(\tR\talgorithm\x12\x1e\n" +
+	"\n" +
+	"confidence\x18\x11 \x01(\x01R\n" +
+	"confidence\x12\x16\n" +
+	"\x06absent\x18\x12 \x01(\bR\x06absentB\x10\n" +
 	"\x0e_start_secondsB\x0e\n" +
 	"\f_end_seconds\"\xa0\x01\n" +
 	"\x14SubmitMarkerResponse\x12#\n" +

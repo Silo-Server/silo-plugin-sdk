@@ -15,6 +15,19 @@ func TestMarkerRequests_EpisodeIdentityFieldNumbers(t *testing.T) {
 	assertFieldNumber(t, &SubmitMarkerRequest{}, "episode_numbering", 12)
 }
 
+func TestMarkerMessages_FileFactsAndAbsentFieldNumbers(t *testing.T) {
+	assertFieldNumber(t, &FetchMarkersRequest{}, "file_hash", 10)
+	assertFieldNumber(t, &FetchMarkersRequest{}, "file_size", 11)
+	assertFieldNumber(t, &FetchMarkersRequest{}, "accepts_absent", 12)
+	assertFieldNumber(t, &MarkerSegment{}, "absent", 8)
+	assertFieldNumber(t, &SubmitMarkerRequest{}, "file_hash", 13)
+	assertFieldNumber(t, &SubmitMarkerRequest{}, "file_size", 14)
+	assertFieldNumber(t, &SubmitMarkerRequest{}, "source", 15)
+	assertFieldNumber(t, &SubmitMarkerRequest{}, "algorithm", 16)
+	assertFieldNumber(t, &SubmitMarkerRequest{}, "confidence", 17)
+	assertFieldNumber(t, &SubmitMarkerRequest{}, "absent", 18)
+}
+
 // A host that predates the episode fields sends requests without them; the
 // plugin must see the series identity unchanged and empty episode fields.
 func TestFetchMarkersRequest_OldPayloadDecodesWithoutEpisodeIdentity(t *testing.T) {
