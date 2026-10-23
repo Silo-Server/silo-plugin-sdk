@@ -56,6 +56,14 @@ func TestMetadataTitleDescriptors_IncludeAliasAndLanguageFields(t *testing.T) {
 	assertFieldNumber(t, &MetadataItem{}, "title_aliases_complete", 36)
 }
 
+func TestMetadataTextLanguageFieldNumbers(t *testing.T) {
+	assertFieldNumber(t, &MetadataItem{}, "overview_language", 37)
+	assertFieldNumber(t, &SeasonRecord{}, "title_language", 9)
+	assertFieldNumber(t, &SeasonRecord{}, "overview_language", 10)
+	assertFieldNumber(t, &EpisodeRecord{}, "title_language", 12)
+	assertFieldNumber(t, &EpisodeRecord{}, "overview_language", 13)
+}
+
 func TestMetadataItem_OldPayloadDecodesWithOptionalTitleFields(t *testing.T) {
 	oldPayload, err := proto.Marshal(&MetadataItem{
 		ProviderId: "603", ItemType: "movie", Title: "The Matrix", OriginalTitle: "The Matrix", Year: 1999,

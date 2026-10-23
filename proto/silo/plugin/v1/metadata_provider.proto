@@ -140,6 +140,10 @@ message MetadataItem {
   // this provider response. Older plugins decode as false, so hosts must merge
   // rather than delete aliases when completeness is unknown.
   bool title_aliases_complete = 36;
+  // ISO 639-1 language of overview and tagline. Empty means the text is in the
+  // requested language or the plugin cannot tell; set it when the provider
+  // had no text in the requested language and returned another language's.
+  string overview_language = 37;
 }
 
 message GetMetadataRequest {
@@ -185,6 +189,10 @@ message SeasonRecord {
   google.protobuf.Struct metadata = 6;
   string provider_id = 7;
   google.protobuf.Struct provider_ids = 8;
+  // ISO 639-1 languages of title and overview, with MetadataItem's
+  // overview_language semantics: empty means the requested language or unknown.
+  string title_language = 9;
+  string overview_language = 10;
 }
 
 message GetSeasonsRequest {
@@ -209,6 +217,10 @@ message EpisodeRecord {
   google.protobuf.Struct ratings = 9;
   google.protobuf.Struct metadata = 10;
   string provider_id = 11;
+  // ISO 639-1 languages of title and overview, with MetadataItem's
+  // overview_language semantics: empty means the requested language or unknown.
+  string title_language = 12;
+  string overview_language = 13;
 }
 
 message GetEpisodesRequest {

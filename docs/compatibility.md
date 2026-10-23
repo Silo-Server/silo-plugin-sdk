@@ -179,6 +179,17 @@ metadata stored when the plugin was installed or updated. A host built on an
 older SDK stored that metadata without them, so they take effect after the
 plugin is next updated on a host that reads them.
 
+`MetadataItem.overview_language` and the `title_language` and
+`overview_language` fields on `SeasonRecord` and `EpisodeRecord` (added in
+v0.29.0) are plain strings, like the older `MetadataItem.title_language`.
+Empty means the text is in the requested language, or the plugin cannot tell;
+hosts read every plugin built before the fields existed that way. A plugin
+sets one when the provider had no text in the requested language and it
+returned another language's text instead, such as a record's original-language
+overview. Hosts rank that text below another provider's text in the requested
+language and may replace it with text fetched in a fallback language. Hosts
+that predate the fields ignore them.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and
