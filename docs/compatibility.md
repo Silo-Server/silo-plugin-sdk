@@ -179,6 +179,14 @@ metadata stored when the plugin was installed or updated. A host built on an
 older SDK stored that metadata without them, so they take effect after the
 plugin is next updated on a host that reads them.
 
+The marker fields added in v0.29.0 are plain scalars, so they have no
+presence. A host that predates them sends an empty `file_hash`, a `file_size`
+of 0, `accepts_absent` false, and submissions without `source`, `algorithm`,
+`confidence`, or `absent`. A marker provider must not return a
+`MarkerSegment` with `absent` set unless the request's `accepts_absent` is
+true: an older host reads a segment without bounds as covering the whole
+file. See [marker-provider.md](marker-provider.md).
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and

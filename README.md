@@ -443,6 +443,14 @@ while omission means no requested ordering. A page may carry `warnings`,
 safe notes such as items skipped for missing identity, which the host shows
 with the sync run.
 
+## Marker providers
+
+`marker_provider.v1` fetches intro, credits, recap, and preview markers from a
+marker service and can submit the host's markers to it. Settings such as the
+starting fetch priority and contribution defaults travel in the capability's
+`metadata`. See [docs/marker-provider.md](docs/marker-provider.md) for those
+keys, the file facts the host sends, and absent segments.
+
 ## Network access providers
 
 `network_access_provider.v1` lets a resident plugin give the deployment an
