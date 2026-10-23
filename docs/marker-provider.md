@@ -27,17 +27,19 @@ below from it; there is no typed descriptor.
 | `default_fetch_priority` | number | next free | Fetch priority the provider starts with when first configured. The host asks providers in ascending order. |
 | `supports_contribution` | bool | true | `false` makes the provider fetch-only, and the host never calls `SubmitMarker`. |
 | `required_external_ids` | list of strings | none | External ID keys (`tmdb`, `tvdb`, `imdb`) the title must have before the host submits to the provider. All of them are required. |
-| `default_contribute_enabled` | bool | false | Since v0.29.0. Contribution starts on when the provider is first configured. |
-| `default_contribute_auto_local` | bool | false | Since v0.29.0. Automatic sharing of local detections starts on. |
-| `default_contribute_min_confidence` | number, 0–1 | 0.95 | Since v0.29.0. Starting minimum confidence for automatic sharing. |
-| `supports_amend` | bool | false | Since v0.29.0. The provider replaces a server's earlier submission for the same file and kind, so the host may resubmit when the marker changes. |
-| `supports_absent` | bool | false | Since v0.29.0. The provider accepts `absent` submissions. |
+| `default_contribute_enabled` | bool | false | Contribution starts on when the provider is first configured. |
+| `default_contribute_auto_local` | bool | false | Automatic sharing of local detections starts on. |
+| `default_contribute_min_confidence` | number, 0–1 | 0.95 | Starting minimum confidence for automatic sharing. |
+| `supports_amend` | bool | false | The provider replaces a server's earlier submission for the same file and kind, so the host may resubmit when the marker changes. |
+| `supports_absent` | bool | false | The provider accepts `absent` submissions. |
 
 The defaults apply only when the host first creates the provider's
 configuration, and an administrator's later changes win. A host may ignore
 `default_contribute_enabled` and `default_contribute_auto_local` when its
 administrator has chosen not to share by default. Hosts that predate a key
 ignore it, so declaring one does not raise the plugin's minimum host version.
+The SDK does not read these keys, so declaring one needs no particular SDK
+version. Only hosts that implement a key honour it.
 
 ## Fetching
 
@@ -56,8 +58,12 @@ Since v0.29.0 the request also carries:
 
 `file_hash` is the raw OpenSubtitles hash, and it identifies a file across
 every server that holds the same bytes. A plugin must not send it off the
-machine unhashed. Derive a service-specific value from it first, for example
-a truncated SHA-256 of the hash.
+machine unhashed. Hash it before sending, for example
+`hex(sha256(file_hash))[0:16]` as Silo's marker service does. An unsalted
+hash like this hides the raw value, but anyone who holds the OpenSubtitles
+hash can compute it, and every service that uses the same scheme gets the
+same identifier. Use a service-specific salt or HMAC key when the service
+must not be linkable to others.
 
 A `MarkerSegment` with `absent` set asserts that the item has no segment of
 that kind. Its `start_seconds` and `end_seconds` are unset, and `confidence`
