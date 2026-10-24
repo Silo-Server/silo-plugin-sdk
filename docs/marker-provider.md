@@ -49,7 +49,7 @@ for an episode, by season and episode number, `episode_external_ids`,
 [`marker_provider.proto`](../proto/silo/plugin/v1/marker_provider.proto) give
 the exact rules.
 
-Since v0.29.0 the request also carries:
+Since v0.30.0 the request also carries:
 
 - `file_hash`: the file's OpenSubtitles hash (16 lowercase hex characters),
   or empty when the host has none. It identifies exact bytes only.
@@ -74,7 +74,7 @@ bounds as covering the whole file.
 ## Submitting
 
 `SubmitMarkerRequest` names the item the same way as `FetchMarkersRequest`
-and carries one segment with its bounds. Since v0.29.0 it also carries:
+and carries one segment with its bounds. Since v0.30.0 it also carries:
 
 - `file_hash` and `file_size`, as in `FetchMarkersRequest`, with the same
   rule about `file_hash`.
@@ -89,7 +89,7 @@ and carries one segment with its bounds. Since v0.29.0 it also carries:
 
 ## Compatibility
 
-All the v0.29.0 fields are additive. A host older than v0.29.0 leaves them
+All the v0.30.0 fields are additive. A host older than v0.30.0 leaves them
 empty: no file facts, `accepts_absent` false, and no `source`, `algorithm`,
 `confidence`, or `absent` on submissions. Providers must handle an empty
 `file_hash` and a `file_size` of 0, and treat a submission with an empty

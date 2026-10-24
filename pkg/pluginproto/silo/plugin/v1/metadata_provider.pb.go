@@ -620,8 +620,12 @@ type MetadataItem struct {
 	// this provider response. Older plugins decode as false, so hosts must merge
 	// rather than delete aliases when completeness is unknown.
 	TitleAliasesComplete bool `protobuf:"varint,36,opt,name=title_aliases_complete,json=titleAliasesComplete,proto3" json:"title_aliases_complete,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// ISO 639-1 language of overview and tagline. Empty means the text is in the
+	// requested language or the plugin cannot tell; set it when the provider
+	// had no text in the requested language and returned another language's.
+	OverviewLanguage string `protobuf:"bytes,37,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *MetadataItem) Reset() {
@@ -905,6 +909,13 @@ func (x *MetadataItem) GetTitleAliasesComplete() bool {
 		return x.TitleAliasesComplete
 	}
 	return false
+}
+
+func (x *MetadataItem) GetOverviewLanguage() string {
+	if x != nil {
+		return x.OverviewLanguage
+	}
+	return ""
 }
 
 type GetMetadataRequest struct {
@@ -1240,17 +1251,21 @@ func (x *GetPersonDetailResponse) GetPerson() *PersonDetailRecord {
 }
 
 type SeasonRecord struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SeasonNumber  int32                  `protobuf:"varint,1,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Overview      string                 `protobuf:"bytes,3,opt,name=overview,proto3" json:"overview,omitempty"`
-	AirDate       string                 `protobuf:"bytes,4,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
-	PosterPath    string                 `protobuf:"bytes,5,opt,name=poster_path,json=posterPath,proto3" json:"poster_path,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	ProviderId    string                 `protobuf:"bytes,7,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	ProviderIds   *structpb.Struct       `protobuf:"bytes,8,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	SeasonNumber int32                  `protobuf:"varint,1,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	Title        string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Overview     string                 `protobuf:"bytes,3,opt,name=overview,proto3" json:"overview,omitempty"`
+	AirDate      string                 `protobuf:"bytes,4,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
+	PosterPath   string                 `protobuf:"bytes,5,opt,name=poster_path,json=posterPath,proto3" json:"poster_path,omitempty"`
+	Metadata     *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	ProviderId   string                 `protobuf:"bytes,7,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	ProviderIds  *structpb.Struct       `protobuf:"bytes,8,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
+	// ISO 639-1 languages of title and overview, with MetadataItem's
+	// overview_language semantics: empty means the requested language or unknown.
+	TitleLanguage    string `protobuf:"bytes,9,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
+	OverviewLanguage string `protobuf:"bytes,10,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *SeasonRecord) Reset() {
@@ -1337,6 +1352,20 @@ func (x *SeasonRecord) GetProviderIds() *structpb.Struct {
 		return x.ProviderIds
 	}
 	return nil
+}
+
+func (x *SeasonRecord) GetTitleLanguage() string {
+	if x != nil {
+		return x.TitleLanguage
+	}
+	return ""
+}
+
+func (x *SeasonRecord) GetOverviewLanguage() string {
+	if x != nil {
+		return x.OverviewLanguage
+	}
+	return ""
 }
 
 type GetSeasonsRequest struct {
@@ -1456,8 +1485,12 @@ type EpisodeRecord struct {
 	Ratings       *structpb.Struct       `protobuf:"bytes,9,opt,name=ratings,proto3" json:"ratings,omitempty"`
 	Metadata      *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	ProviderId    string                 `protobuf:"bytes,11,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// ISO 639-1 languages of title and overview, with MetadataItem's
+	// overview_language semantics: empty means the requested language or unknown.
+	TitleLanguage    string `protobuf:"bytes,12,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
+	OverviewLanguage string `protobuf:"bytes,13,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *EpisodeRecord) Reset() {
@@ -1563,6 +1596,20 @@ func (x *EpisodeRecord) GetMetadata() *structpb.Struct {
 func (x *EpisodeRecord) GetProviderId() string {
 	if x != nil {
 		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *EpisodeRecord) GetTitleLanguage() string {
+	if x != nil {
+		return x.TitleLanguage
+	}
+	return ""
+}
+
+func (x *EpisodeRecord) GetOverviewLanguage() string {
+	if x != nil {
+		return x.OverviewLanguage
 	}
 	return ""
 }
@@ -2161,8 +2208,7 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\vis_official\x18\a \x01(\bR\n" +
 	"isOfficial\x12\x1b\n" +
 	"\tsize_hint\x18\b \x01(\x05R\bsizeHint\x12!\n" +
-	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\xe7\n" +
-	"\n" +
+	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\x94\v\n" +
 	"\fMetadataItem\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -2203,7 +2249,8 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\rtitle_aliases\x18! \x03(\v2\x1a.silo.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
 	"\x0etitle_language\x18\" \x01(\tR\rtitleLanguage\x12*\n" +
 	"\x11title_is_fallback\x18# \x01(\bR\x0ftitleIsFallback\x124\n" +
-	"\x16title_aliases_complete\x18$ \x01(\bR\x14titleAliasesComplete\"\xc7\x01\n" +
+	"\x16title_aliases_complete\x18$ \x01(\bR\x14titleAliasesComplete\x12+\n" +
+	"\x11overview_language\x18% \x01(\tR\x10overviewLanguage\"\xc7\x01\n" +
 	"\x12GetMetadataRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -2234,7 +2281,7 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\fprovider_ids\x18\n" +
 	" \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"U\n" +
 	"\x17GetPersonDetailResponse\x12:\n" +
-	"\x06person\x18\x01 \x01(\v2\".silo.plugin.v1.PersonDetailRecordR\x06person\"\xb3\x02\n" +
+	"\x06person\x18\x01 \x01(\v2\".silo.plugin.v1.PersonDetailRecordR\x06person\"\x87\x03\n" +
 	"\fSeasonRecord\x12#\n" +
 	"\rseason_number\x18\x01 \x01(\x05R\fseasonNumber\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
@@ -2245,13 +2292,16 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1f\n" +
 	"\vprovider_id\x18\a \x01(\tR\n" +
 	"providerId\x12:\n" +
-	"\fprovider_ids\x18\b \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\x99\x01\n" +
+	"\fprovider_ids\x18\b \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12%\n" +
+	"\x0etitle_language\x18\t \x01(\tR\rtitleLanguage\x12+\n" +
+	"\x11overview_language\x18\n" +
+	" \x01(\tR\x10overviewLanguage\"\x99\x01\n" +
 	"\x11GetSeasonsRequest\x12,\n" +
 	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12:\n" +
 	"\fprovider_ids\x18\x02 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
 	"\blanguage\x18\x03 \x01(\tR\blanguage\"L\n" +
 	"\x12GetSeasonsResponse\x126\n" +
-	"\aseasons\x18\x01 \x03(\v2\x1c.silo.plugin.v1.SeasonRecordR\aseasons\"\xa6\x03\n" +
+	"\aseasons\x18\x01 \x03(\v2\x1c.silo.plugin.v1.SeasonRecordR\aseasons\"\xfa\x03\n" +
 	"\rEpisodeRecord\x12#\n" +
 	"\rseason_number\x18\x01 \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\x02 \x01(\x05R\repisodeNumber\x12\x14\n" +
@@ -2266,7 +2316,9 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\bmetadata\x18\n" +
 	" \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1f\n" +
 	"\vprovider_id\x18\v \x01(\tR\n" +
-	"providerId\"\xbf\x01\n" +
+	"providerId\x12%\n" +
+	"\x0etitle_language\x18\f \x01(\tR\rtitleLanguage\x12+\n" +
+	"\x11overview_language\x18\r \x01(\tR\x10overviewLanguage\"\xbf\x01\n" +
 	"\x12GetEpisodesRequest\x12,\n" +
 	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12#\n" +
 	"\rseason_number\x18\x02 \x01(\x05R\fseasonNumber\x12:\n" +
