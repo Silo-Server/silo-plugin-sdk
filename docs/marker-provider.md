@@ -52,7 +52,10 @@ the exact rules.
 Since v0.30.0 the request also carries:
 
 - `file_hash`: the file's OpenSubtitles hash (16 lowercase hex characters),
-  or empty when the host has none. It identifies exact bytes only.
+  or empty when the host has none. The hash covers the file size and the
+  first and last 64 KiB, so a remux or re-encode gets a new hash. It is a
+  fingerprint, not proof that two files hold the same bytes: different files
+  can share one.
 - `file_size`: the file size in bytes, or 0 when unknown.
 - `accepts_absent`: the host understands `MarkerSegment.absent`.
 

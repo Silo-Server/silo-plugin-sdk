@@ -113,8 +113,9 @@ type FetchMarkersRequest struct {
 	EpisodeTitle       string                 `protobuf:"bytes,8,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
 	EpisodeNumbering   string                 `protobuf:"bytes,9,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
 	// OpenSubtitles hash of the file (16 lowercase hex), or empty when the host
-	// has none. Identifies exact bytes only. A provider must not send it off
-	// the machine unhashed.
+	// has none. It covers the file size and the first and last 64 KiB, so a
+	// remux or re-encode gets a new hash, but two different files can share
+	// one. A provider must not send it off the machine unhashed.
 	FileHash string `protobuf:"bytes,10,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
 	// File size in bytes, or 0 when unknown.
 	FileSize int64 `protobuf:"varint,11,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`

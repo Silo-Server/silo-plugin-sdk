@@ -41,8 +41,9 @@ message FetchMarkersRequest {
   string episode_title = 8;
   string episode_numbering = 9;
   // OpenSubtitles hash of the file (16 lowercase hex), or empty when the host
-  // has none. Identifies exact bytes only. A provider must not send it off
-  // the machine unhashed.
+  // has none. It covers the file size and the first and last 64 KiB, so a
+  // remux or re-encode gets a new hash, but two different files can share
+  // one. A provider must not send it off the machine unhashed.
   string file_hash = 10;
   // File size in bytes, or 0 when unknown.
   int64 file_size = 11;
