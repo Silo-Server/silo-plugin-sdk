@@ -193,6 +193,10 @@ message SeasonRecord {
   // overview_language semantics: empty means the requested language or unknown.
   string title_language = 9;
   string overview_language = 10;
+  // The season's landscape background art, like poster_path. Empty means the
+  // provider has none; a host may then clear a backdrop an earlier refresh
+  // stored, unless an admin locked the series' artwork.
+  string backdrop_path = 11;
 }
 
 message GetSeasonsRequest {

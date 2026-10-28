@@ -60,6 +60,7 @@ func TestMetadataTextLanguageFieldNumbers(t *testing.T) {
 	assertFieldNumber(t, &MetadataItem{}, "overview_language", 37)
 	assertFieldNumber(t, &SeasonRecord{}, "title_language", 9)
 	assertFieldNumber(t, &SeasonRecord{}, "overview_language", 10)
+	assertFieldNumber(t, &SeasonRecord{}, "backdrop_path", 11)
 	assertFieldNumber(t, &EpisodeRecord{}, "title_language", 12)
 	assertFieldNumber(t, &EpisodeRecord{}, "overview_language", 13)
 }
