@@ -45,6 +45,7 @@ type serveManifestOptions struct {
 	watchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
 	authProviderChecks           pluginv1.AuthProviderChecksServer
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
+	playbackSourceProvider       pluginv1.PlaybackSourceProviderServer
 	configure                    ConfigureFunc
 }
 
@@ -83,6 +84,13 @@ func WithAuthProviderChecks(server pluginv1.AuthProviderChecksServer) ServeManif
 func WithNetworkIdentityAuth(server pluginv1.NetworkIdentityAuthServer) ServeManifestOption {
 	return func(options *serveManifestOptions) {
 		options.networkIdentityAuth = server
+	}
+}
+
+// WithPlaybackSourceProvider registers the additive virtual playback source service.
+func WithPlaybackSourceProvider(server pluginv1.PlaybackSourceProviderServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.playbackSourceProvider = server
 	}
 }
 
@@ -191,6 +199,7 @@ func manifestServeConfig(
 			watchSyncDeviceAuthorization: resolved.watchSyncDeviceAuthorization,
 			authProviderChecks:           resolved.authProviderChecks,
 			networkIdentityAuth:          resolved.networkIdentityAuth,
+			playbackSourceProvider:       resolved.playbackSourceProvider,
 		}),
 	}, nil
 }
