@@ -198,6 +198,16 @@ of 0, `accepts_absent` false, and submissions without `source`, `algorithm`,
 true: an older host reads a segment without bounds as covering the whole
 file. See [marker-provider.md](marker-provider.md).
 
+`SeasonRecord.backdrop_path` (added in v0.31.0) is a plain string, like
+`poster_path`. Empty means the provider has no landscape art for the season,
+which is how hosts read every plugin built before the field existed. A host
+that reads it may clear a season backdrop an earlier refresh stored when every
+season provider answers without one, unless an admin locked the series'
+artwork, so a plugin should leave it empty only when the provider really has
+no season backdrop. Hosts that predate the field ignore it. The season-scoped
+`GetImages` gallery is unchanged: an `ImageRecord` of type backdrop with
+`season_number` set already offers a season backdrop for picking.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and

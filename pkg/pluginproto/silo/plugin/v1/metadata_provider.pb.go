@@ -1264,8 +1264,12 @@ type SeasonRecord struct {
 	// overview_language semantics: empty means the requested language or unknown.
 	TitleLanguage    string `protobuf:"bytes,9,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
 	OverviewLanguage string `protobuf:"bytes,10,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// The season's landscape background art, like poster_path. Empty means the
+	// provider has none; a host may then clear a backdrop an earlier refresh
+	// stored, unless an admin locked the series' artwork.
+	BackdropPath  string `protobuf:"bytes,11,opt,name=backdrop_path,json=backdropPath,proto3" json:"backdrop_path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SeasonRecord) Reset() {
@@ -1364,6 +1368,13 @@ func (x *SeasonRecord) GetTitleLanguage() string {
 func (x *SeasonRecord) GetOverviewLanguage() string {
 	if x != nil {
 		return x.OverviewLanguage
+	}
+	return ""
+}
+
+func (x *SeasonRecord) GetBackdropPath() string {
+	if x != nil {
+		return x.BackdropPath
 	}
 	return ""
 }
@@ -2281,7 +2292,7 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\fprovider_ids\x18\n" +
 	" \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"U\n" +
 	"\x17GetPersonDetailResponse\x12:\n" +
-	"\x06person\x18\x01 \x01(\v2\".silo.plugin.v1.PersonDetailRecordR\x06person\"\x87\x03\n" +
+	"\x06person\x18\x01 \x01(\v2\".silo.plugin.v1.PersonDetailRecordR\x06person\"\xac\x03\n" +
 	"\fSeasonRecord\x12#\n" +
 	"\rseason_number\x18\x01 \x01(\x05R\fseasonNumber\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
@@ -2295,7 +2306,8 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\fprovider_ids\x18\b \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12%\n" +
 	"\x0etitle_language\x18\t \x01(\tR\rtitleLanguage\x12+\n" +
 	"\x11overview_language\x18\n" +
-	" \x01(\tR\x10overviewLanguage\"\x99\x01\n" +
+	" \x01(\tR\x10overviewLanguage\x12#\n" +
+	"\rbackdrop_path\x18\v \x01(\tR\fbackdropPath\"\x99\x01\n" +
 	"\x11GetSeasonsRequest\x12,\n" +
 	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12:\n" +
 	"\fprovider_ids\x18\x02 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
