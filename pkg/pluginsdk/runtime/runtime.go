@@ -94,13 +94,14 @@ type optionalServices struct {
 	watchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
 	authProviderChecks           pluginv1.AuthProviderChecksServer
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
+	playbackSourceProvider       pluginv1.PlaybackSourceProviderServer
 }
 
 func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalServices) plugin.PluginSet {
 	// Compare fields one by one: == on the struct would panic for a server
 	// whose dynamic type is not comparable.
 	if optional.watchSyncDeviceAuthorization == nil && optional.authProviderChecks == nil &&
-		optional.networkIdentityAuth == nil {
+		optional.networkIdentityAuth == nil && optional.playbackSourceProvider == nil {
 		return DefaultPluginSet(servers)
 	}
 	return plugin.PluginSet{
@@ -132,6 +133,10 @@ func (c *Client) Runtime() pluginv1.RuntimeClient {
 
 func (c *Client) MetadataProvider() pluginv1.MetadataProviderClient {
 	return pluginv1.NewMetadataProviderClient(c.conn)
+}
+
+func (c *Client) PlaybackSourceProvider() pluginv1.PlaybackSourceProviderClient {
+	return pluginv1.NewPlaybackSourceProviderClient(c.conn)
 }
 
 func (c *Client) ImageResolver() pluginv1.ImageResolverClient {
@@ -300,6 +305,9 @@ func (p *GRPCPlugin) registerServers(
 	}
 	if p.Servers.NetworkAccessProvider != nil {
 		pluginv1.RegisterNetworkAccessProviderServer(server, p.Servers.NetworkAccessProvider)
+	}
+	if optional.playbackSourceProvider != nil {
+		pluginv1.RegisterPlaybackSourceProviderServer(server, optional.playbackSourceProvider)
 	}
 	return nil
 }

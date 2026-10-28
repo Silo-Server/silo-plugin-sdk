@@ -65,3 +65,15 @@ func TestNetworkAccessProviderIsKnownType(t *testing.T) {
 		t.Fatalf("NetworkAccessProvider (%q) missing from KnownTypes %v", NetworkAccessProvider, KnownTypes)
 	}
 }
+
+func TestPlaybackSourceProviderIsKnownType(t *testing.T) {
+	if PlaybackSourceProvider != "playback_source_provider.v1" {
+		t.Fatalf("PlaybackSourceProvider const = %q, want %q", PlaybackSourceProvider, "playback_source_provider.v1")
+	}
+	for _, k := range KnownTypes {
+		if k == PlaybackSourceProvider {
+			return
+		}
+	}
+	t.Fatalf("PlaybackSourceProvider (%q) missing from KnownTypes %v", PlaybackSourceProvider, KnownTypes)
+}
