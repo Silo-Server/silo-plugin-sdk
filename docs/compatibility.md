@@ -102,6 +102,11 @@ as "not supported". A network provider cannot fall back that way: without
 signed in until the session's absolute age limit, so `ServeManifestWithOptions`
 refuses to start a plugin that declares the `network` mode without it.
 
+`ConfigurationChecks` (v0.32.0) is declared by the manifest metadata key
+`"configuration_check": true`. Hosts call it only for plugins that declare the
+key, so a host that predates the service ignores the key, and a plugin built
+before it keeps the host's built-in probes.
+
 ## Presence-Sensitive Optional Fields
 
 Some contract fields use proto3 `optional` because absence and zero have

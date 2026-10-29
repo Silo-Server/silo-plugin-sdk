@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package silo.plugin.v1;
+
+import "silo/plugin/v1/common.proto";
+
+option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
+
+// ConfigurationChecks lets a plugin check its own global settings when an
+// operator presses Check Connection on the plugin's settings page. Any plugin
+// may serve it, whatever its capabilities. Advertise support with the
+// manifest metadata key "configuration_check": true and register the server
+// with runtime.WithConfigurationChecks. runtime.ServeManifestWithOptions
+// refuses to start a plugin that declares the key without a server; a plugin
+// that calls runtime.Serve directly gets no such check.
+//
+// Hosts that predate this service, and plugins that do not declare it, keep
+// the host's built-in probes: a test search for a metadata provider and a
+// statistics call for a marker provider.
+service ConfigurationChecks {
+  // TestConfiguration checks staged, unsaved configuration. The plugin tests
+  // the config in the request, never its running configuration, and persists
+  // nothing. A failed check is a response with ok false, not a gRPC error;
+  // the host reports gRPC errors as a failed check too.
+  rpc TestConfiguration(TestConfigurationRequest) returns (TestConfigurationResponse);
+}
+
+message TestConfigurationRequest {
+  // Staged configuration in the same shape as ConfigureRequest.config: every
+  // global config entry, with the one being edited replaced by its unsaved
+  // value. Secret fields carry plaintext.
+  repeated ConfigEntry config = 1;
+}
+
+message TestConfigurationResponse {
+  // True when the settings work.
+  bool ok = 1;
+  // Why the check failed and what to change, shown to the operator when ok
+  // is false. Hosts show their own success text when ok is true. Never
+  // include secrets.
+  string message = 2;
+}

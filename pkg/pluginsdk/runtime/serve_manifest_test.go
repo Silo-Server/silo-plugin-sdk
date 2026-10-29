@@ -10,7 +10,9 @@ import (
 
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/structpb"
 
@@ -346,5 +348,79 @@ func TestManifestServeConfigFallsBackToAuthProviderNetworkIdentity(t *testing.T)
 	}
 	if got, want := resp.GetExternalSubject(), "provider|100.64.0.7"; got != want {
 		t.Fatalf("AuthenticatePeer subject = %q, want %q", got, want)
+	}
+}
+
+// configurationChecker reports the staged client ID back, so a test can tell
+// the staged configuration reached the plugin.
+type configurationChecker struct {
+	pluginv1.UnimplementedConfigurationChecksServer
+}
+
+func (configurationChecker) TestConfiguration(_ context.Context, req *pluginv1.TestConfigurationRequest) (*pluginv1.TestConfigurationResponse, error) {
+	for _, entry := range req.GetConfig() {
+		if entry.GetKey() == "app" {
+			return &pluginv1.TestConfigurationResponse{Ok: true, Message: "client " + entry.GetValue().GetFields()["client_id"].GetStringValue()}, nil
+		}
+	}
+	return &pluginv1.TestConfigurationResponse{Message: "app is not configured"}, nil
+}
+
+func configurationCheckManifest(declared bool) *pluginv1.PluginManifest {
+	metadata, err := structpb.NewStruct(map[string]any{"configuration_check": declared})
+	if err != nil {
+		panic(err)
+	}
+	return &pluginv1.PluginManifest{
+		PluginId: "silo.test",
+		Metadata: metadata,
+		Capabilities: []*pluginv1.CapabilityDescriptor{{
+			Type: capability.WatchSyncProvider,
+			Id:   "main",
+		}},
+	}
+}
+
+func TestManifestServeConfigServesConfigurationChecks(t *testing.T) {
+	cfg, err := manifestServeConfig(configurationCheckManifest(true), CapabilityServers{},
+		WithConfigurationChecks(configurationChecker{}))
+	if err != nil {
+		t.Fatalf("manifestServeConfig = %v", err)
+	}
+	app, err := structpb.NewStruct(map[string]any{"client_id": "staged"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := serveConfigClient(t, cfg).ConfigurationChecks().TestConfiguration(context.Background(),
+		&pluginv1.TestConfigurationRequest{Config: []*pluginv1.ConfigEntry{{Key: "app", Value: app}}})
+	if err != nil {
+		t.Fatalf("TestConfiguration = %v", err)
+	}
+	if !resp.GetOk() || resp.GetMessage() != "client staged" {
+		t.Fatalf("TestConfiguration = %v, want ok with the staged client ID", resp)
+	}
+}
+
+func TestManifestServeConfigRejectsConfigurationCheckWithoutServer(t *testing.T) {
+	_, err := manifestServeConfig(configurationCheckManifest(true), CapabilityServers{})
+	if err == nil || !strings.Contains(err.Error(), "WithConfigurationChecks") {
+		t.Fatalf("manifestServeConfig = %v, want an error naming WithConfigurationChecks", err)
+	}
+	if _, err := manifestServeConfig(configurationCheckManifest(false), CapabilityServers{}); err != nil {
+		t.Fatalf("manifestServeConfig without the declaration = %v, want nil", err)
+	}
+}
+
+// A typed-nil server counts as no server: it is not registered, so a call
+// answers Unimplemented instead of panicking on the nil receiver.
+func TestManifestServeConfigSkipsTypedNilConfigurationChecks(t *testing.T) {
+	cfg, err := manifestServeConfig(configurationCheckManifest(false), CapabilityServers{},
+		WithConfigurationChecks((*configurationChecker)(nil)))
+	if err != nil {
+		t.Fatalf("manifestServeConfig = %v", err)
+	}
+	_, err = serveConfigClient(t, cfg).ConfigurationChecks().TestConfiguration(context.Background(), &pluginv1.TestConfigurationRequest{})
+	if status.Code(err) != codes.Unimplemented {
+		t.Fatalf("TestConfiguration error = %v, want Unimplemented", err)
 	}
 }

@@ -17,7 +17,7 @@ release builds resolve the SDK from a published module tag.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding, including `ServeManifestWithOptions` options such as `WithConfigure` and `WithAuthProviderChecks`.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding, including `ServeManifestWithOptions` options such as `WithConfigure`, `WithAuthProviderChecks` and `WithConfigurationChecks`.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
 
@@ -149,6 +149,26 @@ through `runtime.WithConfigure`.
 
 See [docs/auth-provider.md](docs/auth-provider.md) for the manifest rules,
 field semantics, denials, and check statuses.
+
+## Settings checks
+
+Any plugin can run its own check when an operator presses Check Connection on
+its settings page. Implement the `ConfigurationChecks` service's
+`TestConfiguration`, which receives every global config entry with the edited
+one replaced by its unsaved value, declare `"configuration_check": true` in the
+manifest's top-level `metadata`, and register the server:
+
+```go
+runtime.ServeManifestWithOptions(manifestJSON, version, servers,
+    runtime.WithConfigurationChecks(checks))
+```
+
+Answer a failed check with `ok: false` and a `message` that says what to
+change; never put secrets in it. `ServeManifestWithOptions` refuses to start a
+plugin that declares the key without a server. Without the declaration, the
+host keeps its built-in probes: a test search for a metadata provider and a
+statistics call for a marker provider. Other plugins have no check, and the
+host hides the button.
 
 ## Request routers
 

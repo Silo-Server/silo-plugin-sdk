@@ -94,13 +94,14 @@ type optionalServices struct {
 	watchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
 	authProviderChecks           pluginv1.AuthProviderChecksServer
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
+	configurationChecks          pluginv1.ConfigurationChecksServer
 }
 
 func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalServices) plugin.PluginSet {
 	// Compare fields one by one: == on the struct would panic for a server
 	// whose dynamic type is not comparable.
 	if optional.watchSyncDeviceAuthorization == nil && optional.authProviderChecks == nil &&
-		optional.networkIdentityAuth == nil {
+		optional.networkIdentityAuth == nil && optional.configurationChecks == nil {
 		return DefaultPluginSet(servers)
 	}
 	return plugin.PluginSet{
@@ -180,6 +181,12 @@ func (c *Client) NetworkIdentityAuth() pluginv1.NetworkIdentityAuthClient {
 	return pluginv1.NewNetworkIdentityAuthClient(c.conn)
 }
 
+// ConfigurationChecks returns the client for the plugin-defined settings
+// check added in v0.32.0. Plugins that do not serve it answer Unimplemented.
+func (c *Client) ConfigurationChecks() pluginv1.ConfigurationChecksClient {
+	return pluginv1.NewConfigurationChecksClient(c.conn)
+}
+
 func (c *Client) HttpRoutes() pluginv1.HttpRoutesClient {
 	return pluginv1.NewHttpRoutesClient(c.conn)
 }
@@ -215,6 +222,9 @@ func (p *grpcPluginWithOptionalServices) GRPCServer(
 	}
 	if p.optional.watchSyncDeviceAuthorization != nil {
 		pluginv1.RegisterWatchSyncDeviceAuthorizationServiceServer(server, p.optional.watchSyncDeviceAuthorization)
+	}
+	if p.optional.configurationChecks != nil {
+		pluginv1.RegisterConfigurationChecksServer(server, p.optional.configurationChecks)
 	}
 	return nil
 }
