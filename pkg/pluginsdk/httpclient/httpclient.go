@@ -1,7 +1,7 @@
 // Package httpclient is the shared outbound JSON-over-HTTP client for Silo
 // plugins that talk to a credentialed third-party API (Sonarr/Radarr, Seerr,
-// …). It carries an X-Api-Key header, caps the response body, and surfaces one
-// typed error (*StatusError) for any non-2xx. A fully-empty 2xx body is treated
+// …). It carries an X-Api-Key header, decodes a response of up to 16 MiB, and
+// surfaces one typed error (*StatusError) for any non-2xx. A fully-empty 2xx body is treated
 // as success (zero-value dest); callers detect "created but no body returned"
 // by inspecting the decoded value (e.g. id == 0). The client is stateless;
 // every call carries its own base URL + key.
@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,8 +21,16 @@ import (
 
 const (
 	defaultHTTPTimeout = 2 * time.Minute
-	maxResponseBody    = 1 << 20 // 1 MiB
+	// maxResponseBody caps the JSON value the client decodes from a 2xx body.
+	// Some lists run past 1 MiB, such as Sonarr's episodes for a series with
+	// 1,000+ episodes.
+	maxResponseBody = 16 << 20 // 16 MiB
+	// maxOtherBody caps every other read: an error body, a body nobody
+	// decodes, and the bytes left after the decoded value.
+	maxOtherBody = 1 << 20 // 1 MiB
 )
+
+var errResponseTooLarge = fmt.Errorf("httpclient: response too large: over %d MiB", maxResponseBody>>20)
 
 // defaultHTTPClient is shared so its connection pool survives across calls
 // (each New(nil) reuses one pooled Transport rather than minting a fresh one).
@@ -113,18 +122,23 @@ func (c *Client) DoJSON(ctx context.Context, method, path string, body, dest any
 	defer resp.Body.Close()
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		raw, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
+		raw, _ := io.ReadAll(io.LimitReader(resp.Body, maxOtherBody))
 		trimmed := strings.TrimSpace(string(raw))
 		return &StatusError{StatusCode: resp.StatusCode, Body: trimmed, Message: parseMessage(raw)}
 	}
 	if dest == nil || resp.StatusCode == http.StatusNoContent {
-		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxResponseBody))
+		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxOtherBody))
 		return nil
 	}
-	err = json.NewDecoder(io.LimitReader(resp.Body, maxResponseBody)).Decode(dest)
+	limited := &io.LimitedReader{R: resp.Body, N: maxResponseBody}
+	err = json.NewDecoder(limited).Decode(dest)
 	// Drain trailing bytes (bounded) so the connection can be pooled/reused on
 	// every path, including when decode fails on a malformed body.
-	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxResponseBody))
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxOtherBody))
+	if errors.Is(err, io.ErrUnexpectedEOF) && limited.N == 0 {
+		// The value was cut off at the cap, not malformed.
+		return errResponseTooLarge
+	}
 	if err != nil && err != io.EOF {
 		return fmt.Errorf("httpclient: decode response: %w", err)
 	}

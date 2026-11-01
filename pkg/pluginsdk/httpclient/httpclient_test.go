@@ -176,23 +176,40 @@ func TestMalformedBodyReturnsDecodeErrorAndConnectionIsReused(t *testing.T) {
 	}
 }
 
-func TestResponseBodyCappedAtMaxResponseBody(t *testing.T) {
-	// A 2 MiB body must not be read unbounded; the LimitReader truncates it,
-	// so decode fails cleanly (no hang, no OOM) rather than reading it all.
-	big := make([]byte, 2*1024*1024)
-	for i := range big {
-		big[i] = 'a'
-	}
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"x":"`))
-		w.Write(big)
-		// intentionally never closes the JSON string -> truncated at the cap
-	}))
-	defer srv.Close()
-	var out map[string]any
-	err := New(srv.URL, "k", nil).GetJSON(context.Background(), "/x", &out)
-	if err == nil {
-		t.Fatal("want a decode error from the capped/truncated body, got nil")
+func TestResponseSizeCap(t *testing.T) {
+	// value is a JSON array holding one string, exactly n bytes long.
+	value := func(n int) string { return `["` + strings.Repeat("x", n-4) + `"]` }
+
+	for _, tc := range []struct {
+		name    string
+		body    string
+		wantErr string // empty: decodes one item
+	}{
+		{name: "value exactly the cap", body: value(maxResponseBody)},
+		{name: "value one byte over the cap", body: value(maxResponseBody + 1), wantErr: "response too large"},
+		{name: "small value with trailing bytes past the cap", body: `["x"]` + strings.Repeat(" ", maxResponseBody)},
+		// A value that fits keeps its own decode error, even when it fills the cap.
+		{name: "wrong type exactly the cap", body: "[1" + strings.Repeat(" ", maxResponseBody-3) + "]", wantErr: "cannot unmarshal number"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			defer srv.Close()
+			var out []string
+			err := New(srv.URL, "k", nil).GetJSON(context.Background(), "/x", &out)
+			if tc.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErr) {
+					t.Fatalf("%d-byte body: err = %v, want %q", len(tc.body), err, tc.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("%d-byte body: %v", len(tc.body), err)
+			}
+			if len(out) != 1 {
+				t.Fatalf("decoded %d items, want 1", len(out))
+			}
+		})
 	}
 }
