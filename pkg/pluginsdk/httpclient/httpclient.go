@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -134,8 +135,8 @@ func (c *Client) DoJSON(ctx context.Context, method, path string, body, dest any
 	// Drain trailing bytes (bounded) so the connection can be pooled/reused on
 	// every path, including when decode fails on a malformed body.
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxOtherBody))
-	if err != nil && limited.N == 0 {
-		// The value did not end within the cap.
+	if errors.Is(err, io.ErrUnexpectedEOF) && limited.N == 0 {
+		// The value was cut off at the cap, not malformed.
 		return errResponseTooLarge
 	}
 	if err != nil && err != io.EOF {
