@@ -96,35 +96,38 @@ away from the repository that produced the release.
 
 ## Calling back into the host
 
-Plugins talk to the host through the `RuntimeHost` service, accessed via `pkg/pluginsdk/runtimehost.Client`. The host invokes `Runtime.BindHostBroker` on startup so plugins can dial back over the shared broker; `runtimedefault` handles that step for you. Available RPCs:
+Plugins talk to the host through the `RuntimeHost` service, accessed via `pkg/pluginsdk/runtimehost.Client`. The host invokes `Runtime.BindHostBroker` on startup so plugins can dial back over the shared broker; `runtimedefault` handles that step for you.
 
-- `PublishEvent` / `PublishEventTo` / `PublishEventToInstallation` — fire events into the host's bus, broadcast, addressed to a stable `plugin_id`, or addressed to one specific installation.
-- `GetHostInfo` — read host URL metadata for callback URLs and external-facing plugin links.
-- `ListLibraries` — enumerate libraries the operator has configured.
-- `CheckMediaPresence` — ask whether a given external id is already in the catalog.
-- `ListInstalledPlugins` — discover sibling plugins (e.g. routers a request plugin can target).
-- `ListLibraryMedia` / `GetCatalogStats` — read public-safe catalog rows and aggregate counts.
-- `ResolveCatalogImageURLs` — resolve stored poster/backdrop image paths into host-generated browser URLs.
-- `MintScopedStream` — create short-lived, narrowly scoped stream grants for guest/public workflows.
-- `CallPluginHTTP` — invoke another installed plugin's `http_routes.v1` handler through the host control plane.
-- `SetGlobalConfigEntry` — persist plugin-owned config that admins didn't set via the manifest form.
+Silo implements these RPCs:
 
-For plugin-to-plugin JSON calls, prefer the helper layer:
+- `PublishEvent` / `PublishEventTo`: fire events into the host's bus, broadcast or addressed to a stable `plugin_id`.
+- `GetHostInfo`: read host URL metadata for callback URLs and external-facing plugin links.
+- `ListLibraries`: enumerate libraries the operator has configured.
+- `CheckMediaPresence`: ask whether a given external id is already in the catalog.
+- `ListInstalledPlugins`: discover sibling plugins by capability.
+- `SetGlobalConfigEntry`: persist plugin-owned config that admins didn't set via the manifest form.
+- `ReadInstanceState` / `WriteInstanceState`: keep encrypted private state for the calling plugin instance.
+- `ReportNetworkAccessStatus`: push a `network_access_provider.v1` status change (network access providers only; other plugins get `PermissionDenied`).
+
+The contract also declares the RPCs below, but Silo does not implement them yet. A call that reaches the host fails with the gRPC status `codes.Unimplemented`, so a plugin that uses one must handle that error:
+
+- `PublishEventToInstallation`: address an event to one specific installation. Use `PublishEventTo` instead, which reaches every installation of the target `plugin_id`.
+- `ListLibraryMedia` / `GetCatalogStats`: read public-safe catalog rows and aggregate counts.
+- `ResolveCatalogImageURLs`: resolve stored poster/backdrop image paths into host-generated browser URLs.
+- `MintScopedStream`: create short-lived, narrowly scoped stream grants for guest/public workflows.
+- `CallPluginHTTP`, and the `CallPluginJSON` helper built on it: invoke another installed plugin's `http_routes.v1` handler through the host control plane.
 
 ```go
-plugins, err := host.ListInstalledPluginsByCapability(ctx, capability.RequestRouter)
-if err != nil || len(plugins) == 0 {
-    return err
+if status.Code(err) == codes.Unimplemented {
+    // This Silo host does not offer the call: skip the feature or fall back.
 }
+```
 
-var out struct {
-    Accepted bool `json:"accepted"`
-}
-err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
-    InstallationID: int(plugins[0].GetInstallationId()),
-    Path:           "/api/request",
-    Request:        map[string]any{"title": "The Matrix"},
-    Response:       &out,
+To reach a sibling plugin today, address an event to it. The peer receives it only when its `event_consumer.v1` capability subscribes to `plugin.<your plugin_id>.<event name>`; the host drops an event nobody subscribes to without an error. Events are one-way, so a reply has to come back as another event:
+
+```go
+err := host.PublishEventTo(ctx, "example.peer", "title.requested", map[string]any{
+    "title": "The Matrix",
 })
 ```
 
