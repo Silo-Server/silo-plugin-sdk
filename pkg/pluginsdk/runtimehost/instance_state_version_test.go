@@ -76,6 +76,20 @@ func TestWriteInstanceStateIfConflicts(t *testing.T) {
 	}
 }
 
+// An older host would ignore expected_version, so a conditional write must
+// write nothing there: called directly, or through UpdateInstanceState.
+func TestWriteInstanceStateIfOnAnUnversionedHostWritesNothing(t *testing.T) {
+	srv := newInstanceStateServer()
+	srv.values["k"] = []byte("keep")
+	c := dialInstanceState(t, srv)
+	if _, err := c.WriteInstanceStateIf(context.Background(), "k", []byte("overwrite"), 0); !errors.Is(err, runtimehost.ErrInstanceStateUnversioned) {
+		t.Fatalf("WriteInstanceStateIf = %v, want ErrInstanceStateUnversioned", err)
+	}
+	if string(srv.values["k"]) != "keep" {
+		t.Fatal("WriteInstanceStateIf overwrote a value on a host that can't make writes conditional")
+	}
+}
+
 // An older host would ignore expected_version, so the update must stop at
 // the read instead of writing unconditionally.
 func TestUpdateInstanceStateOnAnUnversionedHostWritesNothing(t *testing.T) {

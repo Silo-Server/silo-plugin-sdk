@@ -40,6 +40,7 @@ func (c *Client) ReadInstanceStateVersion(ctx context.Context, key string) (Vers
 	if err != nil {
 		return VersionedState{}, err
 	}
+	c.recordStateVersions(resp.GetVersioned())
 	if !resp.GetVersioned() {
 		return VersionedState{}, ErrInstanceStateUnversioned
 	}
@@ -51,17 +52,23 @@ func (c *Client) ReadInstanceStateVersion(ctx context.Context, key string) (Vers
 
 // WriteInstanceStateIf writes value only if the key is still at
 // expectedVersion (0: the key must not exist), and returns the new version.
-// It returns ErrInstanceStateConflict when another write got there first.
-//
-// Pass a version from ReadInstanceStateVersion, which fails on hosts that
-// don't keep versions: such a host ignores the condition, writes anyway, and
-// this method then returns ErrInstanceStateUnversioned.
+// It returns ErrInstanceStateConflict when another write got there first,
+// and ErrInstanceStateUnversioned, without writing, on a host that doesn't
+// keep versions: such a host would ignore the condition. The first call on
+// a client reads the key once to find out, unless a read already did.
 func (c *Client) WriteInstanceStateIf(ctx context.Context, key string, value []byte, expectedVersion int64) (int64, error) {
 	if err := validateInstanceStateKey(key); err != nil {
 		return 0, err
 	}
 	if len(value) > MaxInstanceStateValueBytes {
 		return 0, fmt.Errorf("runtimehost: instance state value for %q is %d bytes, limit %d", key, len(value), MaxInstanceStateValueBytes)
+	}
+	versioned, err := c.hostKeepsStateVersions(ctx, key)
+	if err != nil {
+		return 0, err
+	}
+	if !versioned {
+		return 0, ErrInstanceStateUnversioned
 	}
 	resp, err := c.rpc.WriteInstanceState(ctx, &pluginv1.WriteInstanceStateRequest{Key: key, Value: value, ExpectedVersion: &expectedVersion})
 	if status.Code(err) == codes.Aborted {
@@ -74,6 +81,31 @@ func (c *Client) WriteInstanceStateIf(ctx context.Context, key string, value []b
 		return 0, ErrInstanceStateUnversioned
 	}
 	return resp.GetVersion(), nil
+}
+
+// hostKeepsStateVersions reports whether the host honors expected_version,
+// reading key to find out the first time.
+func (c *Client) hostKeepsStateVersions(ctx context.Context, key string) (bool, error) {
+	switch c.stateVersions.Load() {
+	case 1:
+		return true, nil
+	case 2:
+		return false, nil
+	}
+	resp, err := c.rpc.ReadInstanceState(ctx, &pluginv1.ReadInstanceStateRequest{Key: key})
+	if err != nil {
+		return false, err
+	}
+	c.recordStateVersions(resp.GetVersioned())
+	return resp.GetVersioned(), nil
+}
+
+func (c *Client) recordStateVersions(versioned bool) {
+	if versioned {
+		c.stateVersions.Store(1)
+	} else {
+		c.stateVersions.Store(2)
+	}
 }
 
 // UpdateInstanceState reads key, passes its value to update, and writes what
