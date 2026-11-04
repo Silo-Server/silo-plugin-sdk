@@ -92,6 +92,17 @@ func DecodeCapability(record CapabilityRecord) (*pluginv1.CapabilityDescriptor, 
 		}
 		descriptor.RequestRouter = &typed
 	}
+	if channel, ok := record.Metadata["notification_channel"]; ok {
+		data, err := json.Marshal(channel)
+		if err != nil {
+			return nil, fmt.Errorf("encode notification channel descriptor: %w", err)
+		}
+		var typed pluginv1.NotificationChannelDescriptor
+		if err := capabilityUnmarshal.Unmarshal(data, &typed); err != nil {
+			return nil, fmt.Errorf("decode notification channel descriptor: %w", err)
+		}
+		descriptor.NotificationChannel = &typed
+	}
 	if configSchema, ok := record.Metadata["config_schema"]; ok {
 		schemas, err := decodeConfigSchemas(configSchema)
 		if err != nil {
@@ -149,6 +160,17 @@ func capabilityMetadata(descriptor *pluginv1.CapabilityDescriptor) (map[string]a
 			return nil, fmt.Errorf("decode request router descriptor JSON: %w", err)
 		}
 		metadata["request_router"] = value
+	}
+	if descriptor.GetNotificationChannel() != nil {
+		data, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(descriptor.GetNotificationChannel())
+		if err != nil {
+			return nil, fmt.Errorf("encode notification channel descriptor: %w", err)
+		}
+		var value map[string]any
+		if err := json.Unmarshal(data, &value); err != nil {
+			return nil, fmt.Errorf("decode notification channel descriptor JSON: %w", err)
+		}
+		metadata["notification_channel"] = value
 	}
 	if len(descriptor.GetConfigSchema()) > 0 {
 		schemas := make([]map[string]any, 0, len(descriptor.GetConfigSchema()))

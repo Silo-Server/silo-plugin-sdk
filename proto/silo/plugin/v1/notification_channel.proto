@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package silo.plugin.v1;
+
+option go_package = "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// NotificationChannel delivers Silo notifications to a kind of destination
+// the plugin provides, such as a push service or a chat app. A user adds a
+// destination of that kind in their notification settings and fills in the
+// form the descriptor declares.
+//
+// The host owns everything else: which notifications a profile receives, the
+// per-destination preferences, the delivery queue, retries with backoff,
+// failure counts, and disabling a destination that keeps failing. The plugin
+// checks a destination's settings and sends one message at a time.
+service NotificationChannel {
+  // ValidateDestination checks a destination's settings before the host
+  // saves them, for example by asking the service whether a user key exists.
+  // Return valid=false with a message the user can act on; return a gRPC
+  // error only when the check itself couldn't run.
+  rpc ValidateDestination(ValidateNotificationDestinationRequest) returns (ValidateNotificationDestinationResponse);
+
+  // SendNotification delivers one message to one destination. The host
+  // calls it at least once per message and destination, possibly from
+  // different servers, with the same delivery_key on every attempt. A gRPC
+  // error, or no answer within 15 seconds, counts as RETRY.
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+}
+
+message ValidateNotificationDestinationRequest {
+  // The settings as the user entered them, keyed by destination_schema
+  // property. On an edit, secret fields the user left unchanged carry their
+  // stored values.
+  google.protobuf.Struct config = 1;
+  // The notification_channel.v1 capability the destination belongs to.
+  string capability_id = 2;
+}
+
+message ValidateNotificationDestinationResponse {
+  bool valid = 1;
+  // Why the settings don't work, shown to the user when valid is false.
+  // Never include secrets.
+  string message = 2;
+}
+
+message SendNotificationRequest {
+  // The destination's ID, stable for its lifetime.
+  string destination_id = 1;
+  // The destination's saved settings, secrets included.
+  google.protobuf.Struct config = 2;
+  NotificationMessage message = 3;
+  // Identifies this message to this destination. It is the same on every
+  // attempt, so pass it to the service as an idempotency key where it has
+  // one.
+  string delivery_key = 4;
+  // 1 on the first attempt.
+  int32 attempt = 5;
+  // True for a test message the user asked for. The host doesn't retry it
+  // or count its failure.
+  bool test = 6;
+  // The notification_channel.v1 capability the destination belongs to.
+  string capability_id = 7;
+}
+
+// NotificationMessage is one notification, rendered by the host.
+message NotificationMessage {
+  // Type of the notification, such as "episode.available",
+  // "request.approved", "request.declined", "request.fulfilled" or "test".
+  // The vocabulary is open.
+  string type = 1;
+  // Short title, such as "New episode of Severance".
+  string title = 2;
+  // One or two lines of plain text.
+  string body = 3;
+  // Absolute link that opens the item in Silo. Empty when the host has no
+  // public URL.
+  string url = 4;
+  // Absolute URL of a poster or still, when there is one. It can expire.
+  string image_url = 5;
+  google.protobuf.Timestamp created_at = 6;
+  // The notification's details, shaped as the events package's
+  // Notification type, for plugins that render their own text. Empty for a
+  // test message.
+  google.protobuf.Struct details = 7;
+}
+
+enum NotificationSendOutcome {
+  // An empty response acknowledges the message, like DELIVERED.
+  NOTIFICATION_SEND_OUTCOME_UNSPECIFIED = 0;
+  NOTIFICATION_SEND_OUTCOME_DELIVERED = 1;
+  // A temporary failure, such as a timeout or a rate limit. The host tries
+  // again later.
+  NOTIFICATION_SEND_OUTCOME_RETRY = 2;
+  // This message can't be delivered, but the destination still works. The
+  // host drops the message.
+  NOTIFICATION_SEND_OUTCOME_FAILED = 3;
+  // The destination's settings no longer work, such as a revoked key. The
+  // host drops the message and disables the destination until its owner
+  // fixes it.
+  NOTIFICATION_SEND_OUTCOME_DESTINATION_INVALID = 4;
+}
+
+message SendNotificationResponse {
+  NotificationSendOutcome outcome = 1;
+  // Short reason for a failure, shown to the destination's owner. Never
+  // include secrets.
+  string message = 2;
+  // With RETRY: wait at least this long before the next attempt. 0 leaves
+  // the delay to the host.
+  int32 retry_after_seconds = 3;
+}
