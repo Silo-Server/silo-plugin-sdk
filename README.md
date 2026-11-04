@@ -37,6 +37,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `scan_source.v1`
 - `watch_sync_provider.v1`
 - `network_access_provider.v1`
+- `notification_channel.v1` (see [docs/notification-channel.md](docs/notification-channel.md))
 - `audiobook_backend.v1`
 - `ebook_backend.v1`
 
