@@ -161,6 +161,10 @@ message CapabilityDescriptor {
   // Typed notification-channel contract metadata. Required for, and only
   // meaningful on, capabilities of type "notification_channel.v1".
   NotificationChannelDescriptor notification_channel = 13;
+
+  // Typed scheduled-task metadata. Optional, and only meaningful on
+  // capabilities of type "scheduled_task.v1".
+  ScheduledTaskDescriptor scheduled_task = 14;
 }
 
 // NotificationChannelDescriptor declares the kind of destination a
@@ -175,6 +179,25 @@ message NotificationChannelDescriptor {
   // validated like any ConfigSchema. Every value is stored encrypted. Fields
   // marked secret are write-only: the host never returns them.
   ConfigSchema destination_schema = 3;
+}
+
+// ScheduledTaskDescriptor describes a scheduled_task.v1 capability.
+message ScheduledTaskDescriptor {
+  // The schedule the host uses until an administrator sets one. Without it,
+  // a host runs the task once each time it starts. Older hosts ignore it.
+  ScheduledTaskTrigger default_trigger = 1;
+}
+
+// ScheduledTaskTrigger is one schedule for a scheduled task.
+message ScheduledTaskTrigger {
+  // "interval", "daily", "weekly" or "startup".
+  string type = 1;
+  // For "interval": milliseconds between runs, at least 60000.
+  int64 interval_ms = 2;
+  // For "daily" and "weekly": "HH:MM", 24-hour, in the server's local time.
+  string time_of_day = 3;
+  // For "weekly": 0 (Sunday) to 6 (Saturday).
+  int32 day_of_week = 4;
 }
 
 // PluginPresentation describes a plugin for server operators and links them to
