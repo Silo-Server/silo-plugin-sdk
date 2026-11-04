@@ -91,7 +91,7 @@ Map the service's answer onto an outcome:
 | Outcome | Use for | Silo then |
 |---|---|---|
 | `DELIVERED` (or an empty response) | The service accepted the message. | Records the success. |
-| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays, for up to about two and a half days, then drops the message. |
+| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays, for about a day, then drops the message and disables the destination. |
 | `FAILED` | This message can't be sent, but the destination works. | Drops the message. |
 | `DESTINATION_INVALID` | The settings no longer work, such as a revoked token. | Drops the message and disables the destination until its owner edits it. |
 
