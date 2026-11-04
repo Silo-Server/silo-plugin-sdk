@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"google.golang.org/grpc"
@@ -17,6 +18,9 @@ import (
 
 type Client struct {
 	rpc pluginv1.RuntimeHostClient
+	// stateVersions caches whether the host keeps instance state versions:
+	// 0 not known yet, 1 yes, 2 no.
+	stateVersions atomic.Int32
 }
 
 type CallPluginHTTPRequest struct {
