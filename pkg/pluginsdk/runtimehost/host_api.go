@@ -34,7 +34,7 @@ type HostAPICredential struct {
 // installation. It returns ErrHostAPINotGranted or ErrHostAPIUnsupported
 // when there is none.
 func (c *Client) HostAPICredential(ctx context.Context) (*HostAPICredential, error) {
-	resp, err := c.rpc.GetHostAPICredential(ctx, &pluginv1.GetHostAPICredentialRequest{})
+	resp, err := c.hostAPI.GetHostAPICredential(ctx, &pluginv1.GetHostAPICredentialRequest{})
 	switch status.Code(err) {
 	case codes.OK:
 	case codes.FailedPrecondition:

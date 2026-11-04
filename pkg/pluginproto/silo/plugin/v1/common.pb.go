@@ -1467,7 +1467,7 @@ type PluginManifest struct {
 	// as "admin:monitor:read". An administrator approves them when installing
 	// the plugin, and again when an upgrade asks for more. The host then issues
 	// a key with exactly the approved scopes through
-	// RuntimeHost.GetHostAPICredential. The vocabulary is the host's API key
+	// HostAPICredentials.GetHostAPICredential. The vocabulary is the host's API key
 	// scope catalog and is open: a host grants only scopes it knows. Older
 	// hosts ignore the field.
 	HostApiScopes []string `protobuf:"bytes,14,rep,name=host_api_scopes,json=hostApiScopes,proto3" json:"host_api_scopes,omitempty"`
