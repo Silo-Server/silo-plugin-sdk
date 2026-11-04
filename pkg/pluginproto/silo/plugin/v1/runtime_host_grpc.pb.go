@@ -35,6 +35,7 @@ const (
 	RuntimeHost_ReadInstanceState_FullMethodName          = "/silo.plugin.v1.RuntimeHost/ReadInstanceState"
 	RuntimeHost_WriteInstanceState_FullMethodName         = "/silo.plugin.v1.RuntimeHost/WriteInstanceState"
 	RuntimeHost_ReportNetworkAccessStatus_FullMethodName  = "/silo.plugin.v1.RuntimeHost/ReportNetworkAccessStatus"
+	RuntimeHost_GetHostAPICredential_FullMethodName       = "/silo.plugin.v1.RuntimeHost/GetHostAPICredential"
 )
 
 // RuntimeHostClient is the client API for RuntimeHost service.
@@ -98,6 +99,12 @@ type RuntimeHostClient interface {
 	// change to the host so it does not have to poll. Plugins call it on every
 	// state transition; the host may still call GetStatus on demand.
 	ReportNetworkAccessStatus(ctx context.Context, in *ReportNetworkAccessStatusRequest, opts ...grpc.CallOption) (*ReportNetworkAccessStatusResponse, error)
+	// GetHostAPICredential returns the API key the host issued for the
+	// calling installation's approved host_api_scopes. It fails with
+	// FAILED_PRECONDITION when the manifest declares no scopes or an
+	// administrator hasn't approved them yet. Older hosts return
+	// UNIMPLEMENTED.
+	GetHostAPICredential(ctx context.Context, in *GetHostAPICredentialRequest, opts ...grpc.CallOption) (*GetHostAPICredentialResponse, error)
 }
 
 type runtimeHostClient struct {
@@ -268,6 +275,16 @@ func (c *runtimeHostClient) ReportNetworkAccessStatus(ctx context.Context, in *R
 	return out, nil
 }
 
+func (c *runtimeHostClient) GetHostAPICredential(ctx context.Context, in *GetHostAPICredentialRequest, opts ...grpc.CallOption) (*GetHostAPICredentialResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHostAPICredentialResponse)
+	err := c.cc.Invoke(ctx, RuntimeHost_GetHostAPICredential_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RuntimeHostServer is the server API for RuntimeHost service.
 // All implementations should embed UnimplementedRuntimeHostServer
 // for forward compatibility.
@@ -329,6 +346,12 @@ type RuntimeHostServer interface {
 	// change to the host so it does not have to poll. Plugins call it on every
 	// state transition; the host may still call GetStatus on demand.
 	ReportNetworkAccessStatus(context.Context, *ReportNetworkAccessStatusRequest) (*ReportNetworkAccessStatusResponse, error)
+	// GetHostAPICredential returns the API key the host issued for the
+	// calling installation's approved host_api_scopes. It fails with
+	// FAILED_PRECONDITION when the manifest declares no scopes or an
+	// administrator hasn't approved them yet. Older hosts return
+	// UNIMPLEMENTED.
+	GetHostAPICredential(context.Context, *GetHostAPICredentialRequest) (*GetHostAPICredentialResponse, error)
 }
 
 // UnimplementedRuntimeHostServer should be embedded to have
@@ -385,6 +408,9 @@ func (UnimplementedRuntimeHostServer) WriteInstanceState(context.Context, *Write
 }
 func (UnimplementedRuntimeHostServer) ReportNetworkAccessStatus(context.Context, *ReportNetworkAccessStatusRequest) (*ReportNetworkAccessStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportNetworkAccessStatus not implemented")
+}
+func (UnimplementedRuntimeHostServer) GetHostAPICredential(context.Context, *GetHostAPICredentialRequest) (*GetHostAPICredentialResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetHostAPICredential not implemented")
 }
 func (UnimplementedRuntimeHostServer) testEmbeddedByValue() {}
 
@@ -694,6 +720,24 @@ func _RuntimeHost_ReportNetworkAccessStatus_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RuntimeHost_GetHostAPICredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHostAPICredentialRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RuntimeHostServer).GetHostAPICredential(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RuntimeHost_GetHostAPICredential_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RuntimeHostServer).GetHostAPICredential(ctx, req.(*GetHostAPICredentialRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RuntimeHost_ServiceDesc is the grpc.ServiceDesc for RuntimeHost service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -764,6 +808,10 @@ var RuntimeHost_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportNetworkAccessStatus",
 			Handler:    _RuntimeHost_ReportNetworkAccessStatus_Handler,
+		},
+		{
+			MethodName: "GetHostAPICredential",
+			Handler:    _RuntimeHost_GetHostAPICredential_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

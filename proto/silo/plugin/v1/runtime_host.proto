@@ -80,6 +80,13 @@ service RuntimeHost {
   // change to the host so it does not have to poll. Plugins call it on every
   // state transition; the host may still call GetStatus on demand.
   rpc ReportNetworkAccessStatus(ReportNetworkAccessStatusRequest) returns (ReportNetworkAccessStatusResponse);
+
+  // GetHostAPICredential returns the API key the host issued for the
+  // calling installation's approved host_api_scopes. It fails with
+  // FAILED_PRECONDITION when the manifest declares no scopes or an
+  // administrator hasn't approved them yet. Older hosts return
+  // UNIMPLEMENTED.
+  rpc GetHostAPICredential(GetHostAPICredentialRequest) returns (GetHostAPICredentialResponse);
 }
 
 message PublishEventRequest {
@@ -354,3 +361,19 @@ message ReportNetworkAccessStatusRequest {
 }
 
 message ReportNetworkAccessStatusResponse {}
+
+message GetHostAPICredentialRequest {}
+
+message GetHostAPICredentialResponse {
+  // Bearer token for the host's HTTP API (Authorization: Bearer <token>).
+  // Treat it as a credential: keep it in memory, never log or persist it,
+  // and call GetHostAPICredential again after the host answers 401, because
+  // an administrator can revoke or reissue it.
+  string token = 1;
+  // Scopes the token carries: the approved subset of the manifest's
+  // host_api_scopes that this host knows.
+  repeated string scopes = 2;
+  // Base URL of the host's HTTP API for this process, the same as
+  // GetHostInfoResponse.internal_base_url.
+  string base_url = 3;
+}

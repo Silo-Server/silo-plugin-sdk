@@ -52,6 +52,10 @@ with a `default` arm rather than an exhaustive match, and do not assume the
 constants shipped in any given SDK tag are the complete set. The same rule
 applies to any future open vocabulary added to `v1`.
 
+`PluginManifest.host_api_scopes` is open too. The validator checks each
+scope's shape, not whether the host knows it, and a host grants only the
+scopes it knows (see [permissions.md](permissions.md)).
+
 `FetchMarkersRequest.episode_numbering` and `SubmitMarkerRequest.episode_numbering`
 are open too. Hosts send an external ID key, today `tvdb` or `tmdb`, or leave the
 field empty when they cannot tell. A marker provider treats a value it does not

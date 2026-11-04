@@ -197,6 +197,14 @@ message PluginManifest {
   // Optional operator-facing identity, documentation, and repository links.
   // Older manifests remain valid when this block is absent.
   PluginPresentation presentation = 13;
+  // Silo API key scopes the plugin needs to call the host's HTTP API, such
+  // as "admin:monitor:read". An administrator approves them when installing
+  // the plugin, and again when an upgrade asks for more. The host then issues
+  // a key with exactly the approved scopes through
+  // RuntimeHost.GetHostAPICredential. The vocabulary is the host's API key
+  // scope catalog and is open: a host grants only scopes it knows. Older
+  // hosts ignore the field.
+  repeated string host_api_scopes = 14;
 }
 
 service Runtime {
