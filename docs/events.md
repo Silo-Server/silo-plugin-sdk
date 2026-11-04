@@ -74,6 +74,10 @@ administrator to approve it.
 | `job.completed` | admin | `JobEvent` | An admin job finished. |
 | `job.failed` | admin | `JobEvent` | An admin job failed. |
 | `job.cancelled` | admin | `JobEvent` | An admin job was cancelled. |
+| `request.submitted` | admin | `RequestEvent` | Someone requested a movie or series. |
+| `request.approved` | admin | `RequestEvent` | A media request was approved. |
+| `request.declined` | admin | `RequestEvent` | A media request was declined. |
+| `request.fulfilled` | admin | `RequestEvent` | A requested title arrived in a library. |
 | `notification.created` | user_data | `Notification` | Silo added a notification to a profile's inbox. |
 
 Notes on specific payloads:

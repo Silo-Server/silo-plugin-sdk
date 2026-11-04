@@ -184,6 +184,33 @@ type JobEvent struct {
 	UpdatedAt       time.Time  `json:"updated_at"`
 }
 
+// RequestEvent is the payload of request.submitted, request.approved,
+// request.declined and request.fulfilled.
+type RequestEvent struct {
+	ID string `json:"id"`
+	// MediaType is "movie" or "series". The vocabulary is open.
+	MediaType string `json:"media_type"`
+	Title     string `json:"title"`
+	Year      *int   `json:"year,omitempty"`
+	TMDBID    int    `json:"tmdb_id,omitempty"`
+	TVDBID    *int   `json:"tvdb_id,omitempty"`
+	IMDbID    string `json:"imdb_id,omitempty"`
+	// PosterPath is a TMDB image path, such as "/abc.jpg".
+	PosterPath string `json:"poster_path,omitempty"`
+	// Status is the request's state after the event. The vocabulary is open.
+	Status string `json:"status"`
+	// RequestedByUserID and RequestedByProfileID identify the requester;
+	// both are empty for a request no profile made, such as an import.
+	RequestedByUserID    int    `json:"requested_by_user_id,omitempty"`
+	RequestedByProfileID string `json:"requested_by_profile_id,omitempty"`
+	RequesterName        string `json:"requester_name,omitempty"`
+	// Reason is why a request was declined, when one was given.
+	Reason string `json:"reason,omitempty"`
+	// LibraryContentID is the catalog item a fulfilled request matched.
+	LibraryContentID string    `json:"library_content_id,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+}
+
 // Notification is the payload of notification.created: one delivery
 // to one profile's inbox.
 type Notification struct {
