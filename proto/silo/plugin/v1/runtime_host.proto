@@ -80,13 +80,6 @@ service RuntimeHost {
   // change to the host so it does not have to poll. Plugins call it on every
   // state transition; the host may still call GetStatus on demand.
   rpc ReportNetworkAccessStatus(ReportNetworkAccessStatusRequest) returns (ReportNetworkAccessStatusResponse);
-
-  // GetHostAPICredential returns the API key the host issued for the
-  // calling installation's approved host_api_scopes. It fails with
-  // FAILED_PRECONDITION when the manifest declares no scopes or an
-  // administrator hasn't approved them yet. Older hosts return
-  // UNIMPLEMENTED.
-  rpc GetHostAPICredential(GetHostAPICredentialRequest) returns (GetHostAPICredentialResponse);
 }
 
 message PublishEventRequest {
@@ -361,6 +354,18 @@ message ReportNetworkAccessStatusRequest {
 }
 
 message ReportNetworkAccessStatusResponse {}
+
+// HostAPICredentials is implemented by the host next to RuntimeHost, on the
+// same broker connection. It is a separate service so that adding it left
+// RuntimeHost's generated interfaces unchanged. Older hosts don't serve it
+// and answer UNIMPLEMENTED.
+service HostAPICredentials {
+  // GetHostAPICredential returns the API key the host issued for the
+  // calling installation's approved host_api_scopes. It fails with
+  // FAILED_PRECONDITION when the manifest declares no scopes or an
+  // administrator hasn't approved them yet.
+  rpc GetHostAPICredential(GetHostAPICredentialRequest) returns (GetHostAPICredentialResponse);
+}
 
 message GetHostAPICredentialRequest {}
 

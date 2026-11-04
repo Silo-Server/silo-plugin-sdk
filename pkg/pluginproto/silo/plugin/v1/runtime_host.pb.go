@@ -2668,7 +2668,7 @@ const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x1cGetHostAPICredentialResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x16\n" +
 	"\x06scopes\x18\x02 \x03(\tR\x06scopes\x12\x19\n" +
-	"\bbase_url\x18\x03 \x01(\tR\abaseUrl2\xb4\x0e\n" +
+	"\bbase_url\x18\x03 \x01(\tR\abaseUrl2\xc1\r\n" +
 	"\vRuntimeHost\x12Y\n" +
 	"\fPublishEvent\x12#.silo.plugin.v1.PublishEventRequest\x1a$.silo.plugin.v1.PublishEventResponse\x12_\n" +
 	"\x0ePublishEventTo\x12%.silo.plugin.v1.PublishEventToRequest\x1a&.silo.plugin.v1.PublishEventToResponse\x12\x83\x01\n" +
@@ -2685,7 +2685,8 @@ const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x0eCallPluginHTTP\x12%.silo.plugin.v1.CallPluginHTTPRequest\x1a&.silo.plugin.v1.CallPluginHTTPResponse\x12h\n" +
 	"\x11ReadInstanceState\x12(.silo.plugin.v1.ReadInstanceStateRequest\x1a).silo.plugin.v1.ReadInstanceStateResponse\x12k\n" +
 	"\x12WriteInstanceState\x12).silo.plugin.v1.WriteInstanceStateRequest\x1a*.silo.plugin.v1.WriteInstanceStateResponse\x12\x80\x01\n" +
-	"\x19ReportNetworkAccessStatus\x120.silo.plugin.v1.ReportNetworkAccessStatusRequest\x1a1.silo.plugin.v1.ReportNetworkAccessStatusResponse\x12q\n" +
+	"\x19ReportNetworkAccessStatus\x120.silo.plugin.v1.ReportNetworkAccessStatusRequest\x1a1.silo.plugin.v1.ReportNetworkAccessStatusResponse2\x87\x01\n" +
+	"\x12HostAPICredentials\x12q\n" +
 	"\x14GetHostAPICredential\x12+.silo.plugin.v1.GetHostAPICredentialRequest\x1a,.silo.plugin.v1.GetHostAPICredentialResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
 
 var (
@@ -2784,7 +2785,7 @@ var file_silo_plugin_v1_runtime_host_proto_depIdxs = []int32{
 	33, // 30: silo.plugin.v1.RuntimeHost.ReadInstanceState:input_type -> silo.plugin.v1.ReadInstanceStateRequest
 	35, // 31: silo.plugin.v1.RuntimeHost.WriteInstanceState:input_type -> silo.plugin.v1.WriteInstanceStateRequest
 	37, // 32: silo.plugin.v1.RuntimeHost.ReportNetworkAccessStatus:input_type -> silo.plugin.v1.ReportNetworkAccessStatusRequest
-	39, // 33: silo.plugin.v1.RuntimeHost.GetHostAPICredential:input_type -> silo.plugin.v1.GetHostAPICredentialRequest
+	39, // 33: silo.plugin.v1.HostAPICredentials.GetHostAPICredential:input_type -> silo.plugin.v1.GetHostAPICredentialRequest
 	1,  // 34: silo.plugin.v1.RuntimeHost.PublishEvent:output_type -> silo.plugin.v1.PublishEventResponse
 	3,  // 35: silo.plugin.v1.RuntimeHost.PublishEventTo:output_type -> silo.plugin.v1.PublishEventToResponse
 	5,  // 36: silo.plugin.v1.RuntimeHost.PublishEventToInstallation:output_type -> silo.plugin.v1.PublishEventToInstallationResponse
@@ -2801,7 +2802,7 @@ var file_silo_plugin_v1_runtime_host_proto_depIdxs = []int32{
 	34, // 47: silo.plugin.v1.RuntimeHost.ReadInstanceState:output_type -> silo.plugin.v1.ReadInstanceStateResponse
 	36, // 48: silo.plugin.v1.RuntimeHost.WriteInstanceState:output_type -> silo.plugin.v1.WriteInstanceStateResponse
 	38, // 49: silo.plugin.v1.RuntimeHost.ReportNetworkAccessStatus:output_type -> silo.plugin.v1.ReportNetworkAccessStatusResponse
-	40, // 50: silo.plugin.v1.RuntimeHost.GetHostAPICredential:output_type -> silo.plugin.v1.GetHostAPICredentialResponse
+	40, // 50: silo.plugin.v1.HostAPICredentials.GetHostAPICredential:output_type -> silo.plugin.v1.GetHostAPICredentialResponse
 	34, // [34:51] is the sub-list for method output_type
 	17, // [17:34] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
@@ -2824,7 +2825,7 @@ func file_silo_plugin_v1_runtime_host_proto_init() {
 			NumEnums:      0,
 			NumMessages:   44,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_silo_plugin_v1_runtime_host_proto_goTypes,
 		DependencyIndexes: file_silo_plugin_v1_runtime_host_proto_depIdxs,

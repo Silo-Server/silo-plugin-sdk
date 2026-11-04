@@ -38,16 +38,25 @@ It appears on the host's API keys page, where it can be revoked. Read it with
 `runtimehost.Client.HostAPICredential`:
 
 ```go
-cred, err := sdkruntime.Host().HostAPICredential(ctx)
+host := sdkruntime.Host()
+if host == nil {
+	return errHostNotReady // the host connection isn't bound yet
+}
+cred, err := host.HostAPICredential(ctx)
 switch {
 case errors.Is(err, runtimehost.ErrHostAPINotGranted):
 	// Not approved yet: tell the administrator, don't retry in a loop.
+	return errNeedsApproval
 case errors.Is(err, runtimehost.ErrHostAPIUnsupported):
 	// The host is too old to issue keys.
+	return errHostTooOld
 case err != nil:
 	return err
 }
-req, _ := http.NewRequestWithContext(ctx, http.MethodGet, cred.BaseURL+"/api/v2/admin/sessions", nil)
+req, err := http.NewRequestWithContext(ctx, http.MethodGet, cred.BaseURL+"/api/v2/admin/sessions", nil)
+if err != nil {
+	return err
+}
 req.Header.Set("Authorization", "Bearer "+cred.Token)
 ```
 
