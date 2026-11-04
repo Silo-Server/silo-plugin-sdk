@@ -18,6 +18,9 @@ const (
 	// NetworkAccessProvider marks a resident plugin that gives the deployment
 	// an overlay-network identity (Tailscale, NetBird, ...). Added in v0.16.0.
 	NetworkAccessProvider = "network_access_provider.v1"
+	// NotificationChannel provides a kind of notification destination, such
+	// as a push service, that users add in their notification settings.
+	NotificationChannel = "notification_channel.v1"
 )
 
 // KnownTypes lists every capability type recognized by this SDK version.
@@ -36,4 +39,5 @@ var KnownTypes = []string{
 	ScanSource,
 	WatchSyncProvider,
 	NetworkAccessProvider,
+	NotificationChannel,
 }
