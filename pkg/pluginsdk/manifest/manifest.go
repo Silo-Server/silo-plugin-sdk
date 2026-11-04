@@ -160,6 +160,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 	if err := validateNetworkAuthPairing(manifest); err != nil {
 		return err
 	}
+	if err := validateHostAPIScopes(manifest.GetHostApiScopes()); err != nil {
+		return err
+	}
 	for _, schema := range manifest.GlobalConfigSchema {
 		if err := validateConfigSchema(schema); err != nil {
 			return err

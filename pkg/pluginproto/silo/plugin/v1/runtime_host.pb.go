@@ -2367,6 +2367,110 @@ func (*ReportNetworkAccessStatusResponse) Descriptor() ([]byte, []int) {
 	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{38}
 }
 
+type GetHostAPICredentialRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHostAPICredentialRequest) Reset() {
+	*x = GetHostAPICredentialRequest{}
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHostAPICredentialRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHostAPICredentialRequest) ProtoMessage() {}
+
+func (x *GetHostAPICredentialRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHostAPICredentialRequest.ProtoReflect.Descriptor instead.
+func (*GetHostAPICredentialRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{39}
+}
+
+type GetHostAPICredentialResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Bearer token for the host's HTTP API (Authorization: Bearer <token>).
+	// Treat it as a credential: keep it in memory, never log or persist it,
+	// and call GetHostAPICredential again after the host answers 401, because
+	// an administrator can revoke or reissue it.
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// Scopes the token carries: the approved subset of the manifest's
+	// host_api_scopes that this host knows.
+	Scopes []string `protobuf:"bytes,2,rep,name=scopes,proto3" json:"scopes,omitempty"`
+	// Base URL of the host's HTTP API for this process, the same as
+	// GetHostInfoResponse.internal_base_url.
+	BaseUrl       string `protobuf:"bytes,3,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHostAPICredentialResponse) Reset() {
+	*x = GetHostAPICredentialResponse{}
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHostAPICredentialResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHostAPICredentialResponse) ProtoMessage() {}
+
+func (x *GetHostAPICredentialResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_runtime_host_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHostAPICredentialResponse.ProtoReflect.Descriptor instead.
+func (*GetHostAPICredentialResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *GetHostAPICredentialResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *GetHostAPICredentialResponse) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+func (x *GetHostAPICredentialResponse) GetBaseUrl() string {
+	if x != nil {
+		return x.BaseUrl
+	}
+	return ""
+}
+
 var File_silo_plugin_v1_runtime_host_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
@@ -2559,7 +2663,12 @@ const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x1aWriteInstanceStateResponse\"_\n" +
 	" ReportNetworkAccessStatusRequest\x12;\n" +
 	"\x06status\x18\x01 \x01(\v2#.silo.plugin.v1.NetworkAccessStatusR\x06status\"#\n" +
-	"!ReportNetworkAccessStatusResponse2\xc1\r\n" +
+	"!ReportNetworkAccessStatusResponse\"\x1d\n" +
+	"\x1bGetHostAPICredentialRequest\"g\n" +
+	"\x1cGetHostAPICredentialResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x16\n" +
+	"\x06scopes\x18\x02 \x03(\tR\x06scopes\x12\x19\n" +
+	"\bbase_url\x18\x03 \x01(\tR\abaseUrl2\xb4\x0e\n" +
 	"\vRuntimeHost\x12Y\n" +
 	"\fPublishEvent\x12#.silo.plugin.v1.PublishEventRequest\x1a$.silo.plugin.v1.PublishEventResponse\x12_\n" +
 	"\x0ePublishEventTo\x12%.silo.plugin.v1.PublishEventToRequest\x1a&.silo.plugin.v1.PublishEventToResponse\x12\x83\x01\n" +
@@ -2576,7 +2685,8 @@ const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x0eCallPluginHTTP\x12%.silo.plugin.v1.CallPluginHTTPRequest\x1a&.silo.plugin.v1.CallPluginHTTPResponse\x12h\n" +
 	"\x11ReadInstanceState\x12(.silo.plugin.v1.ReadInstanceStateRequest\x1a).silo.plugin.v1.ReadInstanceStateResponse\x12k\n" +
 	"\x12WriteInstanceState\x12).silo.plugin.v1.WriteInstanceStateRequest\x1a*.silo.plugin.v1.WriteInstanceStateResponse\x12\x80\x01\n" +
-	"\x19ReportNetworkAccessStatus\x120.silo.plugin.v1.ReportNetworkAccessStatusRequest\x1a1.silo.plugin.v1.ReportNetworkAccessStatusResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
+	"\x19ReportNetworkAccessStatus\x120.silo.plugin.v1.ReportNetworkAccessStatusRequest\x1a1.silo.plugin.v1.ReportNetworkAccessStatusResponse\x12q\n" +
+	"\x14GetHostAPICredential\x12+.silo.plugin.v1.GetHostAPICredentialRequest\x1a,.silo.plugin.v1.GetHostAPICredentialResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_silo_plugin_v1_runtime_host_proto_rawDescOnce sync.Once
@@ -2590,7 +2700,7 @@ func file_silo_plugin_v1_runtime_host_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_runtime_host_proto_rawDescData
 }
 
-var file_silo_plugin_v1_runtime_host_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
+var file_silo_plugin_v1_runtime_host_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_silo_plugin_v1_runtime_host_proto_goTypes = []any{
 	(*PublishEventRequest)(nil),                // 0: silo.plugin.v1.PublishEventRequest
 	(*PublishEventResponse)(nil),               // 1: silo.plugin.v1.PublishEventResponse
@@ -2631,31 +2741,33 @@ var file_silo_plugin_v1_runtime_host_proto_goTypes = []any{
 	(*WriteInstanceStateResponse)(nil),         // 36: silo.plugin.v1.WriteInstanceStateResponse
 	(*ReportNetworkAccessStatusRequest)(nil),   // 37: silo.plugin.v1.ReportNetworkAccessStatusRequest
 	(*ReportNetworkAccessStatusResponse)(nil),  // 38: silo.plugin.v1.ReportNetworkAccessStatusResponse
-	nil,                          // 39: silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
-	nil,                          // 40: silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
-	nil,                          // 41: silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
-	(*structpb.Struct)(nil),      // 42: google.protobuf.Struct
-	(*CapabilityDescriptor)(nil), // 43: silo.plugin.v1.CapabilityDescriptor
-	(*NetworkAccessStatus)(nil),  // 44: silo.plugin.v1.NetworkAccessStatus
+	(*GetHostAPICredentialRequest)(nil),        // 39: silo.plugin.v1.GetHostAPICredentialRequest
+	(*GetHostAPICredentialResponse)(nil),       // 40: silo.plugin.v1.GetHostAPICredentialResponse
+	nil,                                        // 41: silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
+	nil,                                        // 42: silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
+	nil,                                        // 43: silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
+	(*structpb.Struct)(nil),                    // 44: google.protobuf.Struct
+	(*CapabilityDescriptor)(nil),               // 45: silo.plugin.v1.CapabilityDescriptor
+	(*NetworkAccessStatus)(nil),                // 46: silo.plugin.v1.NetworkAccessStatus
 }
 var file_silo_plugin_v1_runtime_host_proto_depIdxs = []int32{
-	42, // 0: silo.plugin.v1.PublishEventRequest.payload:type_name -> google.protobuf.Struct
-	42, // 1: silo.plugin.v1.PublishEventToRequest.payload:type_name -> google.protobuf.Struct
-	42, // 2: silo.plugin.v1.PublishEventToInstallationRequest.payload:type_name -> google.protobuf.Struct
+	44, // 0: silo.plugin.v1.PublishEventRequest.payload:type_name -> google.protobuf.Struct
+	44, // 1: silo.plugin.v1.PublishEventToRequest.payload:type_name -> google.protobuf.Struct
+	44, // 2: silo.plugin.v1.PublishEventToInstallationRequest.payload:type_name -> google.protobuf.Struct
 	8,  // 3: silo.plugin.v1.GetHostInfoResponse.listeners:type_name -> silo.plugin.v1.HostListener
 	11, // 4: silo.plugin.v1.ListLibrariesResponse.libraries:type_name -> silo.plugin.v1.Library
 	14, // 5: silo.plugin.v1.CheckMediaPresenceResponse.present:type_name -> silo.plugin.v1.MediaPresence
 	17, // 6: silo.plugin.v1.ListInstalledPluginsResponse.plugins:type_name -> silo.plugin.v1.InstalledPlugin
-	43, // 7: silo.plugin.v1.InstalledPlugin.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
-	42, // 8: silo.plugin.v1.SetGlobalConfigEntryRequest.value:type_name -> google.protobuf.Struct
+	45, // 7: silo.plugin.v1.InstalledPlugin.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
+	44, // 8: silo.plugin.v1.SetGlobalConfigEntryRequest.value:type_name -> google.protobuf.Struct
 	22, // 9: silo.plugin.v1.ListLibraryMediaResponse.items:type_name -> silo.plugin.v1.CatalogMediaItem
 	25, // 10: silo.plugin.v1.GetCatalogStatsResponse.media_type_counts:type_name -> silo.plugin.v1.CatalogTypeCount
 	26, // 11: silo.plugin.v1.GetCatalogStatsResponse.library_counts:type_name -> silo.plugin.v1.CatalogLibraryCount
-	39, // 12: silo.plugin.v1.ResolveCatalogImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
-	40, // 13: silo.plugin.v1.CallPluginHTTPRequest.headers:type_name -> silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
-	42, // 14: silo.plugin.v1.CallPluginHTTPRequest.query:type_name -> google.protobuf.Struct
-	41, // 15: silo.plugin.v1.CallPluginHTTPResponse.headers:type_name -> silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
-	44, // 16: silo.plugin.v1.ReportNetworkAccessStatusRequest.status:type_name -> silo.plugin.v1.NetworkAccessStatus
+	41, // 12: silo.plugin.v1.ResolveCatalogImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntry
+	42, // 13: silo.plugin.v1.CallPluginHTTPRequest.headers:type_name -> silo.plugin.v1.CallPluginHTTPRequest.HeadersEntry
+	44, // 14: silo.plugin.v1.CallPluginHTTPRequest.query:type_name -> google.protobuf.Struct
+	43, // 15: silo.plugin.v1.CallPluginHTTPResponse.headers:type_name -> silo.plugin.v1.CallPluginHTTPResponse.HeadersEntry
+	46, // 16: silo.plugin.v1.ReportNetworkAccessStatusRequest.status:type_name -> silo.plugin.v1.NetworkAccessStatus
 	0,  // 17: silo.plugin.v1.RuntimeHost.PublishEvent:input_type -> silo.plugin.v1.PublishEventRequest
 	2,  // 18: silo.plugin.v1.RuntimeHost.PublishEventTo:input_type -> silo.plugin.v1.PublishEventToRequest
 	4,  // 19: silo.plugin.v1.RuntimeHost.PublishEventToInstallation:input_type -> silo.plugin.v1.PublishEventToInstallationRequest
@@ -2672,24 +2784,26 @@ var file_silo_plugin_v1_runtime_host_proto_depIdxs = []int32{
 	33, // 30: silo.plugin.v1.RuntimeHost.ReadInstanceState:input_type -> silo.plugin.v1.ReadInstanceStateRequest
 	35, // 31: silo.plugin.v1.RuntimeHost.WriteInstanceState:input_type -> silo.plugin.v1.WriteInstanceStateRequest
 	37, // 32: silo.plugin.v1.RuntimeHost.ReportNetworkAccessStatus:input_type -> silo.plugin.v1.ReportNetworkAccessStatusRequest
-	1,  // 33: silo.plugin.v1.RuntimeHost.PublishEvent:output_type -> silo.plugin.v1.PublishEventResponse
-	3,  // 34: silo.plugin.v1.RuntimeHost.PublishEventTo:output_type -> silo.plugin.v1.PublishEventToResponse
-	5,  // 35: silo.plugin.v1.RuntimeHost.PublishEventToInstallation:output_type -> silo.plugin.v1.PublishEventToInstallationResponse
-	7,  // 36: silo.plugin.v1.RuntimeHost.GetHostInfo:output_type -> silo.plugin.v1.GetHostInfoResponse
-	10, // 37: silo.plugin.v1.RuntimeHost.ListLibraries:output_type -> silo.plugin.v1.ListLibrariesResponse
-	13, // 38: silo.plugin.v1.RuntimeHost.CheckMediaPresence:output_type -> silo.plugin.v1.CheckMediaPresenceResponse
-	16, // 39: silo.plugin.v1.RuntimeHost.ListInstalledPlugins:output_type -> silo.plugin.v1.ListInstalledPluginsResponse
-	19, // 40: silo.plugin.v1.RuntimeHost.SetGlobalConfigEntry:output_type -> silo.plugin.v1.SetGlobalConfigEntryResponse
-	21, // 41: silo.plugin.v1.RuntimeHost.ListLibraryMedia:output_type -> silo.plugin.v1.ListLibraryMediaResponse
-	24, // 42: silo.plugin.v1.RuntimeHost.GetCatalogStats:output_type -> silo.plugin.v1.GetCatalogStatsResponse
-	28, // 43: silo.plugin.v1.RuntimeHost.ResolveCatalogImageURLs:output_type -> silo.plugin.v1.ResolveCatalogImageURLsResponse
-	30, // 44: silo.plugin.v1.RuntimeHost.MintScopedStream:output_type -> silo.plugin.v1.MintScopedStreamResponse
-	32, // 45: silo.plugin.v1.RuntimeHost.CallPluginHTTP:output_type -> silo.plugin.v1.CallPluginHTTPResponse
-	34, // 46: silo.plugin.v1.RuntimeHost.ReadInstanceState:output_type -> silo.plugin.v1.ReadInstanceStateResponse
-	36, // 47: silo.plugin.v1.RuntimeHost.WriteInstanceState:output_type -> silo.plugin.v1.WriteInstanceStateResponse
-	38, // 48: silo.plugin.v1.RuntimeHost.ReportNetworkAccessStatus:output_type -> silo.plugin.v1.ReportNetworkAccessStatusResponse
-	33, // [33:49] is the sub-list for method output_type
-	17, // [17:33] is the sub-list for method input_type
+	39, // 33: silo.plugin.v1.RuntimeHost.GetHostAPICredential:input_type -> silo.plugin.v1.GetHostAPICredentialRequest
+	1,  // 34: silo.plugin.v1.RuntimeHost.PublishEvent:output_type -> silo.plugin.v1.PublishEventResponse
+	3,  // 35: silo.plugin.v1.RuntimeHost.PublishEventTo:output_type -> silo.plugin.v1.PublishEventToResponse
+	5,  // 36: silo.plugin.v1.RuntimeHost.PublishEventToInstallation:output_type -> silo.plugin.v1.PublishEventToInstallationResponse
+	7,  // 37: silo.plugin.v1.RuntimeHost.GetHostInfo:output_type -> silo.plugin.v1.GetHostInfoResponse
+	10, // 38: silo.plugin.v1.RuntimeHost.ListLibraries:output_type -> silo.plugin.v1.ListLibrariesResponse
+	13, // 39: silo.plugin.v1.RuntimeHost.CheckMediaPresence:output_type -> silo.plugin.v1.CheckMediaPresenceResponse
+	16, // 40: silo.plugin.v1.RuntimeHost.ListInstalledPlugins:output_type -> silo.plugin.v1.ListInstalledPluginsResponse
+	19, // 41: silo.plugin.v1.RuntimeHost.SetGlobalConfigEntry:output_type -> silo.plugin.v1.SetGlobalConfigEntryResponse
+	21, // 42: silo.plugin.v1.RuntimeHost.ListLibraryMedia:output_type -> silo.plugin.v1.ListLibraryMediaResponse
+	24, // 43: silo.plugin.v1.RuntimeHost.GetCatalogStats:output_type -> silo.plugin.v1.GetCatalogStatsResponse
+	28, // 44: silo.plugin.v1.RuntimeHost.ResolveCatalogImageURLs:output_type -> silo.plugin.v1.ResolveCatalogImageURLsResponse
+	30, // 45: silo.plugin.v1.RuntimeHost.MintScopedStream:output_type -> silo.plugin.v1.MintScopedStreamResponse
+	32, // 46: silo.plugin.v1.RuntimeHost.CallPluginHTTP:output_type -> silo.plugin.v1.CallPluginHTTPResponse
+	34, // 47: silo.plugin.v1.RuntimeHost.ReadInstanceState:output_type -> silo.plugin.v1.ReadInstanceStateResponse
+	36, // 48: silo.plugin.v1.RuntimeHost.WriteInstanceState:output_type -> silo.plugin.v1.WriteInstanceStateResponse
+	38, // 49: silo.plugin.v1.RuntimeHost.ReportNetworkAccessStatus:output_type -> silo.plugin.v1.ReportNetworkAccessStatusResponse
+	40, // 50: silo.plugin.v1.RuntimeHost.GetHostAPICredential:output_type -> silo.plugin.v1.GetHostAPICredentialResponse
+	34, // [34:51] is the sub-list for method output_type
+	17, // [17:34] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
 	17, // [17:17] is the sub-list for extension extendee
 	0,  // [0:17] is the sub-list for field type_name
@@ -2708,7 +2822,7 @@ func file_silo_plugin_v1_runtime_host_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_runtime_host_proto_rawDesc), len(file_silo_plugin_v1_runtime_host_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   42,
+			NumMessages:   44,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

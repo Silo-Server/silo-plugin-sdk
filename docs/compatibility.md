@@ -58,6 +58,9 @@ against a newer SDK still loads on an older host, which ignores an event it
 doesn't deliver. The catalog and its payload types in `pkg/pluginsdk/events`
 change additively: an event or a payload field is never renamed or removed
 (see [events.md](events.md)).
+`PluginManifest.host_api_scopes` is open too. The validator checks each
+scope's shape, not whether the host knows it, and a host grants only the
+scopes it knows (see [permissions.md](permissions.md)).
 
 `FetchMarkersRequest.episode_numbering` and `SubmitMarkerRequest.episode_numbering`
 are open too. Hosts send an external ID key, today `tvdb` or `tmdb`, or leave the
