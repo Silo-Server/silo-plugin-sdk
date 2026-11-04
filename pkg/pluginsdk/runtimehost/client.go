@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"google.golang.org/grpc"
@@ -20,6 +21,9 @@ type Client struct {
 	// hostAPI is the host's HostAPICredentials service, on the same
 	// connection.
 	hostAPI pluginv1.HostAPICredentialsClient
+	// stateVersions caches whether the host keeps instance state versions:
+	// 0 not known yet, 1 yes, 2 no.
+	stateVersions atomic.Int32
 }
 
 type CallPluginHTTPRequest struct {
