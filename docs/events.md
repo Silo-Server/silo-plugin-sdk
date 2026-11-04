@@ -38,6 +38,12 @@ func (s *server) HandleEvent(ctx context.Context, req *pluginv1.HandleEventReque
 }
 ```
 
+Integers in payloads fit in 53 bits, the range a JSON number and a
+`google.protobuf.Value` hold exactly. Larger identifiers are strings.
+
+To check that every subscription names an event a host delivers, call
+`manifest.SubscriptionProblems` from the plugin's tests.
+
 Payloads change additively. A field is never renamed, removed, or given a new
 meaning, and a host can add fields at any time, so ignore fields you don't
 know. Vocabularies such as a job's `job_type` or a notification's `type` are

@@ -175,14 +175,14 @@ func AccessOf(name string) (Access, bool) {
 var namePattern = regexp.MustCompile(`^[a-z0-9_-]+(?:\.[a-z0-9_-]+)+$`)
 
 // ValidName reports whether name has the shape of an event name. It does
-// not check the catalog: a plugin built against a newer SDK may subscribe to
-// an event an older host doesn't know, and that host ignores the name.
+// not check the catalog; AccessOf does.
 func ValidName(name string) bool {
 	return len(name) <= 256 && namePattern.MatchString(name)
 }
 
 // Decode decodes an event payload, as HandleEventRequest carries it, into
 // out, which is usually a pointer to one of this package's payload types.
+// Payload integers fit in 53 bits, which a protobuf Value holds exactly.
 func Decode(payload *structpb.Struct, out any) error {
 	if payload == nil {
 		return fmt.Errorf("events: payload is empty")
