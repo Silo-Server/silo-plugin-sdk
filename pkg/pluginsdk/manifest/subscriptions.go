@@ -8,26 +8,40 @@ import (
 	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/events"
 )
 
-// validateSubscriptions checks an event_consumer.v1 capability's event names.
-// It checks their shape, not the catalog: a host ignores a name it doesn't
-// deliver, so a plugin built against a newer SDK still loads on an older host.
-func validateSubscriptions(descriptor *pluginv1.CapabilityDescriptor) error {
-	subscriptions := descriptor.GetSubscriptions()
-	if len(subscriptions) == 0 {
-		return nil
-	}
-	if descriptor.GetType() != capability.EventConsumer {
-		return fmt.Errorf("plugin capability %q: subscriptions require type %q", descriptor.GetId(), capability.EventConsumer)
-	}
-	seen := make(map[string]struct{}, len(subscriptions))
-	for _, name := range subscriptions {
-		if !events.ValidName(name) {
-			return fmt.Errorf("plugin capability %q: subscription %q is not an event name", descriptor.GetId(), name)
+// SubscriptionProblems lists what is wrong with a manifest's event
+// subscriptions: a subscription on a capability other than
+// event_consumer.v1, a name that isn't an event name, a name listed twice, or
+// a name that is neither a catalog event nor a plugin event, which no host
+// delivers.
+//
+// Validate doesn't apply these checks, because manifests that predate the
+// event catalog load without them and a host must keep loading installed
+// plugins. Call it from a plugin's own tests to catch a subscription that
+// will never fire.
+func SubscriptionProblems(manifest *pluginv1.PluginManifest) []string {
+	var problems []string
+	for _, descriptor := range manifest.GetCapabilities() {
+		subscriptions := descriptor.GetSubscriptions()
+		if len(subscriptions) == 0 {
+			continue
 		}
-		if _, dup := seen[name]; dup {
-			return fmt.Errorf("plugin capability %q: subscription %q is listed twice", descriptor.GetId(), name)
+		if descriptor.GetType() != capability.EventConsumer {
+			problems = append(problems, fmt.Sprintf("capability %q: subscriptions need type %q", descriptor.GetId(), capability.EventConsumer))
+			continue
 		}
-		seen[name] = struct{}{}
+		seen := make(map[string]struct{}, len(subscriptions))
+		for _, name := range subscriptions {
+			switch _, known := events.AccessOf(name); {
+			case !events.ValidName(name):
+				problems = append(problems, fmt.Sprintf("capability %q: %q is not an event name", descriptor.GetId(), name))
+			case !known:
+				problems = append(problems, fmt.Sprintf("capability %q: %q is not in the event catalog, so no host delivers it", descriptor.GetId(), name))
+			}
+			if _, dup := seen[name]; dup {
+				problems = append(problems, fmt.Sprintf("capability %q: %q is listed twice", descriptor.GetId(), name))
+			}
+			seen[name] = struct{}{}
+		}
 	}
-	return nil
+	return problems
 }

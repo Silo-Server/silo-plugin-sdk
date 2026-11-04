@@ -52,10 +52,11 @@ with a `default` arm rather than an exhaustive match, and do not assume the
 constants shipped in any given SDK tag are the complete set. The same rule
 applies to any future open vocabulary added to `v1`.
 
-Event subscriptions are open too. The manifest validator checks the shape of
-each name in `subscriptions`, not whether this SDK knows it, so a plugin built
-against a newer SDK still loads on an older host, which ignores an event it
-doesn't deliver. The catalog and its payload types in `pkg/pluginsdk/events`
+Event subscriptions are open too. The manifest validator doesn't check them,
+so manifests that predate the event catalog keep loading, and a plugin built
+against a newer SDK loads on an older host, which ignores an event it doesn't
+deliver. `manifest.SubscriptionProblems` reports names no host delivers, for a
+plugin's own tests. The catalog and its payload types in `pkg/pluginsdk/events`
 change additively: an event or a payload field is never renamed or removed
 (see [events.md](events.md)).
 
