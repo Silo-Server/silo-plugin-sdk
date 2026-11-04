@@ -14,6 +14,7 @@ release builds resolve the SDK from a published module tag.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/events` — the host event catalog: event names, access classes, and typed payloads (see [docs/events.md](docs/events.md)).
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
