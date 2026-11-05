@@ -12,6 +12,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -72,12 +73,19 @@ func (c *channel) ValidateDestination(_ context.Context, req *pluginv1.ValidateN
 			Message: "The topic must be 1 to 64 letters, digits, hyphens or underscores.",
 		}, nil
 	}
-	if _, err := url.ParseRequestURI(c.server()); err != nil {
+	if !validServerURL(c.server()) {
 		return &pluginv1.ValidateNotificationDestinationResponse{
 			Message: "The administrator's ntfy server URL isn't valid. Ask them to fix it in the plugin's settings.",
 		}, nil
 	}
 	return &pluginv1.ValidateNotificationDestinationResponse{Valid: true}, nil
+}
+
+// validServerURL reports whether raw is an absolute http or https URL, the
+// only kind the HTTP client can post to.
+func validServerURL(raw string) bool {
+	u, err := url.Parse(raw)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
 func (c *channel) SendNotification(ctx context.Context, req *pluginv1.SendNotificationRequest) (*pluginv1.SendNotificationResponse, error) {
@@ -117,8 +125,9 @@ func (c *channel) SendNotification(ctx context.Context, req *pluginv1.SendNotifi
 		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_DESTINATION_INVALID, "ntfy refused the access token for this topic."), nil
 	case resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500:
 		out := outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_RETRY, fmt.Sprintf("ntfy answered %d.", resp.StatusCode))
+		// Pass ntfy's wait through unshortened; the host applies its own cap.
 		if seconds, err := strconv.Atoi(resp.Header.Get("Retry-After")); err == nil && seconds > 0 {
-			out.RetryAfterSeconds = int32(min(seconds, 3600))
+			out.RetryAfterSeconds = int32(min(seconds, math.MaxInt32))
 		}
 		return out, nil
 	default:
