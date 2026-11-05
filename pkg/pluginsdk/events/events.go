@@ -153,9 +153,12 @@ func Lookup(name string) (Definition, bool) {
 	return d, ok
 }
 
-// IsPluginEvent reports whether name is an event a plugin published.
+// IsPluginEvent reports whether name is an event a plugin published: the
+// prefix, then a publisher plugin_id and an event name, both nonempty.
 func IsPluginEvent(name string) bool {
-	return strings.HasPrefix(name, PluginEventPrefix) && len(name) > len(PluginEventPrefix)
+	rest, ok := strings.CutPrefix(name, PluginEventPrefix)
+	i := strings.LastIndexByte(rest, '.')
+	return ok && i > 0 && i < len(rest)-1
 }
 
 // AccessOf returns the access class of a catalog or plugin event. It reports
