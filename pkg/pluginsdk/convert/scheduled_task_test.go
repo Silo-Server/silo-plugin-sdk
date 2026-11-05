@@ -10,7 +10,8 @@ import (
 )
 
 // The host reads a task's default schedule from its stored capability
-// record, so the descriptor must survive the round trip.
+// record, so the descriptor must survive the round trip, including on a node
+// whose SDK predates fields a newer one stored.
 func TestScheduledTaskDescriptorRoundTrip(t *testing.T) {
 	descriptor := &pluginv1.ScheduledTaskDescriptor{DefaultTrigger: &pluginv1.ScheduledTaskTrigger{
 		Type: "weekly", TimeOfDay: "18:00", DayOfWeek: 6,
@@ -21,6 +22,9 @@ func TestScheduledTaskDescriptorRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	stored := records[0].Metadata["scheduled_task"].(map[string]any)
+	stored["future_field"] = true
+	stored["default_trigger"].(map[string]any)["future_option"] = "x"
 	decoded, err := convert.DecodeCapability(records[0])
 	if err != nil {
 		t.Fatal(err)
