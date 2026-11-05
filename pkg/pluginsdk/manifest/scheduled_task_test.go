@@ -19,7 +19,8 @@ func TestValidateScheduledTaskDefaultTrigger(t *testing.T) {
 		{name: "daily", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "daily", TimeOfDay: "03:30"}},
 		{name: "weekly", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "weekly", TimeOfDay: "18:00", DayOfWeek: 0}},
 		{name: "startup", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "startup"}},
-		// A newer SDK's trigger type loads on an older host, which uses its default.
+		// A newer SDK's trigger type passes validation; a host that knows
+		// default_trigger but not the type uses its own default.
 		{name: "type this SDK doesn't know", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "cron"}},
 		{name: "no type", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{IntervalMs: 300_000}, wantErr: "type is required"},
 		{name: "interval too short", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "interval", IntervalMs: 5_000}, wantErr: "interval_ms"},

@@ -25,10 +25,18 @@ the capability's default:
 | `weekly` | `time_of_day`, `day_of_week` (0 is Sunday) | Once a week. |
 | `startup` | none | Once each time the host starts. |
 
-Without a default, and on hosts that predate `default_trigger`, a task the
-administrator hasn't scheduled runs once each time the host starts. The
-trigger type vocabulary is open: a host uses its own default for a type it
-doesn't know.
+Without a default, a task the administrator hasn't scheduled runs once each
+time the host starts. The trigger type vocabulary is open: a host uses its own
+default for a type it doesn't know.
+
+A host that predates `scheduled_task` ignores it, and runs the task once each
+time it starts, only if it drops unknown fields wherever it reads the manifest.
+The SDK's `manifest.Load` always has. A Silo host built before
+Silo-Server/silo-server#2502 does not: it reads a bare plugin binary's manifest
+strictly, and before starting a plugin it compares the installed manifest with
+the one the plugin reports, unknown fields included. It refuses to install a
+binary that sets `scheduled_task` and refuses to start such a plugin installed
+from an archive.
 
 A task that has to run at a time each user picks, such as a weekly digest
 sent in each user's own time zone, can run every hour and decide per user
