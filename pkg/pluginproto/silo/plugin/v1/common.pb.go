@@ -1468,8 +1468,11 @@ type PluginManifest struct {
 	// the plugin, and again when an upgrade asks for more. The host then issues
 	// a key with exactly the approved scopes through
 	// HostAPICredentials.GetHostAPICredential. The vocabulary is the host's API key
-	// scope catalog and is open: a host grants only scopes it knows. Older
-	// hosts ignore the field.
+	// scope catalog and is open: a host grants only scopes it knows. A host that
+	// predates the field ignores it only if it drops unknown fields wherever it
+	// reads the manifest. Silo hosts built before Silo-Server/silo-server#2502
+	// don't, and refuse to install or start a plugin that sets it (see
+	// docs/compatibility.md).
 	HostApiScopes []string `protobuf:"bytes,14,rep,name=host_api_scopes,json=hostApiScopes,proto3" json:"host_api_scopes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

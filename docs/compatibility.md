@@ -64,6 +64,14 @@ change additively: an event or a payload field is never renamed or removed
 scope's shape, not whether the host knows it, and a host grants only the
 scopes it knows (see [permissions.md](permissions.md)).
 
+A host that predates `host_api_scopes` ignores it only if it drops unknown
+fields wherever it reads the manifest. The SDK's `manifest.Load` always has. A
+Silo host built before Silo-Server/silo-server#2502 does not: it reads a bare
+plugin binary's manifest strictly, and before starting a plugin it compares the
+installed manifest with the one the plugin reports, unknown fields included. It
+refuses to install a binary that declares `host_api_scopes` and refuses to start
+such a plugin installed from an archive.
+
 `FetchMarkersRequest.episode_numbering` and `SubmitMarkerRequest.episode_numbering`
 are open too. Hosts send an external ID key, today `tvdb` or `tmdb`, or leave the
 field empty when they cannot tell. A marker provider treats a value it does not
