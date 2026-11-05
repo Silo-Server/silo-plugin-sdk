@@ -989,7 +989,11 @@ type CapabilityDescriptor struct {
 	// optional request-router features.
 	RequestRouter *RequestRouterDescriptor `protobuf:"bytes,12,opt,name=request_router,json=requestRouter,proto3" json:"request_router,omitempty"`
 	// Typed scheduled-task metadata. Optional, and only meaningful on
-	// capabilities of type "scheduled_task.v1".
+	// capabilities of type "scheduled_task.v1". A host that predates the field
+	// ignores it only if it drops unknown fields wherever it reads the
+	// manifest. Silo hosts built before Silo-Server/silo-server#2502 don't, and
+	// refuse to install or start a plugin that sets it (see
+	// docs/scheduled-task.md).
 	ScheduledTask *ScheduledTaskDescriptor `protobuf:"bytes,14,opt,name=scheduled_task,json=scheduledTask,proto3" json:"scheduled_task,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1120,7 +1124,7 @@ func (x *CapabilityDescriptor) GetScheduledTask() *ScheduledTaskDescriptor {
 type ScheduledTaskDescriptor struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The schedule the host uses until an administrator sets one. Without it,
-	// a host runs the task once each time it starts. Older hosts ignore it.
+	// a host runs the task once each time it starts.
 	DefaultTrigger *ScheduledTaskTrigger `protobuf:"bytes,1,opt,name=default_trigger,json=defaultTrigger,proto3" json:"default_trigger,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -1166,7 +1170,9 @@ func (x *ScheduledTaskDescriptor) GetDefaultTrigger() *ScheduledTaskTrigger {
 // ScheduledTaskTrigger is one schedule for a scheduled task.
 type ScheduledTaskTrigger struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// "interval", "daily", "weekly" or "startup".
+	// "interval", "daily", "weekly" or "startup". The vocabulary is open: a
+	// host that knows default_trigger uses its own default schedule for a type
+	// it doesn't know.
 	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	// For "interval": milliseconds between runs, at least 60000.
 	IntervalMs int64 `protobuf:"varint,2,opt,name=interval_ms,json=intervalMs,proto3" json:"interval_ms,omitempty"`
