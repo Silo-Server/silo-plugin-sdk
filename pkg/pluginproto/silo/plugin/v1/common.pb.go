@@ -1254,7 +1254,18 @@ type PluginManifest struct {
 	Category string `protobuf:"bytes,12,opt,name=category,proto3" json:"category,omitempty"`
 	// Optional operator-facing identity, documentation, and repository links.
 	// Older manifests remain valid when this block is absent.
-	Presentation  *PluginPresentation `protobuf:"bytes,13,opt,name=presentation,proto3" json:"presentation,omitempty"`
+	Presentation *PluginPresentation `protobuf:"bytes,13,opt,name=presentation,proto3" json:"presentation,omitempty"`
+	// Silo API key scopes the plugin needs to call the host's HTTP API, such
+	// as "admin:monitor:read". An administrator approves them when installing
+	// the plugin, and again when an upgrade asks for more. The host then issues
+	// a key with exactly the approved scopes through
+	// HostAPICredentials.GetHostAPICredential. The vocabulary is the host's API key
+	// scope catalog and is open: a host grants only scopes it knows. A host that
+	// predates the field ignores it only if it drops unknown fields wherever it
+	// reads the manifest. Silo hosts built before Silo-Server/silo-server#2502
+	// don't, and refuse to install or start a plugin that sets it (see
+	// docs/compatibility.md).
+	HostApiScopes []string `protobuf:"bytes,14,rep,name=host_api_scopes,json=hostApiScopes,proto3" json:"host_api_scopes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1376,6 +1387,13 @@ func (x *PluginManifest) GetCategory() string {
 func (x *PluginManifest) GetPresentation() *PluginPresentation {
 	if x != nil {
 		return x.Presentation
+	}
+	return nil
+}
+
+func (x *PluginManifest) GetHostApiScopes() []string {
+	if x != nil {
+		return x.HostApiScopes
 	}
 	return nil
 }
@@ -1731,7 +1749,7 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x0epublisher_name\x18\t \x01(\tR\rpublisherName\x12#\n" +
 	"\rpublisher_url\x18\n" +
 	" \x01(\tR\fpublisherUrl\x12!\n" +
-	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\xdd\x05\n" +
+	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\x85\x06\n" +
 	"\x0ePluginManifest\x12\x1b\n" +
 	"\tplugin_id\x18\x01 \x01(\tR\bpluginId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x1a\n" +
@@ -1747,7 +1765,8 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	" \x03(\v2\x1d.silo.plugin.v1.PackagedAssetR\x06assets\x123\n" +
 	"\bmetadata\x18\v \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1a\n" +
 	"\bcategory\x18\f \x01(\tR\bcategory\x12F\n" +
-	"\fpresentation\x18\r \x01(\v2\".silo.plugin.v1.PluginPresentationR\fpresentation\"\x14\n" +
+	"\fpresentation\x18\r \x01(\v2\".silo.plugin.v1.PluginPresentationR\fpresentation\x12&\n" +
+	"\x0fhost_api_scopes\x18\x0e \x03(\tR\rhostApiScopes\"\x14\n" +
 	"\x12GetManifestRequest\"Q\n" +
 	"\x13GetManifestResponse\x12:\n" +
 	"\bmanifest\x18\x01 \x01(\v2\x1e.silo.plugin.v1.PluginManifestR\bmanifest\"G\n" +

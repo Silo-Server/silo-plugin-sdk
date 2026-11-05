@@ -24,6 +24,7 @@ plugin, the plugin calls back into the host.
 | `ReadInstanceState(key)` | Read one key of the calling instance's encrypted, host-scoped state. |
 | `WriteInstanceState(key, value)` | Write one key of that state. Key ≤ 256 bytes, value ≤ 256 KiB, ≤ 256 keys per scope. |
 | `ReportNetworkAccessStatus(status)` | Push a `network_access_provider.v1` status change so the host does not poll. |
+| `HostAPICredentials.GetHostAPICredential()` | Return the API key the host issued for the installation's approved `host_api_scopes`, and the API base URL. A separate service on the same connection. See [permissions.md](permissions.md). |
 
 ## Using it from a plugin
 
