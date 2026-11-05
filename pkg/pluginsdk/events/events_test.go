@@ -36,8 +36,9 @@ func TestAccessOf(t *testing.T) {
 			t.Errorf("AccessOf(%q) = %q, %v; want %q", name, got, ok, want)
 		}
 	}
-	// Internal names and a bare prefix are not deliverable.
-	for _, name := range []string{"user_state.changed", "scan_complete", "plugin."} {
+	// Internal names, a bare prefix, and a plugin name without both a
+	// publisher and an event name are not deliverable.
+	for _, name := range []string{"user_state.changed", "scan_complete", "plugin.", "plugin.foo", "plugin.foo."} {
 		if _, ok := events.AccessOf(name); ok {
 			t.Errorf("AccessOf(%q) reported a deliverable event", name)
 		}
