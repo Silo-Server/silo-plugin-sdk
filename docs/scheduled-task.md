@@ -2,7 +2,8 @@
 
 A `scheduled_task.v1` capability is a job the host runs on a schedule. The
 host calls `ScheduledTask.Run` with the task's key each time the schedule
-fires, on one API server.
+fires. When Silo runs several API servers, one of them takes each run; the
+others skip it.
 
 An administrator sets the schedule on the host. Until they do, the host uses
 the capability's default:
@@ -21,12 +22,16 @@ the capability's default:
 | `type` | Fields | Runs |
 |---|---|---|
 | `interval` | `interval_ms`, at least 60000 | Every `interval_ms` milliseconds. |
-| `daily` | `time_of_day`, `"HH:MM"` | Once a day at that time, in the server's local time. |
-| `weekly` | `time_of_day`, `day_of_week` (0 is Sunday) | Once a week. |
-| `startup` | none | Once each time the host starts. |
+| `daily` | `time_of_day`, `"HH:MM"` | Once a day at that time, in the time zone of the Silo server process (its `TZ`; UTC in the default container). |
+| `weekly` | `time_of_day`, `day_of_week` (0 is Sunday) | Once a week, in the same time zone. |
+| `startup` | none | Once when Silo starts. Servers that start together share one run. |
 
-Without a default, a task the administrator hasn't scheduled runs once each
-time the host starts. The trigger type vocabulary is open: a host uses its own
+Without a default, a task the administrator hasn't scheduled runs once when
+Silo starts.
+
+Many servers install the same plugin with the same default, so a task that
+calls an outside service at `03:00` reaches it from all of them at once. Wait
+a random few minutes at the start of `Run`, or pick an unusual time. The trigger type vocabulary is open: a host uses its own
 default for a type it doesn't know.
 
 A host that predates `scheduled_task` ignores it, and runs the task once each
