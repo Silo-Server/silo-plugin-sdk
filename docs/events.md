@@ -38,23 +38,34 @@ func (s *server) HandleEvent(ctx context.Context, req *pluginv1.HandleEventReque
 }
 ```
 
-Integers in payloads fit in 53 bits, the range a JSON number and a
-`google.protobuf.Value` hold exactly. Larger identifiers are strings.
+Integers in payloads, such as counts and season numbers, fit in 53 bits, the
+range a JSON number and a `google.protobuf.Value` hold exactly. Identifiers
+are always strings.
 
 To check that every subscription names an event a host delivers, call
 `manifest.SubscriptionProblems` from the plugin's tests.
 
-Payloads change additively. A field is never renamed, removed, or given a new
-meaning, and a host can add fields at any time, so ignore fields you don't
-know. Vocabularies such as a job's `job_type` or a notification's `type` are
-open: treat an unknown value as something you don't handle.
+Payloads change additively:
+
+- A field is never renamed, removed, retyped or given a new meaning. New fields
+  arrive only with an SDK release that adds them to the payload type, since a
+  host projects every payload through `events.Project`. Ignore fields you
+  don't know.
+- A change that can't be made additively ships as a new event name; the old
+  event keeps its shape.
+- An event never moves to a different access class.
+- A field the host can leave out is a pointer (or an `omitempty` string), so
+  "absent" never reads as a zero ID, `0` or the zero time.
+
+Vocabularies such as a job's `job_type` or a notification's `type` are open:
+treat an unknown value as something you don't handle.
 
 ## Access
 
 Each catalog event has an access class, which says whose data the payload
-carries. A host shows the classes a plugin subscribes to when an administrator
-installs it, and an upgrade that subscribes to a new class waits for an
-administrator to approve it.
+carries. A host may, in a later release, ask an administrator to approve the
+`admin` and `user_data` classes before it delivers them, so subscribe only to
+the events the plugin uses.
 
 | Access | Carries |
 |---|---|
@@ -80,11 +91,7 @@ administrator to approve it.
 | `job.completed` | admin | `JobEvent` | An admin job finished. |
 | `job.failed` | admin | `JobEvent` | An admin job failed. |
 | `job.cancelled` | admin | `JobEvent` | An admin job was cancelled. |
-| `request.submitted` | admin | `RequestEvent` | Someone requested a movie or series. |
-| `request.approved` | admin | `RequestEvent` | A media request was approved. |
-| `request.declined` | admin | `RequestEvent` | A media request was declined. |
-| `request.fulfilled` | admin | `RequestEvent` | A requested title arrived in a library. |
-| `notification.created` | user_data | `Notification` | Silo added a notification to a profile's inbox. |
+| `notification.created` | user_data | `Notification` | Silo added a notification to a profile's inbox. Provisional, see below. |
 
 Notes on specific payloads:
 
@@ -96,9 +103,13 @@ Notes on specific payloads:
   events can arrive out of order; `seq` orders them.
 - **`Notification`** identifies its recipient by `user_id` and `profile_id`
   together. Profile IDs repeat across accounts.
-- IDs at the top level of a payload are JSON numbers (`library_id`,
-  `user_id`) or strings (`content_id`, `profile_id`) as listed. Objects taken
-  from `/api/v2` use that API's string IDs.
+- **`notification.created` is provisional.** A plugin that sends a profile's
+  notifications somewhere else (Pushover, ntfy and the like) should provide a
+  `notification_channel.v1` destination, which gets the host's preferences,
+  queue and retries. This event may leave the catalog before SDK 1.0.
+- Every identifier is a JSON string, as in `/api/v2`: `library_id`,
+  `user_id`, `created_by_user_id`, `content_id`, `profile_id`. Don't parse or
+  compare them as numbers.
 
 ## Hosts
 
