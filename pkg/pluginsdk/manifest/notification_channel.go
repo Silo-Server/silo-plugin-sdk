@@ -25,10 +25,7 @@ func validateNotificationChannelCapability(descriptor *pluginv1.CapabilityDescri
 	if strings.TrimSpace(channel.GetDisplayName()) == "" {
 		return fmt.Errorf("plugin capability %q: notification_channel display_name is required", descriptor.GetId())
 	}
-	if channel.GetDestinationSchema() == nil {
-		return fmt.Errorf("plugin capability %q: notification_channel destination_schema is required", descriptor.GetId())
-	}
-	if err := validateConfigSchema(channel.GetDestinationSchema()); err != nil {
+	if err := ValidateDestinationSchema(channel.GetDestinationSchema()); err != nil {
 		return fmt.Errorf("plugin capability %q destination schema: %w", descriptor.GetId(), err)
 	}
 	return nil
