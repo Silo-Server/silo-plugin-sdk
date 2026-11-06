@@ -92,6 +92,17 @@ func DecodeCapability(record CapabilityRecord) (*pluginv1.CapabilityDescriptor, 
 		}
 		descriptor.RequestRouter = &typed
 	}
+	if task, ok := record.Metadata["scheduled_task"]; ok {
+		data, err := json.Marshal(task)
+		if err != nil {
+			return nil, fmt.Errorf("encode scheduled task descriptor: %w", err)
+		}
+		var typed pluginv1.ScheduledTaskDescriptor
+		if err := capabilityUnmarshal.Unmarshal(data, &typed); err != nil {
+			return nil, fmt.Errorf("decode scheduled task descriptor: %w", err)
+		}
+		descriptor.ScheduledTask = &typed
+	}
 	if configSchema, ok := record.Metadata["config_schema"]; ok {
 		schemas, err := decodeConfigSchemas(configSchema)
 		if err != nil {
@@ -149,6 +160,17 @@ func capabilityMetadata(descriptor *pluginv1.CapabilityDescriptor) (map[string]a
 			return nil, fmt.Errorf("decode request router descriptor JSON: %w", err)
 		}
 		metadata["request_router"] = value
+	}
+	if descriptor.GetScheduledTask() != nil {
+		data, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(descriptor.GetScheduledTask())
+		if err != nil {
+			return nil, fmt.Errorf("encode scheduled task descriptor: %w", err)
+		}
+		var value map[string]any
+		if err := json.Unmarshal(data, &value); err != nil {
+			return nil, fmt.Errorf("decode scheduled task descriptor JSON: %w", err)
+		}
+		metadata["scheduled_task"] = value
 	}
 	if len(descriptor.GetConfigSchema()) > 0 {
 		schemas := make([]map[string]any, 0, len(descriptor.GetConfigSchema()))

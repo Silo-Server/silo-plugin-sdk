@@ -29,7 +29,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `marker_provider.v1`
 - `media_analyzer.v1`
 - `image_resolver.v1`
-- `scheduled_task.v1`
+- `scheduled_task.v1` (see [docs/scheduled-task.md](docs/scheduled-task.md))
 - `event_consumer.v1`
 - `auth_provider.v1`
 - `http_routes.v1`
