@@ -338,6 +338,15 @@ message ReadInstanceStateResponse {
   bytes value = 1;
   // False when no value is stored under key in this instance's scope.
   bool found = 2;
+  // Version of the stored value: 1 after the first write, one more after
+  // each later write. 0 when found is false. Pass it as
+  // WriteInstanceStateRequest.expected_version to write only if no one else
+  // wrote the key since.
+  int64 version = 3;
+  // True when the host keeps versions and honors expected_version. Older
+  // hosts leave it false and ignore expected_version, writing
+  // unconditionally.
+  bool versioned = 4;
 }
 
 message WriteInstanceStateRequest {
@@ -345,9 +354,16 @@ message WriteInstanceStateRequest {
   string key = 1;
   // Value to store, <= 256 KiB.
   bytes value = 2;
+  // When set, the host writes only if the key's current version equals it,
+  // and 0 means the key must not exist yet. Otherwise it fails with ABORTED
+  // and changes nothing. Unset writes unconditionally.
+  optional int64 expected_version = 3;
 }
 
-message WriteInstanceStateResponse {}
+message WriteInstanceStateResponse {
+  // Version of the value just written. Older hosts leave it 0.
+  int64 version = 1;
+}
 
 message ReportNetworkAccessStatusRequest {
   NetworkAccessStatus status = 1;
