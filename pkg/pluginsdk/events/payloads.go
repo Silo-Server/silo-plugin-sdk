@@ -7,7 +7,7 @@ import (
 
 // LibraryChanged is the payload of catalog.library.changed.
 type LibraryChanged struct {
-	LibraryID int `json:"library_id"`
+	LibraryID string `json:"library_id"`
 	// Reason is what changed the library, such as "scan".
 	Reason                 string `json:"reason"`
 	New                    int    `json:"new"`
@@ -20,7 +20,7 @@ type LibraryChanged struct {
 
 // ItemChanged is the payload of catalog.item.changed.
 type ItemChanged struct {
-	LibraryID int    `json:"library_id"`
+	LibraryID string `json:"library_id"`
 	ContentID string `json:"content_id"`
 	// Change names what changed, such as "metadata_updated". The vocabulary
 	// is open; treat an unknown value as a general change.
@@ -135,7 +135,7 @@ type PlaybackHistoryEntry struct {
 // scan.cancelled.
 type ScanEvent struct {
 	ID        string `json:"id"`
-	LibraryID int    `json:"library_id"`
+	LibraryID string `json:"library_id"`
 	// Mode and Trigger say how the scan runs and what started it. Their
 	// vocabularies are open.
 	Mode string `json:"mode"`
@@ -171,9 +171,11 @@ type JobEvent struct {
 	ID string `json:"id"`
 	// JobType names the job, such as "library_refresh". The vocabulary is
 	// open.
-	JobType         string     `json:"job_type"`
-	Status          string     `json:"status"`
-	CreatedByUserID int        `json:"created_by_user_id"`
+	JobType string `json:"job_type"`
+	Status  string `json:"status"`
+	// CreatedByUserID is the account that queued the job. Absent for a job
+	// the server queued itself.
+	CreatedByUserID *string    `json:"created_by_user_id,omitempty"`
 	Message         string     `json:"message"`
 	ErrorMessage    string     `json:"error_message,omitempty"`
 	ProgressCurrent int        `json:"progress_current"`
@@ -182,33 +184,6 @@ type JobEvent struct {
 	StartedAt       *time.Time `json:"started_at,omitempty"`
 	CompletedAt     *time.Time `json:"completed_at,omitempty"`
 	UpdatedAt       time.Time  `json:"updated_at"`
-}
-
-// RequestEvent is the payload of request.submitted, request.approved,
-// request.declined and request.fulfilled.
-type RequestEvent struct {
-	ID string `json:"id"`
-	// MediaType is "movie" or "series". The vocabulary is open.
-	MediaType string `json:"media_type"`
-	Title     string `json:"title"`
-	Year      *int   `json:"year,omitempty"`
-	TMDBID    int    `json:"tmdb_id,omitempty"`
-	TVDBID    *int   `json:"tvdb_id,omitempty"`
-	IMDbID    string `json:"imdb_id,omitempty"`
-	// PosterPath is a TMDB image path, such as "/abc.jpg".
-	PosterPath string `json:"poster_path,omitempty"`
-	// Status is the request's state after the event. The vocabulary is open.
-	Status string `json:"status"`
-	// RequestedByUserID and RequestedByProfileID identify the requester;
-	// both are empty for a request no profile made, such as an import.
-	RequestedByUserID    int    `json:"requested_by_user_id,omitempty"`
-	RequestedByProfileID string `json:"requested_by_profile_id,omitempty"`
-	RequesterName        string `json:"requester_name,omitempty"`
-	// Reason is why a request was declined, when one was given.
-	Reason string `json:"reason,omitempty"`
-	// LibraryContentID is the catalog item a fulfilled request matched.
-	LibraryContentID string    `json:"library_content_id,omitempty"`
-	CreatedAt        time.Time `json:"created_at"`
 }
 
 // Notification is the payload of notification.created: one delivery
@@ -221,9 +196,9 @@ type Notification struct {
 	Type string `json:"type"`
 	// UserID is the account that owns the profile. Profile IDs repeat across
 	// accounts, so identify a recipient by UserID and ProfileID together.
-	UserID        int     `json:"user_id"`
+	UserID        string  `json:"user_id"`
 	ProfileID     string  `json:"profile_id"`
-	LibraryID     *int    `json:"library_id,omitempty"`
+	LibraryID     *string `json:"library_id,omitempty"`
 	SeriesID      *string `json:"series_id,omitempty"`
 	EpisodeID     *string `json:"episode_id,omitempty"`
 	SeriesTitle   string  `json:"series_title,omitempty"`

@@ -63,6 +63,11 @@ func TestProjectKeepsOnlyPublicFields(t *testing.T) {
 	if got["job_type"] != "library_refresh" || got["status"] != "failed" {
 		t.Fatalf("public fields lost: %s", out)
 	}
+	// A job the server queued itself has no creator: the field is absent,
+	// not a zero ID.
+	if _, present := got["created_by_user_id"]; present {
+		t.Fatalf("absent creator encoded as a value: %s", out)
+	}
 }
 
 func TestProjectKeepsNestedAPIObjects(t *testing.T) {
@@ -103,7 +108,7 @@ func TestProjectRejectsNamesOutsideTheCatalog(t *testing.T) {
 
 func TestDecode(t *testing.T) {
 	payload, err := structpb.NewStruct(map[string]any{
-		"id": "d1", "type": "episode.available", "user_id": 7, "profile_id": "p1",
+		"id": "d1", "type": "episode.available", "user_id": "7", "profile_id": "p1",
 		"season_number": 2, "reason_flags": map[string]any{"favorite": true},
 		"created_at": "2026-11-04T10:00:00Z",
 	})
@@ -114,7 +119,7 @@ func TestDecode(t *testing.T) {
 	if err := events.Decode(payload, &n); err != nil {
 		t.Fatal(err)
 	}
-	if n.UserID != 7 || n.ProfileID != "p1" || n.SeasonNumber == nil || *n.SeasonNumber != 2 || string(n.ReasonFlags) != `{"favorite":true}` {
+	if n.UserID != "7" || n.ProfileID != "p1" || n.SeasonNumber == nil || *n.SeasonNumber != 2 || string(n.ReasonFlags) != `{"favorite":true}` {
 		t.Fatalf("Decode() = %+v", n)
 	}
 	if err := events.Decode(nil, &n); err == nil {

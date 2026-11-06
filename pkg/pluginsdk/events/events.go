@@ -75,15 +75,12 @@ const (
 	JobFailed    = "job.failed"
 	JobCancelled = "job.cancelled"
 
-	// RequestSubmitted, RequestApproved, RequestDeclined and RequestFulfilled
-	// follow a media request. Payload RequestEvent.
-	RequestSubmitted = "request.submitted"
-	RequestApproved  = "request.approved"
-	RequestDeclined  = "request.declined"
-	RequestFulfilled = "request.fulfilled"
-
 	// NotificationCreated: Silo added a notification to a profile's inbox,
 	// such as a new episode or a request update. Payload Notification.
+	//
+	// Provisional: a plugin that delivers notifications should provide a
+	// notification_channel.v1 destination instead. This event may leave the
+	// catalog before SDK 1.0.
 	NotificationCreated = "notification.created"
 )
 
@@ -126,11 +123,6 @@ var catalog = []Definition{
 	define[JobEvent](JobCompleted, AccessAdmin, "An admin job finished."),
 	define[JobEvent](JobFailed, AccessAdmin, "An admin job failed."),
 	define[JobEvent](JobCancelled, AccessAdmin, "An admin job was cancelled."),
-
-	define[RequestEvent](RequestSubmitted, AccessAdmin, "Someone requested a movie or series."),
-	define[RequestEvent](RequestApproved, AccessAdmin, "A media request was approved."),
-	define[RequestEvent](RequestDeclined, AccessAdmin, "A media request was declined."),
-	define[RequestEvent](RequestFulfilled, AccessAdmin, "A requested title arrived in a library."),
 
 	define[Notification](NotificationCreated, AccessUserData, "Silo added a notification to a profile's inbox."),
 }
