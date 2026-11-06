@@ -49,6 +49,11 @@ func TestValidateNotificationChannel(t *testing.T) {
 				Key: "destination", JsonSchema: schema.JsonSchema,
 				AdminForm: &pluginv1.AdminFormDescriptor{Fields: []*pluginv1.AdminFormField{{Key: "server"}}},
 			}}}, wantErr: "destination schema"},
+		{name: "nested object field", capability: channelWithSchema(`{"type":"object","properties":{"auth":{"type":"object","properties":{"token":{"type":"string"}}}}}`), wantErr: "scalar"},
+		{name: "array field", capability: channelWithSchema(`{"type":"object","properties":{"tags":{"type":"array"}}}`), wantErr: "type string, integer"},
+		{name: "ref", capability: channelWithSchema(`{"type":"object","properties":{"topic":{"$ref":"#/$defs/topic"}}}`), wantErr: "plain scalars"},
+		{name: "conditional", capability: channelWithSchema(`{"type":"object","properties":{"topic":{"type":"string"}},"allOf":[{"required":["topic"]}]}`), wantErr: "flat list"},
+		{name: "required names no field", capability: channelWithSchema(`{"type":"object","properties":{"topic":{"type":"string"}},"required":["server"]}`), wantErr: "isn't a field"},
 		{name: "id not a slug", capability: &pluginv1.CapabilityDescriptor{Type: "notification_channel.v1", Id: "Ntfy Push",
 			NotificationChannel: &pluginv1.NotificationChannelDescriptor{DisplayName: "ntfy", DestinationSchema: schema}}, wantErr: "slug"},
 		{name: "descriptor on another type", capability: &pluginv1.CapabilityDescriptor{Type: "scheduled_task.v1", Id: "task",
@@ -62,4 +67,10 @@ func TestValidateNotificationChannel(t *testing.T) {
 			}
 		})
 	}
+}
+
+func channelWithSchema(jsonSchema string) *pluginv1.CapabilityDescriptor {
+	return &pluginv1.CapabilityDescriptor{Type: "notification_channel.v1", Id: "ntfy",
+		NotificationChannel: &pluginv1.NotificationChannelDescriptor{DisplayName: "ntfy",
+			DestinationSchema: &pluginv1.ConfigSchema{Key: "destination", JsonSchema: jsonSchema}}}
 }
