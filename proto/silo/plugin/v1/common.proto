@@ -157,6 +157,24 @@ message CapabilityDescriptor {
   // of type "request_router.v1". Optional: an absent descriptor declares no
   // optional request-router features.
   RequestRouterDescriptor request_router = 12;
+
+  // Typed notification-channel contract metadata. Required for, and only
+  // meaningful on, capabilities of type "notification_channel.v1".
+  NotificationChannelDescriptor notification_channel = 13;
+}
+
+// NotificationChannelDescriptor declares the kind of destination a
+// notification_channel.v1 capability provides. The host lists it without
+// starting the plugin.
+message NotificationChannelDescriptor {
+  // Name of the destination kind, shown when adding one, such as "Pushover".
+  string display_name = 1;
+  // One or two sentences on what the destination is and what it needs.
+  string description = 2;
+  // The settings form for one destination: a JSON schema and an admin_form,
+  // validated like any ConfigSchema. Every value is stored encrypted. Fields
+  // marked secret are write-only: the host never returns them.
+  ConfigSchema destination_schema = 3;
 }
 
 // PluginPresentation describes a plugin for server operators and links them to

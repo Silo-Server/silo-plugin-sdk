@@ -1,0 +1,66 @@
+{
+  "plugin_id": "example.hello-ntfy",
+  "version": "0.1.0",
+  "checksum": "__CHECKSUM__",
+  "silo_api_version": "v1",
+  "category": "Notifications",
+  "supported_platforms": [
+    { "os": "linux", "arch": "amd64" },
+    { "os": "linux", "arch": "arm64" },
+    { "os": "darwin", "arch": "arm64" }
+  ],
+  "capabilities": [
+    {
+      "type": "notification_channel.v1",
+      "id": "ntfy",
+      "display_name": "ntfy",
+      "description": "Sends Silo notifications to an ntfy topic.",
+      "notification_channel": {
+        "display_name": "ntfy",
+        "description": "Push notifications to a topic on the ntfy server your administrator chose. Subscribe to the topic in the ntfy app.",
+        "destination_schema": {
+          "key": "destination",
+          "title": "ntfy topic",
+          "json_schema": "{\"type\":\"object\",\"properties\":{\"topic\":{\"type\":\"string\"},\"access_token\":{\"type\":\"string\"}},\"required\":[\"topic\"],\"additionalProperties\":false}",
+          "admin_form": {
+            "fields": [
+              {
+                "key": "topic",
+                "label": "Topic",
+                "description": "Letters, digits, hyphens and underscores. Anyone who knows a topic on a public server can read it, so pick one that's hard to guess.",
+                "control": "ADMIN_FORM_CONTROL_TEXT",
+                "required": true,
+                "placeholder": "silo-alerts-7f3k"
+              },
+              {
+                "key": "access_token",
+                "label": "Access token (optional)",
+                "description": "Needed when the topic is protected.",
+                "control": "ADMIN_FORM_CONTROL_PASSWORD",
+                "secret": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "global_config_schema": [
+    {
+      "key": "ntfy",
+      "title": "ntfy server",
+      "json_schema": "{\"type\":\"object\",\"properties\":{\"server_url\":{\"type\":\"string\"}},\"additionalProperties\":false}",
+      "admin_form": {
+        "fields": [
+          {
+            "key": "server_url",
+            "label": "Server URL",
+            "description": "The ntfy server every destination posts to. Leave blank for https://ntfy.sh.",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "placeholder": "https://ntfy.sh"
+          }
+        ]
+      }
+    }
+  ]
+}

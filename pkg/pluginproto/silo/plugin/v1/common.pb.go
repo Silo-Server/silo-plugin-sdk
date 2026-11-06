@@ -988,8 +988,11 @@ type CapabilityDescriptor struct {
 	// of type "request_router.v1". Optional: an absent descriptor declares no
 	// optional request-router features.
 	RequestRouter *RequestRouterDescriptor `protobuf:"bytes,12,opt,name=request_router,json=requestRouter,proto3" json:"request_router,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Typed notification-channel contract metadata. Required for, and only
+	// meaningful on, capabilities of type "notification_channel.v1".
+	NotificationChannel *NotificationChannelDescriptor `protobuf:"bytes,13,opt,name=notification_channel,json=notificationChannel,proto3" json:"notification_channel,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CapabilityDescriptor) Reset() {
@@ -1106,6 +1109,81 @@ func (x *CapabilityDescriptor) GetRequestRouter() *RequestRouterDescriptor {
 	return nil
 }
 
+func (x *CapabilityDescriptor) GetNotificationChannel() *NotificationChannelDescriptor {
+	if x != nil {
+		return x.NotificationChannel
+	}
+	return nil
+}
+
+// NotificationChannelDescriptor declares the kind of destination a
+// notification_channel.v1 capability provides. The host lists it without
+// starting the plugin.
+type NotificationChannelDescriptor struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Name of the destination kind, shown when adding one, such as "Pushover".
+	DisplayName string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// One or two sentences on what the destination is and what it needs.
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// The settings form for one destination: a JSON schema and an admin_form,
+	// validated like any ConfigSchema. Every value is stored encrypted. Fields
+	// marked secret are write-only: the host never returns them.
+	DestinationSchema *ConfigSchema `protobuf:"bytes,3,opt,name=destination_schema,json=destinationSchema,proto3" json:"destination_schema,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *NotificationChannelDescriptor) Reset() {
+	*x = NotificationChannelDescriptor{}
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationChannelDescriptor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationChannelDescriptor) ProtoMessage() {}
+
+func (x *NotificationChannelDescriptor) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationChannelDescriptor.ProtoReflect.Descriptor instead.
+func (*NotificationChannelDescriptor) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *NotificationChannelDescriptor) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *NotificationChannelDescriptor) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *NotificationChannelDescriptor) GetDestinationSchema() *ConfigSchema {
+	if x != nil {
+		return x.DestinationSchema
+	}
+	return nil
+}
+
 // PluginPresentation describes a plugin for server operators and links them to
 // its publisher, source, support, and release history. These values are
 // self-declared by the plugin and never determine catalog approval.
@@ -1128,7 +1206,7 @@ type PluginPresentation struct {
 
 func (x *PluginPresentation) Reset() {
 	*x = PluginPresentation{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1140,7 +1218,7 @@ func (x *PluginPresentation) String() string {
 func (*PluginPresentation) ProtoMessage() {}
 
 func (x *PluginPresentation) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1153,7 +1231,7 @@ func (x *PluginPresentation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginPresentation.ProtoReflect.Descriptor instead.
 func (*PluginPresentation) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{12}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PluginPresentation) GetDisplayName() string {
@@ -1261,7 +1339,7 @@ type PluginManifest struct {
 
 func (x *PluginManifest) Reset() {
 	*x = PluginManifest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1273,7 +1351,7 @@ func (x *PluginManifest) String() string {
 func (*PluginManifest) ProtoMessage() {}
 
 func (x *PluginManifest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1286,7 +1364,7 @@ func (x *PluginManifest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginManifest.ProtoReflect.Descriptor instead.
 func (*PluginManifest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{13}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PluginManifest) GetPluginId() string {
@@ -1388,7 +1466,7 @@ type GetManifestRequest struct {
 
 func (x *GetManifestRequest) Reset() {
 	*x = GetManifestRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1400,7 +1478,7 @@ func (x *GetManifestRequest) String() string {
 func (*GetManifestRequest) ProtoMessage() {}
 
 func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1413,7 +1491,7 @@ func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestRequest.ProtoReflect.Descriptor instead.
 func (*GetManifestRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{14}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{15}
 }
 
 type GetManifestResponse struct {
@@ -1425,7 +1503,7 @@ type GetManifestResponse struct {
 
 func (x *GetManifestResponse) Reset() {
 	*x = GetManifestResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1437,7 +1515,7 @@ func (x *GetManifestResponse) String() string {
 func (*GetManifestResponse) ProtoMessage() {}
 
 func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1450,7 +1528,7 @@ func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestResponse.ProtoReflect.Descriptor instead.
 func (*GetManifestResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{15}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetManifestResponse) GetManifest() *PluginManifest {
@@ -1469,7 +1547,7 @@ type ConfigureRequest struct {
 
 func (x *ConfigureRequest) Reset() {
 	*x = ConfigureRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1481,7 +1559,7 @@ func (x *ConfigureRequest) String() string {
 func (*ConfigureRequest) ProtoMessage() {}
 
 func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[16]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1494,7 +1572,7 @@ func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureRequest.ProtoReflect.Descriptor instead.
 func (*ConfigureRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{16}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ConfigureRequest) GetConfig() []*ConfigEntry {
@@ -1512,7 +1590,7 @@ type ConfigureResponse struct {
 
 func (x *ConfigureResponse) Reset() {
 	*x = ConfigureResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1524,7 +1602,7 @@ func (x *ConfigureResponse) String() string {
 func (*ConfigureResponse) ProtoMessage() {}
 
 func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[17]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1537,7 +1615,7 @@ func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureResponse.ProtoReflect.Descriptor instead.
 func (*ConfigureResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{17}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{18}
 }
 
 type BindHostBrokerRequest struct {
@@ -1549,7 +1627,7 @@ type BindHostBrokerRequest struct {
 
 func (x *BindHostBrokerRequest) Reset() {
 	*x = BindHostBrokerRequest{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1561,7 +1639,7 @@ func (x *BindHostBrokerRequest) String() string {
 func (*BindHostBrokerRequest) ProtoMessage() {}
 
 func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[18]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1574,7 +1652,7 @@ func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerRequest.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerRequest) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{18}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *BindHostBrokerRequest) GetBrokerId() uint32 {
@@ -1592,7 +1670,7 @@ type BindHostBrokerResponse struct {
 
 func (x *BindHostBrokerResponse) Reset() {
 	*x = BindHostBrokerResponse{}
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1604,7 +1682,7 @@ func (x *BindHostBrokerResponse) String() string {
 func (*BindHostBrokerResponse) ProtoMessage() {}
 
 func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_silo_plugin_v1_common_proto_msgTypes[19]
+	mi := &file_silo_plugin_v1_common_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1617,7 +1695,7 @@ func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerResponse.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerResponse) Descriptor() ([]byte, []int) {
-	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{19}
+	return file_silo_plugin_v1_common_proto_rawDescGZIP(), []int{20}
 }
 
 var File_silo_plugin_v1_common_proto protoreflect.FileDescriptor
@@ -1701,7 +1779,7 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\rPackagedAsset\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12!\n" +
 	"\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x1c\n" +
-	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\xed\x04\n" +
+	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\xcf\x05\n" +
 	"\x14CapabilityDescriptor\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12!\n" +
@@ -1716,7 +1794,12 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x13watch_sync_provider\x18\n" +
 	" \x01(\v2+.silo.plugin.v1.WatchSyncProviderDescriptorR\x11watchSyncProvider\x12g\n" +
 	"\x17network_access_provider\x18\v \x01(\v2/.silo.plugin.v1.NetworkAccessProviderDescriptorR\x15networkAccessProvider\x12N\n" +
-	"\x0erequest_router\x18\f \x01(\v2'.silo.plugin.v1.RequestRouterDescriptorR\rrequestRouter\"\xa2\x03\n" +
+	"\x0erequest_router\x18\f \x01(\v2'.silo.plugin.v1.RequestRouterDescriptorR\rrequestRouter\x12`\n" +
+	"\x14notification_channel\x18\r \x01(\v2-.silo.plugin.v1.NotificationChannelDescriptorR\x13notificationChannel\"\xb1\x01\n" +
+	"\x1dNotificationChannelDescriptor\x12!\n" +
+	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12K\n" +
+	"\x12destination_schema\x18\x03 \x01(\v2\x1c.silo.plugin.v1.ConfigSchemaR\x11destinationSchema\"\xa2\x03\n" +
 	"\x12PluginPresentation\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x18\n" +
 	"\asummary\x18\x02 \x01(\tR\asummary\x121\n" +
@@ -1784,7 +1867,7 @@ func file_silo_plugin_v1_common_proto_rawDescGZIP() []byte {
 }
 
 var file_silo_plugin_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_silo_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_silo_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_silo_plugin_v1_common_proto_goTypes = []any{
 	(AdminFormControl)(0),                   // 0: silo.plugin.v1.AdminFormControl
 	(*SupportedPlatform)(nil),               // 1: silo.plugin.v1.SupportedPlatform
@@ -1799,57 +1882,60 @@ var file_silo_plugin_v1_common_proto_goTypes = []any{
 	(*HttpRouteDescriptor)(nil),             // 10: silo.plugin.v1.HttpRouteDescriptor
 	(*PackagedAsset)(nil),                   // 11: silo.plugin.v1.PackagedAsset
 	(*CapabilityDescriptor)(nil),            // 12: silo.plugin.v1.CapabilityDescriptor
-	(*PluginPresentation)(nil),              // 13: silo.plugin.v1.PluginPresentation
-	(*PluginManifest)(nil),                  // 14: silo.plugin.v1.PluginManifest
-	(*GetManifestRequest)(nil),              // 15: silo.plugin.v1.GetManifestRequest
-	(*GetManifestResponse)(nil),             // 16: silo.plugin.v1.GetManifestResponse
-	(*ConfigureRequest)(nil),                // 17: silo.plugin.v1.ConfigureRequest
-	(*ConfigureResponse)(nil),               // 18: silo.plugin.v1.ConfigureResponse
-	(*BindHostBrokerRequest)(nil),           // 19: silo.plugin.v1.BindHostBrokerRequest
-	(*BindHostBrokerResponse)(nil),          // 20: silo.plugin.v1.BindHostBrokerResponse
-	(*structpb.Value)(nil),                  // 21: google.protobuf.Value
-	(*structpb.Struct)(nil),                 // 22: google.protobuf.Struct
-	(*WatchSyncProviderDescriptor)(nil),     // 23: silo.plugin.v1.WatchSyncProviderDescriptor
-	(*NetworkAccessProviderDescriptor)(nil), // 24: silo.plugin.v1.NetworkAccessProviderDescriptor
-	(*RequestRouterDescriptor)(nil),         // 25: silo.plugin.v1.RequestRouterDescriptor
+	(*NotificationChannelDescriptor)(nil),   // 13: silo.plugin.v1.NotificationChannelDescriptor
+	(*PluginPresentation)(nil),              // 14: silo.plugin.v1.PluginPresentation
+	(*PluginManifest)(nil),                  // 15: silo.plugin.v1.PluginManifest
+	(*GetManifestRequest)(nil),              // 16: silo.plugin.v1.GetManifestRequest
+	(*GetManifestResponse)(nil),             // 17: silo.plugin.v1.GetManifestResponse
+	(*ConfigureRequest)(nil),                // 18: silo.plugin.v1.ConfigureRequest
+	(*ConfigureResponse)(nil),               // 19: silo.plugin.v1.ConfigureResponse
+	(*BindHostBrokerRequest)(nil),           // 20: silo.plugin.v1.BindHostBrokerRequest
+	(*BindHostBrokerResponse)(nil),          // 21: silo.plugin.v1.BindHostBrokerResponse
+	(*structpb.Value)(nil),                  // 22: google.protobuf.Value
+	(*structpb.Struct)(nil),                 // 23: google.protobuf.Struct
+	(*WatchSyncProviderDescriptor)(nil),     // 24: silo.plugin.v1.WatchSyncProviderDescriptor
+	(*NetworkAccessProviderDescriptor)(nil), // 25: silo.plugin.v1.NetworkAccessProviderDescriptor
+	(*RequestRouterDescriptor)(nil),         // 26: silo.plugin.v1.RequestRouterDescriptor
 }
 var file_silo_plugin_v1_common_proto_depIdxs = []int32{
 	8,  // 0: silo.plugin.v1.ConfigSchema.admin_form:type_name -> silo.plugin.v1.AdminFormDescriptor
 	0,  // 1: silo.plugin.v1.AdminFormField.control:type_name -> silo.plugin.v1.AdminFormControl
-	21, // 2: silo.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
+	22, // 2: silo.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
 	3,  // 3: silo.plugin.v1.AdminFormField.options:type_name -> silo.plugin.v1.AdminFormOption
 	5,  // 4: silo.plugin.v1.AdminFormField.show_when:type_name -> silo.plugin.v1.AdminFormCondition
 	6,  // 5: silo.plugin.v1.AdminFormField.validation:type_name -> silo.plugin.v1.AdminFormValidation
 	5,  // 6: silo.plugin.v1.AdminFormSection.show_when:type_name -> silo.plugin.v1.AdminFormCondition
 	4,  // 7: silo.plugin.v1.AdminFormDescriptor.fields:type_name -> silo.plugin.v1.AdminFormField
 	7,  // 8: silo.plugin.v1.AdminFormDescriptor.sections:type_name -> silo.plugin.v1.AdminFormSection
-	22, // 9: silo.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
+	23, // 9: silo.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
 	2,  // 10: silo.plugin.v1.CapabilityDescriptor.config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	22, // 11: silo.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
-	23, // 12: silo.plugin.v1.CapabilityDescriptor.watch_sync_provider:type_name -> silo.plugin.v1.WatchSyncProviderDescriptor
-	24, // 13: silo.plugin.v1.CapabilityDescriptor.network_access_provider:type_name -> silo.plugin.v1.NetworkAccessProviderDescriptor
-	25, // 14: silo.plugin.v1.CapabilityDescriptor.request_router:type_name -> silo.plugin.v1.RequestRouterDescriptor
-	1,  // 15: silo.plugin.v1.PluginManifest.supported_platforms:type_name -> silo.plugin.v1.SupportedPlatform
-	12, // 16: silo.plugin.v1.PluginManifest.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
-	2,  // 17: silo.plugin.v1.PluginManifest.global_config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	2,  // 18: silo.plugin.v1.PluginManifest.user_config_schema:type_name -> silo.plugin.v1.ConfigSchema
-	10, // 19: silo.plugin.v1.PluginManifest.http_routes:type_name -> silo.plugin.v1.HttpRouteDescriptor
-	11, // 20: silo.plugin.v1.PluginManifest.assets:type_name -> silo.plugin.v1.PackagedAsset
-	22, // 21: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
-	13, // 22: silo.plugin.v1.PluginManifest.presentation:type_name -> silo.plugin.v1.PluginPresentation
-	14, // 23: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
-	9,  // 24: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
-	15, // 25: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
-	17, // 26: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
-	19, // 27: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
-	16, // 28: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
-	18, // 29: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
-	20, // 30: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
-	28, // [28:31] is the sub-list for method output_type
-	25, // [25:28] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	23, // 11: silo.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
+	24, // 12: silo.plugin.v1.CapabilityDescriptor.watch_sync_provider:type_name -> silo.plugin.v1.WatchSyncProviderDescriptor
+	25, // 13: silo.plugin.v1.CapabilityDescriptor.network_access_provider:type_name -> silo.plugin.v1.NetworkAccessProviderDescriptor
+	26, // 14: silo.plugin.v1.CapabilityDescriptor.request_router:type_name -> silo.plugin.v1.RequestRouterDescriptor
+	13, // 15: silo.plugin.v1.CapabilityDescriptor.notification_channel:type_name -> silo.plugin.v1.NotificationChannelDescriptor
+	2,  // 16: silo.plugin.v1.NotificationChannelDescriptor.destination_schema:type_name -> silo.plugin.v1.ConfigSchema
+	1,  // 17: silo.plugin.v1.PluginManifest.supported_platforms:type_name -> silo.plugin.v1.SupportedPlatform
+	12, // 18: silo.plugin.v1.PluginManifest.capabilities:type_name -> silo.plugin.v1.CapabilityDescriptor
+	2,  // 19: silo.plugin.v1.PluginManifest.global_config_schema:type_name -> silo.plugin.v1.ConfigSchema
+	2,  // 20: silo.plugin.v1.PluginManifest.user_config_schema:type_name -> silo.plugin.v1.ConfigSchema
+	10, // 21: silo.plugin.v1.PluginManifest.http_routes:type_name -> silo.plugin.v1.HttpRouteDescriptor
+	11, // 22: silo.plugin.v1.PluginManifest.assets:type_name -> silo.plugin.v1.PackagedAsset
+	23, // 23: silo.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
+	14, // 24: silo.plugin.v1.PluginManifest.presentation:type_name -> silo.plugin.v1.PluginPresentation
+	15, // 25: silo.plugin.v1.GetManifestResponse.manifest:type_name -> silo.plugin.v1.PluginManifest
+	9,  // 26: silo.plugin.v1.ConfigureRequest.config:type_name -> silo.plugin.v1.ConfigEntry
+	16, // 27: silo.plugin.v1.Runtime.GetManifest:input_type -> silo.plugin.v1.GetManifestRequest
+	18, // 28: silo.plugin.v1.Runtime.Configure:input_type -> silo.plugin.v1.ConfigureRequest
+	20, // 29: silo.plugin.v1.Runtime.BindHostBroker:input_type -> silo.plugin.v1.BindHostBrokerRequest
+	17, // 30: silo.plugin.v1.Runtime.GetManifest:output_type -> silo.plugin.v1.GetManifestResponse
+	19, // 31: silo.plugin.v1.Runtime.Configure:output_type -> silo.plugin.v1.ConfigureResponse
+	21, // 32: silo.plugin.v1.Runtime.BindHostBroker:output_type -> silo.plugin.v1.BindHostBrokerResponse
+	30, // [30:33] is the sub-list for method output_type
+	27, // [27:30] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_common_proto_init() }
@@ -1866,7 +1952,7 @@ func file_silo_plugin_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_common_proto_rawDesc), len(file_silo_plugin_v1_common_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   20,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
