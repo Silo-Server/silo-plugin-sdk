@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,6 +23,23 @@ var ErrInstanceStateUnversioned = errors.New("runtimehost: host does not keep in
 
 // maxUpdateAttempts bounds UpdateInstanceState's retries on conflict.
 const maxUpdateAttempts = 8
+
+// Conflict backoff: full jitter over a window that doubles from
+// conflictBackoffBase up to conflictBackoffMax, so writers that collided
+// spread out instead of colliding again.
+const (
+	conflictBackoffBase = 10 * time.Millisecond
+	conflictBackoffMax  = 500 * time.Millisecond
+)
+
+// conflictBackoff is the wait before attempt n+1 after n conflicts (n >= 1).
+func conflictBackoff(n int) time.Duration {
+	window := conflictBackoffBase << (n - 1)
+	if window <= 0 || window > conflictBackoffMax {
+		window = conflictBackoffMax
+	}
+	return rand.N(window) + 1
+}
 
 // VersionedState is one key's value and the version it was read at. Version
 // is 0 when Found is false.
@@ -110,14 +129,24 @@ func (c *Client) recordStateVersions(versioned bool) {
 
 // UpdateInstanceState reads key, passes its value to update, and writes what
 // update returns only if no other write changed the key in between. On a
-// conflict it reads again and calls update again, a few times at most, so
+// conflict it waits a short, random, growing time, then reads again and
+// calls update again, a few times at most, so
 // update must be safe to repeat and should not have side effects. An error
 // from update stops the loop and is returned as is.
 //
 // Use it when several API servers can change the same key, such as one
 // record shared by every process of the plugin.
 func (c *Client) UpdateInstanceState(ctx context.Context, key string, update func(current []byte, found bool) ([]byte, error)) error {
-	for range maxUpdateAttempts {
+	for attempt := range maxUpdateAttempts {
+		if attempt > 0 {
+			timer := time.NewTimer(conflictBackoff(attempt))
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return ctx.Err()
+			case <-timer.C:
+			}
+		}
 		current, err := c.ReadInstanceStateVersion(ctx, key)
 		if err != nil {
 			return err
