@@ -49,9 +49,15 @@ which has to rebuild preferences, retries and deduplication itself.
 
 - The capability `id` is a lowercase slug. It's stored with each destination,
   so keep it stable across releases.
-- `destination_schema` is a `ConfigSchema`, validated like the plugin's own
-  settings. Mark credentials `secret`: the host never returns them, and on an
-  edit the user leaves them blank to keep the stored value.
+- `destination_schema` is a `ConfigSchema` with a flat form: one object of
+  string, integer, number or boolean fields, each with optional `title`,
+  `description`, `default`, `enum`, `format`, `minimum`/`maximum` and
+  `minLength`/`maxLength`/`pattern`, plus a top-level `required` list.
+  `$ref`, `allOf`/`anyOf`/`oneOf`/`not`, conditionals, nested objects and
+  arrays are refused, because people who aren't administrators fill the form
+  in on every client. `manifest.ValidateDestinationSchema` checks it.
+- Mark credentials `secret`: the host never returns them, and on an edit the
+  user leaves them blank to keep the stored value.
 - A manifest can declare several `notification_channel.v1` capabilities. One
   server answers for all of them; each request carries its `capability_id`.
 
@@ -73,7 +79,8 @@ sdkruntime.ServeManifestWithOptions(manifestJSON, version, sdkruntime.Capability
 Silo calls it before saving a destination. Check the settings and return
 `valid: false` with a `message` the user can act on. Return a gRPC error only
 when the check itself couldn't run. A network check, such as asking the
-service whether a user key exists, is fine, but keep it under a few seconds.
+service whether a user key exists, is fine. Silo waits 10 seconds, then
+refuses the save with a timeout message.
 
 ### SendNotification
 
@@ -83,7 +90,8 @@ attempt: pass it to the service as an idempotency key where it has one.
 
 The message arrives rendered: `title`, `body`, `url` (opens the item in
 Silo) and `image_url` (a poster, which can expire). `details` carries the
-notification as the events package's `Notification` type describes it, for
+notification as the events package's `Notification` type describes it
+(identifiers are strings), for
 plugins that render their own text. `type` is `test` for a test message.
 
 Map the service's answer onto an outcome:
@@ -91,9 +99,13 @@ Map the service's answer onto an outcome:
 | Outcome | Use for | Silo then |
 |---|---|---|
 | `DELIVERED` (or an empty response) | The service accepted the message. | Records the success. |
-| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays, for about a day, then drops the message and disables the destination. |
+| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays, for about a day, then drops the message and disables the destination. `retry_after_seconds` makes the next wait at least that long; it never shortens the schedule. |
 | `FAILED` | This message can't be sent, but the destination works. | Drops the message. |
-| `DESTINATION_INVALID` | The settings no longer work, such as a revoked token. | Drops the message and disables the destination until its owner edits it. |
+| `DESTINATION_INVALID` | The service definitely refused the settings, such as a revoked token or a deleted topic. | Drops the message and disables the destination at once, until its owner edits it. |
+
+`DESTINATION_INVALID` takes effect on the first answer, so return it only when
+the service's own response says the settings are wrong. A 401 from a proxy or
+CDN, a timeout or a 5xx is `RETRY`.
 
 A gRPC error, or no answer within 15 seconds, counts as `RETRY`. Put a short
 reason in `message`; the destination's owner sees it. Never include secrets.
