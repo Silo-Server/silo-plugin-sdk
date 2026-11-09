@@ -17,6 +17,9 @@ import (
 
 type Client struct {
 	rpc pluginv1.RuntimeHostClient
+	// hostAPI is the host's HostAPICredentials service, on the same
+	// connection.
+	hostAPI pluginv1.HostAPICredentialsClient
 }
 
 type CallPluginHTTPRequest struct {
@@ -121,7 +124,7 @@ func (c *Client) MintScopedStream(ctx context.Context, req ScopedStreamRequest) 
 }
 
 func NewClient(conn *grpc.ClientConn) *Client {
-	return &Client{rpc: pluginv1.NewRuntimeHostClient(conn)}
+	return &Client{rpc: pluginv1.NewRuntimeHostClient(conn), hostAPI: pluginv1.NewHostAPICredentialsClient(conn)}
 }
 
 // PublishEvent publishes an event into the host's event bus. The host stamps
