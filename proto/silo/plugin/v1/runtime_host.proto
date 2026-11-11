@@ -23,6 +23,9 @@ service RuntimeHost {
   // PublishEventToInstallation publishes an event addressed to one specific
   // plugin installation. Use this when the caller discovered a peer through
   // ListInstalledPlugins and needs to avoid plugin_id ambiguity.
+  //
+  // Silo does not implement this RPC yet, so a call fails with the gRPC
+  // status UNIMPLEMENTED.
   rpc PublishEventToInstallation(PublishEventToInstallationRequest) returns (PublishEventToInstallationResponse);
 
   // GetHostInfo returns public-safe host URLs and identity metadata plugins can
@@ -48,22 +51,37 @@ service RuntimeHost {
   // ListLibraryMedia returns public-safe catalog metadata from the host
   // libraries. It is intended for browse/search surfaces; it must not include
   // filesystem paths, stream URLs, or other playback grants.
+  //
+  // Silo does not implement this RPC yet, so a call fails with the gRPC
+  // status UNIMPLEMENTED.
   rpc ListLibraryMedia(ListLibraryMediaRequest) returns (ListLibraryMediaResponse);
 
   // GetCatalogStats returns aggregate public-safe counts for host libraries.
+  //
+  // Silo does not implement this RPC yet, so a call fails with the gRPC
+  // status UNIMPLEMENTED.
   rpc GetCatalogStats(GetCatalogStatsRequest) returns (GetCatalogStatsResponse);
 
   // ResolveCatalogImageURLs resolves stored catalog image paths using the
   // host's configured image resolver, returning browser-usable URLs.
+  //
+  // Silo does not implement this RPC yet, so a call fails with the gRPC
+  // status UNIMPLEMENTED.
   rpc ResolveCatalogImageURLs(ResolveCatalogImageURLsRequest) returns (ResolveCatalogImageURLsResponse);
 
   // MintScopedStream mints a short-lived, narrowly scoped stream URL for a
   // plugin-owned public access workflow such as guest passes.
+  //
+  // Silo does not implement this RPC yet, so a call fails with the gRPC
+  // status UNIMPLEMENTED.
   rpc MintScopedStream(MintScopedStreamRequest) returns (MintScopedStreamResponse);
 
   // CallPluginHTTP invokes another installed plugin's HttpRoutes handler
   // through the host control plane. Calls are treated as authenticated
   // service-to-service traffic, but never as admin traffic.
+  //
+  // Silo does not implement this RPC yet, so a call fails with the gRPC
+  // status UNIMPLEMENTED.
   rpc CallPluginHTTP(CallPluginHTTPRequest) returns (CallPluginHTTPResponse);
 
   // ReadInstanceState reads one key of the calling plugin instance's private
