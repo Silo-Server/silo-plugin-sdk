@@ -197,6 +197,14 @@ message PluginManifest {
   // Optional operator-facing identity, documentation, and repository links.
   // Older manifests remain valid when this block is absent.
   PluginPresentation presentation = 13;
+  // stay_running asks the host not to stop the plugin process for being
+  // idle. Set it only when the plugin does work between host calls, such as
+  // its own timers, a background sync, or a listener it opened itself; do not
+  // set it to keep a cache warm. It changes nothing else: the host still
+  // starts the plugin on first use and still stops it on update, disable,
+  // config change, crash, and shutdown. Absent or false keeps idle stops on.
+  // Added in v0.33.0.
+  bool stay_running = 14;
 }
 
 service Runtime {
