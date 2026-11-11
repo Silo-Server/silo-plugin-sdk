@@ -7,7 +7,7 @@ It demonstrates:
 - embedding a manifest template with `//go:embed`
 - computing the executable checksum at runtime
 - returning the manifest through `Runtime.GetManifest`
-- exposing a `scheduled_task.v1` capability
+- exposing a `scheduled_task.v1` capability with a default schedule (daily at 03:00)
 
 ## Build
 

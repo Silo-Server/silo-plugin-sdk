@@ -157,6 +157,35 @@ message CapabilityDescriptor {
   // of type "request_router.v1". Optional: an absent descriptor declares no
   // optional request-router features.
   RequestRouterDescriptor request_router = 12;
+
+  // Typed scheduled-task metadata. Optional, and only meaningful on
+  // capabilities of type "scheduled_task.v1". A host that predates the field
+  // ignores it only if it drops unknown fields wherever it reads the
+  // manifest. Silo hosts built before Silo-Server/silo-server#2502 don't, and
+  // refuse to install or start a plugin that sets it (see
+  // docs/scheduled-task.md).
+  ScheduledTaskDescriptor scheduled_task = 14;
+}
+
+// ScheduledTaskDescriptor describes a scheduled_task.v1 capability.
+message ScheduledTaskDescriptor {
+  // The schedule the host uses until an administrator sets one. Without it,
+  // a host runs the task once each time it starts.
+  ScheduledTaskTrigger default_trigger = 1;
+}
+
+// ScheduledTaskTrigger is one schedule for a scheduled task.
+message ScheduledTaskTrigger {
+  // "interval", "daily", "weekly" or "startup". The vocabulary is open: a
+  // host that knows default_trigger uses its own default schedule for a type
+  // it doesn't know.
+  string type = 1;
+  // For "interval": milliseconds between runs, at least 60000.
+  int64 interval_ms = 2;
+  // For "daily" and "weekly": "HH:MM", 24-hour, in the server's local time.
+  string time_of_day = 3;
+  // For "weekly": 0 (Sunday) to 6 (Saturday).
+  int32 day_of_week = 4;
 }
 
 // PluginPresentation describes a plugin for server operators and links them to
