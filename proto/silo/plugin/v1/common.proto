@@ -203,6 +203,7 @@ message PluginManifest {
   // set it to keep a cache warm. It changes nothing else: the host still
   // starts the plugin on first use and still stops it on update, disable,
   // config change, crash, and shutdown. Absent or false keeps idle stops on.
+  // Added in v0.33.0.
   bool stay_running = 14;
 }
 

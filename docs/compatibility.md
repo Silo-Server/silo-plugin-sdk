@@ -227,12 +227,12 @@ verify images by the per-image field rather than assume a filtered response.
 
 ### Idle stops
 
-`PluginManifest.stay_running` is a plain `bool`, so absent and `false` both
-leave idle stops on. Manifest loading discards fields it does not know, so a
-host built on an SDK without the field loads the manifest and applies its usual
-idle-stop rule. A plugin that needs to stay up therefore needs a host that both
-stops idle plugins and reads the field; on a host that never stops idle
-plugins, the field changes nothing.
+`PluginManifest.stay_running` (v0.33.0) is a plain `bool`, so absent and
+`false` both leave idle stops on. Manifest loading discards fields it does not
+know, so a host built on an SDK without the field loads the manifest and
+applies its usual idle-stop rule. A plugin that needs to stay up therefore
+needs a host that both stops idle plugins and reads the field; on a host that
+never stops idle plugins, the field changes nothing.
 
 ### Watch-sync batch size
 

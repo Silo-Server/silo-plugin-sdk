@@ -1261,6 +1261,7 @@ type PluginManifest struct {
 	// set it to keep a cache warm. It changes nothing else: the host still
 	// starts the plugin on first use and still stops it on update, disable,
 	// config change, crash, and shutdown. Absent or false keeps idle stops on.
+	// Added in v0.33.0.
 	StayRunning   bool `protobuf:"varint,14,opt,name=stay_running,json=stayRunning,proto3" json:"stay_running,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
