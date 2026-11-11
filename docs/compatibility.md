@@ -225,6 +225,15 @@ verify images by the per-image field rather than assume a filtered response.
 - A plugin binary should return the same manifest shape that Silo installs, except that binaries may compute their checksum dynamically at runtime.
 - From this version, `convert.DecodeCapability` ignores fields and enum values it does not know, so a server node built on this SDK or later, in a mixed-version cluster sharing one database, still loads capability metadata written by a newer SDK; it only loses the parts added after its own SDK version. Nodes built on an earlier SDK decode strictly and reject such metadata, so upgrade every node past them before installing plugins that publish newer fields.
 
+### Idle stops
+
+`PluginManifest.stay_running` is a plain `bool`, so absent and `false` both
+leave idle stops on. Manifest loading discards fields it does not know, so a
+host built on an SDK without the field loads the manifest and applies its usual
+idle-stop rule. A plugin that needs to stay up therefore needs a host that both
+stops idle plugins and reads the field; on a host that never stops idle
+plugins, the field changes nothing.
+
 ### Watch-sync batch size
 
 `WatchSyncProviderDescriptor.max_batch_size` accepts 1 to 1000 from v0.27.0;

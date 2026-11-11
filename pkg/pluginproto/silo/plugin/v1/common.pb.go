@@ -1254,7 +1254,14 @@ type PluginManifest struct {
 	Category string `protobuf:"bytes,12,opt,name=category,proto3" json:"category,omitempty"`
 	// Optional operator-facing identity, documentation, and repository links.
 	// Older manifests remain valid when this block is absent.
-	Presentation  *PluginPresentation `protobuf:"bytes,13,opt,name=presentation,proto3" json:"presentation,omitempty"`
+	Presentation *PluginPresentation `protobuf:"bytes,13,opt,name=presentation,proto3" json:"presentation,omitempty"`
+	// stay_running asks the host not to stop the plugin process for being
+	// idle. Set it only when the plugin does work between host calls, such as
+	// its own timers, a background sync, or a listener it opened itself; do not
+	// set it to keep a cache warm. It changes nothing else: the host still
+	// starts the plugin on first use and still stops it on update, disable,
+	// config change, crash, and shutdown. Absent or false keeps idle stops on.
+	StayRunning   bool `protobuf:"varint,14,opt,name=stay_running,json=stayRunning,proto3" json:"stay_running,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1378,6 +1385,13 @@ func (x *PluginManifest) GetPresentation() *PluginPresentation {
 		return x.Presentation
 	}
 	return nil
+}
+
+func (x *PluginManifest) GetStayRunning() bool {
+	if x != nil {
+		return x.StayRunning
+	}
+	return false
 }
 
 type GetManifestRequest struct {
@@ -1731,7 +1745,7 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	"\x0epublisher_name\x18\t \x01(\tR\rpublisherName\x12#\n" +
 	"\rpublisher_url\x18\n" +
 	" \x01(\tR\fpublisherUrl\x12!\n" +
-	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\xdd\x05\n" +
+	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\x80\x06\n" +
 	"\x0ePluginManifest\x12\x1b\n" +
 	"\tplugin_id\x18\x01 \x01(\tR\bpluginId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x1a\n" +
@@ -1747,7 +1761,8 @@ const file_silo_plugin_v1_common_proto_rawDesc = "" +
 	" \x03(\v2\x1d.silo.plugin.v1.PackagedAssetR\x06assets\x123\n" +
 	"\bmetadata\x18\v \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1a\n" +
 	"\bcategory\x18\f \x01(\tR\bcategory\x12F\n" +
-	"\fpresentation\x18\r \x01(\v2\".silo.plugin.v1.PluginPresentationR\fpresentation\"\x14\n" +
+	"\fpresentation\x18\r \x01(\v2\".silo.plugin.v1.PluginPresentationR\fpresentation\x12!\n" +
+	"\fstay_running\x18\x0e \x01(\bR\vstayRunning\"\x14\n" +
 	"\x12GetManifestRequest\"Q\n" +
 	"\x13GetManifestResponse\x12:\n" +
 	"\bmanifest\x18\x01 \x01(\v2\x1e.silo.plugin.v1.PluginManifestR\bmanifest\"G\n" +

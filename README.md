@@ -94,6 +94,33 @@ Curated catalog tooling should call
 require the complete block and prevent a published `source_url` from drifting
 away from the repository that produced the release.
 
+## Staying running between calls
+
+The host starts a plugin process on first use and can stop it after a period
+with no host calls; the next call starts it again. A plugin that does work
+between host calls (its own timers, a background sync, or a listener it opened
+itself) loses that work when it is stopped. Such a plugin can set
+`stay_running` in its manifest:
+
+```json
+{
+  "plugin_id": "silo.example",
+  "version": "1.0.0",
+  "stay_running": true
+}
+```
+
+- `stay_running` only turns off idle stops. The host still starts the plugin on
+  first use, and still stops it on update, disable, config change, crash, and
+  shutdown.
+- Leave it unset to keep a cache warm or to avoid a cold start. Idle stops free
+  memory on small servers, and a restarted plugin rebuilds its cache on the
+  next call.
+- It is not the same as a resident plugin. `network_access_provider.v1` plugins
+  are started at boot and supervised by the host whether or not they set it.
+- Absent and `false` mean the same thing. A host built on an SDK without the
+  field ignores it.
+
 ## Calling back into the host
 
 Plugins talk to the host through the `RuntimeHost` service, accessed via `pkg/pluginsdk/runtimehost.Client`. The host invokes `Runtime.BindHostBroker` on startup so plugins can dial back over the shared broker; `runtimedefault` handles that step for you. Available RPCs:
