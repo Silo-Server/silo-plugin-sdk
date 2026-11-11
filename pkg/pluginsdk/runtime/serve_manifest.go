@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability"
 	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
@@ -46,6 +47,7 @@ type serveManifestOptions struct {
 	authProviderChecks           pluginv1.AuthProviderChecksServer
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configurationChecks          pluginv1.ConfigurationChecksServer
+	notificationChannel          pluginv1.NotificationChannelServer
 	configure                    ConfigureFunc
 }
 
@@ -94,6 +96,16 @@ func WithNetworkIdentityAuth(server pluginv1.NetworkIdentityAuthServer) ServeMan
 func WithConfigurationChecks(server pluginv1.ConfigurationChecksServer) ServeManifestOption {
 	return func(options *serveManifestOptions) {
 		options.configurationChecks = server
+	}
+}
+
+// WithNotificationChannel registers the NotificationChannel service for a
+// plugin that declares notification_channel.v1 capabilities. One server
+// answers for every such capability in the manifest; each request names its
+// capability_id.
+func WithNotificationChannel(server pluginv1.NotificationChannelServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.notificationChannel = server
 	}
 }
 
@@ -205,6 +217,17 @@ func manifestServeConfig(
 		return ServeConfig{}, fmt.Errorf("plugin manifest declares %q but no ConfigurationChecks server is registered; pass runtime.WithConfigurationChecks",
 			manifest.ConfigurationCheckKey)
 	}
+	if isNilServer(resolved.notificationChannel) {
+		resolved.notificationChannel = nil
+	}
+	if resolved.notificationChannel == nil {
+		for _, descriptor := range m.GetCapabilities() {
+			if descriptor.GetType() == capability.NotificationChannel {
+				return ServeConfig{}, fmt.Errorf("plugin capability %q is %s but no NotificationChannel server is registered; pass runtime.WithNotificationChannel",
+					descriptor.GetId(), capability.NotificationChannel)
+			}
+		}
+	}
 	servers.Runtime = &manifestRuntime{manifest: m, configure: resolved.configure}
 	return ServeConfig{
 		Servers: servers,
@@ -213,6 +236,7 @@ func manifestServeConfig(
 			authProviderChecks:           resolved.authProviderChecks,
 			networkIdentityAuth:          resolved.networkIdentityAuth,
 			configurationChecks:          resolved.configurationChecks,
+			notificationChannel:          resolved.notificationChannel,
 		}),
 	}, nil
 }
