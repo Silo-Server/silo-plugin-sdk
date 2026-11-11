@@ -228,11 +228,20 @@ verify images by the per-image field rather than assume a filtered response.
 ### Idle stops
 
 `PluginManifest.stay_running` (v0.33.0) is a plain `bool`, so absent and
-`false` both leave idle stops on. Manifest loading discards fields it does not
-know, so a host built on an SDK without the field loads the manifest and
-applies its usual idle-stop rule. A plugin that needs to stay up therefore
-needs a host that both stops idle plugins and reads the field; on a host that
-never stops idle plugins, the field changes nothing.
+`false` both leave idle stops on, and protobuf leaves a `false` value off the
+wire.
+
+A plugin that sets it to `true` needs a Silo host that includes
+Silo-Server/silo-server#2502. Before that change, Silo read a bare plugin
+binary's manifest strictly and refused to install one with a field it did not
+know. It installed such a plugin from an archive, but then stopped it at start:
+the installed manifest had dropped the field, while the copy the plugin
+reported over gRPC kept it, so the two did not match.
+
+A host with #2502 but an SDK older than v0.33.0 installs and starts the plugin
+and ignores the field, so it applies its usual idle-stop rule. The field takes
+effect only on a host that both stops idle plugins and reads it; on a host that
+never stops idle plugins, it changes nothing.
 
 ### Watch-sync batch size
 

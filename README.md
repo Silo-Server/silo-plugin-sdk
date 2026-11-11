@@ -118,8 +118,10 @@ itself) loses that work when it is stopped. Such a plugin can set
   next call.
 - It is not the same as a resident plugin. `network_access_provider.v1` plugins
   are started at boot and supervised by the host whether or not they set it.
-- Added in v0.33.0. Absent and `false` mean the same thing. A host built on an
-  SDK without the field ignores it.
+- Added in v0.33.0. Absent and `false` mean the same thing. Setting it to
+  `true` needs a Silo host with Silo-Server/silo-server#2502; an older host
+  refuses the plugin binary, or installs the archive but cannot start it. See
+  [docs/compatibility.md](docs/compatibility.md#idle-stops).
 
 ## Calling back into the host
 
