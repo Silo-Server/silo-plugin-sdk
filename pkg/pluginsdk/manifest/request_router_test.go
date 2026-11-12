@@ -225,3 +225,71 @@ func TestValidateRequestStatusWording(t *testing.T) {
 		}
 	}
 }
+
+// requesterOptionsManifest is a router whose form has a dynamic select, a
+// dynamic select over an integer, a plain select, a chooser select and a switch, with the given
+// requester_options.
+func requesterOptionsManifest(options string) []byte {
+	return []byte(`{
+	  "plugin_id":"silo.requests-seerr", "version":"1.0.0", "silo_api_version":"v1",
+	  "capabilities":[{
+	    "type":"request_router.v1", "id":"seerr", "display_name":"Seerr",
+	    "request_router":{"requester_options":[` + options + `]},
+	    "config_schema":[{"key":"connection", "title":"Seerr", "json_schema":"{\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"string\"},\"mode\":{\"type\":\"string\"},\"chooser\":{\"type\":\"string\"},\"allow\":{\"type\":\"boolean\"},\"level\":{\"type\":\"integer\"},\"name\":{\"type\":\"string\"}}}", "admin_form":{"fields":[
+	      {"key":"profile", "label":"Quality profile", "control":"ADMIN_FORM_CONTROL_SELECT", "dynamic_options":true},
+	      {"key":"level", "label":"Level", "control":"ADMIN_FORM_CONTROL_SELECT", "dynamic_options":true},
+	      {"key":"mode", "label":"Mode", "control":"ADMIN_FORM_CONTROL_SELECT", "options":[{"value":"a", "label":"A"}]},
+	      {"key":"chooser", "label":"Chosen by", "control":"ADMIN_FORM_CONTROL_SELECT", "options":[{"value":"admin", "label":"Admin"}, {"value":"requester", "label":"Requester"}, {"value":"approver", "label":"Admin on approval"}]},
+	      {"key":"allow", "label":"Let requesters choose", "control":"ADMIN_FORM_CONTROL_SWITCH"},
+	      {"key":"name", "label":"Name", "control":"ADMIN_FORM_CONTROL_TEXT"}
+	    ]}}]
+	  }]
+	}`)
+}
+
+func TestLoadRequestRouterDeclaresRequesterOptions(t *testing.T) {
+	manifest, err := publicmanifest.Load(requesterOptionsManifest(`
+	  {"field":"profile", "media_type":"movie", "label":"Quality", "chooser_field":"chooser"},
+	  {"field":"profile", "media_type":"series"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	options := manifest.GetCapabilities()[0].GetRequestRouter().GetRequesterOptions()
+	if len(options) != 2 {
+		t.Fatalf("requester_options = %v, want 2", options)
+	}
+	first := options[0]
+	if first.GetField() != "profile" || first.GetMediaType() != "movie" || first.GetLabel() != "Quality" || first.GetChooserField() != "chooser" {
+		t.Fatalf("first option = %v", first)
+	}
+	if options[1].GetLabel() != "" || options[1].GetChooserField() != "" {
+		t.Fatalf("second option = %v, want no label and no chooser", options[1])
+	}
+}
+
+func TestLoadRequestRouterRejectsBadRequesterOptions(t *testing.T) {
+	for name, c := range map[string]struct{ options, want string }{
+		"no field":             {`{"media_type":"movie"}`, "field is required"},
+		"unknown field":        {`{"field":"folder"}`, "must be a select with dynamic_options"},
+		"static select":        {`{"field":"mode"}`, "must be a select with dynamic_options"},
+		"not a select":         {`{"field":"name"}`, "must be a select with dynamic_options"},
+		"numeric select":       {`{"field":"level"}`, "must be a string property"},
+		"unknown media type":   {`{"field":"profile", "media_type":"tv"}`, "media_type"},
+		"listed twice":         {`{"field":"profile", "media_type":"movie"}, {"field":"profile", "media_type":"movie"}`, "more than once"},
+		"all after one":        {`{"field":"profile", "media_type":"movie"}, {"field":"profile"}`, "more than once"},
+		"one after all":        {`{"field":"profile"}, {"field":"profile", "media_type":"series"}`, "more than once"},
+		"long label":           {`{"field":"profile", "label":"A label that is far too long to fit"}`, "exceeds 24 characters"},
+		"padded label":         {`{"field":"profile", "label":" Quality"}`, "leading or trailing whitespace"},
+		"unknown chooser":      {`{"field":"profile", "chooser_field":"nope"}`, "must be a select that lists its options"},
+		"chooser is a switch":  {`{"field":"profile", "chooser_field":"allow"}`, "must be a select that lists its options"},
+		"chooser is dynamic":   {`{"field":"profile", "chooser_field":"profile"}`, "must be a select that lists its options"},
+		"chooser other values": {`{"field":"profile", "chooser_field":"mode"}`, `option "a" must be`},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := publicmanifest.Load(requesterOptionsManifest(c.options))
+			if err == nil || !strings.Contains(err.Error(), c.want) {
+				t.Fatalf("Load error = %v, want one containing %q", err, c.want)
+			}
+		})
+	}
+}
