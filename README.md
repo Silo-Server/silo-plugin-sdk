@@ -304,8 +304,9 @@ config fields in its manifest:
 ```
 
 - `field`: a select field of the capability's admin form with
-  `dynamic_options`. The host offers the choices `ListConfigOptions` returns
-  for it on the server the request would go to.
+  `dynamic_options`, over a string property of the `json_schema`. The host
+  offers the choices `ListConfigOptions` returns for it on the server the
+  request would go to, and sets the pick as that string.
 - `media_type`: `movie` or `series`; empty offers the option for both. A field
   may be listed once per media type.
 - `label`: what requesters see, at most 24 characters on a single line. Empty
@@ -327,8 +328,9 @@ the listed choices and passes it to `Fulfill` as that key of
 When nobody picks, the config stays as the admin set it. Every
 choice `ListConfigOptions` returns for the field is open to every requester
 who may request, so list only fields whose choices are safe to hand out.
-Hosts that predate the field ignore it; see
-[docs/compatibility.md](docs/compatibility.md).
+A host that predates the field ignores it when it installs the plugin from
+an archive. [docs/compatibility.md](docs/compatibility.md) lists the two
+cases where an older host rejects it.
 
 ### Wording
 

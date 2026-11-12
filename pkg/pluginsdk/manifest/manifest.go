@@ -357,19 +357,29 @@ const (
 )
 
 // validateRequesterOptions checks each requester option against the
-// capability's admin forms: field must be a select with dynamic options, and
-// chooser_field a select that lists its own options, each a chooser value, so
-// a host can list the choices and read who chooses. A field may be listed
-// once per media type.
+// capability's admin forms: field must be a select with dynamic options over
+// a string property, and chooser_field a select that lists its own options,
+// each a chooser value, so a host can list the choices and read who chooses.
+// A field may be listed once per media type.
 func validateRequesterOptions(descriptor *pluginv1.CapabilityDescriptor) error {
 	options := descriptor.GetRequestRouter().GetRequesterOptions()
 	if len(options) == 0 {
 		return nil
 	}
 	fields := map[string]*pluginv1.AdminFormField{}
+	// The json_schema type of each form field. A schema that does not parse
+	// is reported by the admin form validation.
+	types := map[string]string{}
 	for _, schema := range descriptor.GetConfigSchema() {
+		var parsed struct {
+			Properties map[string]struct {
+				Type string `json:"type"`
+			} `json:"properties"`
+		}
+		_ = json.Unmarshal([]byte(schema.GetJsonSchema()), &parsed)
 		for _, field := range schema.GetAdminForm().GetFields() {
 			fields[field.GetKey()] = field
+			types[field.GetKey()] = parsed.Properties[field.GetKey()].Type
 		}
 	}
 	seen := map[string]bool{}
@@ -382,6 +392,11 @@ func validateRequesterOptions(descriptor *pluginv1.CapabilityDescriptor) error {
 		field, ok := fields[key]
 		if !ok || field.GetControl() != pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT || !field.GetDynamicOptions() {
 			return fmt.Errorf("%s: field %q must be a select with dynamic_options in the capability's admin form", name, key)
+		}
+		// A pick is a ConfigOption value, which is a string. Set on a
+		// property of another type it would change the type the plugin reads.
+		if propertyType := types[key]; propertyType != "" && propertyType != "string" {
+			return fmt.Errorf("%s: field %q must be a string property in json_schema, not %s: a pick is passed as a string", name, key, propertyType)
 		}
 		mediaType := option.GetMediaType()
 		switch mediaType {

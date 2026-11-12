@@ -187,11 +187,15 @@ plugin is next updated on a host that reads them.
 `RequestRouterDescriptor.requester_options` is a repeated message field read
 from the manifest. Empty, or an absent descriptor, means requesters choose
 nothing, which is the behaviour hosts had before the field existed. Hosts that
-predate it drop it as an unknown field when they install a plugin archive, and
-never offer the choice, so a plugin can declare options without raising its
-minimum host version. Silo reads a bare plugin binary's manifest strictly, so a
-Silo host that predates the field refuses to install a binary that declares
-it; install it from an archive there. The plugin's RPCs do not change: a host
+predate it drop it as an unknown field when they load a plugin archive's
+manifest, which every SDK version does, and never offer the choice, so a
+plugin can declare options without raising its minimum host version. Two
+decoding paths are stricter. Silo reads a bare plugin binary's manifest
+strictly, so a Silo host that predates the field refuses to install a binary
+that declares it; install it from an archive there. And a host built on an SDK
+older than v0.13.1 rejects stored capability metadata that carries a field it
+does not know, so in a cluster that shares one database, upgrade such nodes
+before a plugin that declares options is installed. The plugin's RPCs do not change: a host
 that reads the field passes a requester's or approving admin's pick as a key of
 `RouterConnection.config`, where the plugin already reads the admin's value.
 Hosts read the field from the capability metadata stored when the plugin was

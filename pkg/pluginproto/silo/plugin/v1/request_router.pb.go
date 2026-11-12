@@ -272,7 +272,9 @@ type RequesterOption struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// field is the config key the requester sets. It must name a select field
 	// of the capability's admin form that has dynamic_options, so the host has
-	// a list to offer and to check a pick against.
+	// a list to offer and to check a pick against. Its json_schema property
+	// must be a string: a pick is a ConfigOption value, and the host sets it
+	// as that string.
 	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
 	// media_type limits the option to requests of one media type: "movie" or
 	// "series". Empty offers it for both.

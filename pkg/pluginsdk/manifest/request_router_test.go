@@ -227,7 +227,7 @@ func TestValidateRequestStatusWording(t *testing.T) {
 }
 
 // requesterOptionsManifest is a router whose form has a dynamic select, a
-// plain select, a chooser select and a switch, with the given
+// dynamic select over an integer, a plain select, a chooser select and a switch, with the given
 // requester_options.
 func requesterOptionsManifest(options string) []byte {
 	return []byte(`{
@@ -235,8 +235,9 @@ func requesterOptionsManifest(options string) []byte {
 	  "capabilities":[{
 	    "type":"request_router.v1", "id":"seerr", "display_name":"Seerr",
 	    "request_router":{"requester_options":[` + options + `]},
-	    "config_schema":[{"key":"connection", "title":"Seerr", "json_schema":"{\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"string\"},\"mode\":{\"type\":\"string\"},\"chooser\":{\"type\":\"string\"},\"allow\":{\"type\":\"boolean\"},\"name\":{\"type\":\"string\"}}}", "admin_form":{"fields":[
+	    "config_schema":[{"key":"connection", "title":"Seerr", "json_schema":"{\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"string\"},\"mode\":{\"type\":\"string\"},\"chooser\":{\"type\":\"string\"},\"allow\":{\"type\":\"boolean\"},\"level\":{\"type\":\"integer\"},\"name\":{\"type\":\"string\"}}}", "admin_form":{"fields":[
 	      {"key":"profile", "label":"Quality profile", "control":"ADMIN_FORM_CONTROL_SELECT", "dynamic_options":true},
+	      {"key":"level", "label":"Level", "control":"ADMIN_FORM_CONTROL_SELECT", "dynamic_options":true},
 	      {"key":"mode", "label":"Mode", "control":"ADMIN_FORM_CONTROL_SELECT", "options":[{"value":"a", "label":"A"}]},
 	      {"key":"chooser", "label":"Chosen by", "control":"ADMIN_FORM_CONTROL_SELECT", "options":[{"value":"admin", "label":"Admin"}, {"value":"requester", "label":"Requester"}, {"value":"approver", "label":"Admin on approval"}]},
 	      {"key":"allow", "label":"Let requesters choose", "control":"ADMIN_FORM_CONTROL_SWITCH"},
@@ -272,6 +273,7 @@ func TestLoadRequestRouterRejectsBadRequesterOptions(t *testing.T) {
 		"unknown field":        {`{"field":"folder"}`, "must be a select with dynamic_options"},
 		"static select":        {`{"field":"mode"}`, "must be a select with dynamic_options"},
 		"not a select":         {`{"field":"name"}`, "must be a select with dynamic_options"},
+		"numeric select":       {`{"field":"level"}`, "must be a string property"},
 		"unknown media type":   {`{"field":"profile", "media_type":"tv"}`, "media_type"},
 		"listed twice":         {`{"field":"profile", "media_type":"movie"}, {"field":"profile", "media_type":"movie"}`, "more than once"},
 		"all after one":        {`{"field":"profile", "media_type":"movie"}, {"field":"profile"}`, "more than once"},
