@@ -132,6 +132,7 @@ func TestReportMarkerRequest_SeasonNumberPreservesPresenceAndSpecials(t *testing
 		},
 	)
 	assertFieldNumber(t, &ReportMarkerRequest{}, "season_number", 3)
+	assertOptionalInt32Field(t, &ReportMarkerRequest{}, "season_number", 3)
 
 	seasonFive := int32(5)
 	data, err := proto.Marshal(&ReportMarkerRequest{SeasonNumber: &seasonFive})
