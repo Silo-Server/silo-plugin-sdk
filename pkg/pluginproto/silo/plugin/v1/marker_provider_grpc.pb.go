@@ -203,15 +203,18 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // MarkerReporting is separate from MarkerProvider so adding reporting does not
-// add methods to the released MarkerProviderServer Go interface. Register it
-// with runtime.WithMarkerReporting; the SDK runtime also registers it when the
-// MarkerProvider server itself implements MarkerReportingServer.
+// add methods to the released MarkerProviderServer Go interface. Added in
+// v0.33.0. Register it with runtime.WithMarkerReporting; the SDK runtime also
+// registers it when the MarkerProvider server itself implements
+// MarkerReportingServer.
 //
-// A plugin that does not serve it answers Unimplemented, and hosts treat that,
-// and a MarkerReportOutcome the host does not recognize, as "this provider
-// cannot report": a client offers no report control for a segment the provider
-// did not mark reportable, and a report that arrives anyway fails as
-// unsupported rather than as an error.
+// A plugin that does not serve it answers Unimplemented, and hosts treat that
+// as "this provider cannot report": a client offers no report control for a
+// segment the provider did not mark reportable, and a report that arrives
+// anyway fails as unsupported rather than as an error. An outcome a host does
+// not recognize is a different case: the provider answered, so hosts read that
+// as a refusal, which is the one reading that never claims a report was
+// recorded.
 type MarkerReportingClient interface {
 	// ReportMarker tells the provider that the segment the host is showing for
 	// this item is wrong. It is a viewer's complaint about one segment, not a
@@ -251,15 +254,18 @@ func (c *markerReportingClient) ReportMarker(ctx context.Context, in *ReportMark
 // for forward compatibility.
 //
 // MarkerReporting is separate from MarkerProvider so adding reporting does not
-// add methods to the released MarkerProviderServer Go interface. Register it
-// with runtime.WithMarkerReporting; the SDK runtime also registers it when the
-// MarkerProvider server itself implements MarkerReportingServer.
+// add methods to the released MarkerProviderServer Go interface. Added in
+// v0.33.0. Register it with runtime.WithMarkerReporting; the SDK runtime also
+// registers it when the MarkerProvider server itself implements
+// MarkerReportingServer.
 //
-// A plugin that does not serve it answers Unimplemented, and hosts treat that,
-// and a MarkerReportOutcome the host does not recognize, as "this provider
-// cannot report": a client offers no report control for a segment the provider
-// did not mark reportable, and a report that arrives anyway fails as
-// unsupported rather than as an error.
+// A plugin that does not serve it answers Unimplemented, and hosts treat that
+// as "this provider cannot report": a client offers no report control for a
+// segment the provider did not mark reportable, and a report that arrives
+// anyway fails as unsupported rather than as an error. An outcome a host does
+// not recognize is a different case: the provider answered, so hosts read that
+// as a refusal, which is the one reading that never claims a report was
+// recorded.
 type MarkerReportingServer interface {
 	// ReportMarker tells the provider that the segment the host is showing for
 	// this item is wrong. It is a viewer's complaint about one segment, not a

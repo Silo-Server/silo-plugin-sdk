@@ -869,16 +869,20 @@ func (x *MarkerProviderStatsResponse) GetMetadata() *structpb.Struct {
 // episode in its own numbering must translate them by that key, the same way it
 // does for a fetch: the numbers alone can name a different episode.
 type ReportMarkerRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	ItemType           string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
-	ExternalIds        *MarkerExternalIDs     `protobuf:"bytes,2,opt,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
-	SeasonNumber       int32                  `protobuf:"varint,3,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
-	EpisodeNumber      int32                  `protobuf:"varint,4,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
-	Segment            string                 `protobuf:"bytes,5,opt,name=segment,proto3" json:"segment,omitempty"` // "intro" | "credits" | "recap" | "preview"
-	DurationSeconds    float64                `protobuf:"fixed64,6,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
-	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,7,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
-	EpisodeTitle       string                 `protobuf:"bytes,8,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
-	EpisodeNumbering   string                 `protobuf:"bytes,9,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ItemType    string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
+	ExternalIds *MarkerExternalIDs     `protobuf:"bytes,2,opt,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
+	// Season in the host catalog's numbering, and presence is significant: unset
+	// means the host could not place the episode in a season, while an explicit
+	// zero is Specials. A movie leaves it unset. A provider that cannot tell the
+	// two apart may report the wrong episode, so refuse rather than guess.
+	SeasonNumber       *int32             `protobuf:"varint,3,opt,name=season_number,json=seasonNumber,proto3,oneof" json:"season_number,omitempty"`
+	EpisodeNumber      int32              `protobuf:"varint,4,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
+	Segment            string             `protobuf:"bytes,5,opt,name=segment,proto3" json:"segment,omitempty"` // "intro" | "credits" | "recap" | "preview"
+	DurationSeconds    float64            `protobuf:"fixed64,6,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	EpisodeExternalIds *MarkerExternalIDs `protobuf:"bytes,7,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
+	EpisodeTitle       string             `protobuf:"bytes,8,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
+	EpisodeNumbering   string             `protobuf:"bytes,9,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
 	// The file the viewer was watching, as in FetchMarkersRequest. A report is
 	// about one copy of the media, so a provider that keys reports by file can
 	// use them; a provider that keys them by media ignores them.
@@ -934,8 +938,8 @@ func (x *ReportMarkerRequest) GetExternalIds() *MarkerExternalIDs {
 }
 
 func (x *ReportMarkerRequest) GetSeasonNumber() int32 {
-	if x != nil {
-		return x.SeasonNumber
+	if x != nil && x.SeasonNumber != nil {
+		return *x.SeasonNumber
 	}
 	return 0
 }
@@ -1161,11 +1165,11 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\x0ecurrent_streak\x18\x06 \x01(\x05R\rcurrentStreak\x12\x1f\n" +
 	"\vbest_streak\x18\a \x01(\x05R\n" +
 	"bestStreak\x123\n" +
-	"\bmetadata\x18\b \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\x9f\x04\n" +
+	"\bmetadata\x18\b \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xb6\x04\n" +
 	"\x13ReportMarkerRequest\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
-	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
-	"\rseason_number\x18\x03 \x01(\x05R\fseasonNumber\x12%\n" +
+	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12(\n" +
+	"\rseason_number\x18\x03 \x01(\x05H\x00R\fseasonNumber\x88\x01\x01\x12%\n" +
 	"\x0eepisode_number\x18\x04 \x01(\x05R\repisodeNumber\x12\x18\n" +
 	"\asegment\x18\x05 \x01(\tR\asegment\x12)\n" +
 	"\x10duration_seconds\x18\x06 \x01(\x01R\x0fdurationSeconds\x12S\n" +
@@ -1175,7 +1179,8 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\tfile_hash\x18\n" +
 	" \x01(\tR\bfileHash\x12\x1b\n" +
 	"\tfile_size\x18\v \x01(\x03R\bfileSize\x123\n" +
-	"\bmetadata\x18\f \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xba\x01\n" +
+	"\bmetadata\x18\f \x01(\v2\x17.google.protobuf.StructR\bmetadataB\x10\n" +
+	"\x0e_season_number\"\xba\x01\n" +
 	"\x14ReportMarkerResponse\x12=\n" +
 	"\aoutcome\x18\x01 \x01(\x0e2#.silo.plugin.v1.MarkerReportOutcomeR\aoutcome\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x16\n" +
@@ -1261,6 +1266,7 @@ func file_silo_plugin_v1_marker_provider_proto_init() {
 	}
 	file_silo_plugin_v1_marker_provider_proto_msgTypes[2].OneofWrappers = []any{}
 	file_silo_plugin_v1_marker_provider_proto_msgTypes[4].OneofWrappers = []any{}
+	file_silo_plugin_v1_marker_provider_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

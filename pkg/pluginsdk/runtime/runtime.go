@@ -262,7 +262,7 @@ func resolveService[S any](capability any, explicit S) S {
 	if !isNilServer(explicit) {
 		return explicit
 	}
-	if server, ok := capability.(S); ok {
+	if server, ok := capability.(S); ok && !isNilServer(server) {
 		return server
 	}
 	var none S

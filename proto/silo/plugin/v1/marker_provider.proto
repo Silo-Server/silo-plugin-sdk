@@ -13,15 +13,18 @@ service MarkerProvider {
 }
 
 // MarkerReporting is separate from MarkerProvider so adding reporting does not
-// add methods to the released MarkerProviderServer Go interface. Register it
-// with runtime.WithMarkerReporting; the SDK runtime also registers it when the
-// MarkerProvider server itself implements MarkerReportingServer.
+// add methods to the released MarkerProviderServer Go interface. Added in
+// v0.33.0. Register it with runtime.WithMarkerReporting; the SDK runtime also
+// registers it when the MarkerProvider server itself implements
+// MarkerReportingServer.
 //
-// A plugin that does not serve it answers Unimplemented, and hosts treat that,
-// and a MarkerReportOutcome the host does not recognize, as "this provider
-// cannot report": a client offers no report control for a segment the provider
-// did not mark reportable, and a report that arrives anyway fails as
-// unsupported rather than as an error.
+// A plugin that does not serve it answers Unimplemented, and hosts treat that
+// as "this provider cannot report": a client offers no report control for a
+// segment the provider did not mark reportable, and a report that arrives
+// anyway fails as unsupported rather than as an error. An outcome a host does
+// not recognize is a different case: the provider answered, so hosts read that
+// as a refusal, which is the one reading that never claims a report was
+// recorded.
 service MarkerReporting {
   // ReportMarker tells the provider that the segment the host is showing for
   // this item is wrong. It is a viewer's complaint about one segment, not a
@@ -167,7 +170,11 @@ message MarkerProviderStatsResponse {
 message ReportMarkerRequest {
   string item_type = 1; // "movie" | "episode"
   MarkerExternalIDs external_ids = 2;
-  int32 season_number = 3;
+  // Season in the host catalog's numbering, and presence is significant: unset
+  // means the host could not place the episode in a season, while an explicit
+  // zero is Specials. A movie leaves it unset. A provider that cannot tell the
+  // two apart may report the wrong episode, so refuse rather than guess.
+  optional int32 season_number = 3;
   int32 episode_number = 4;
   string segment = 5; // "intro" | "credits" | "recap" | "preview"
   double duration_seconds = 6;

@@ -81,3 +81,30 @@ func TestManifestServeConfigSkipsMarkerReportingWithoutAServer(t *testing.T) {
 		t.Fatalf("ReportMarker code = %v, want Unimplemented (err %v)", status.Code(err), err)
 	}
 }
+
+// A provider server typed as a nil pointer satisfies the reporting interface, so
+// resolution must not hand it to registration: a nil pointer there is a server
+// the first call panics on, not a server that answers.
+func TestResolveServiceRejectsATypedNilServer(t *testing.T) {
+	var absent *reportingNilProvider
+	if got := resolveService[pluginv1.MarkerReportingServer](absent, nil); !isNilServer(got) {
+		t.Fatalf("resolved %v from a typed-nil provider, want no server", got)
+	}
+
+	var alsoAbsent *optionMarkerReporting
+	if got := resolveService[pluginv1.MarkerReportingServer](optionMarkerProvider{}, alsoAbsent); !isNilServer(got) {
+		t.Fatalf("resolved %v from a typed-nil option, want no server", got)
+	}
+
+	present := optionMarkerReporting{}
+	if got := resolveService[pluginv1.MarkerReportingServer](optionMarkerProvider{}, present); isNilServer(got) {
+		t.Fatal("resolved no server from a present option")
+	}
+}
+
+// reportingNilProvider implements the reporting service on a pointer receiver,
+// which is what makes a typed-nil value satisfy the interface.
+type reportingNilProvider struct {
+	pluginv1.UnimplementedMarkerProviderServer
+	pluginv1.UnimplementedMarkerReportingServer
+}

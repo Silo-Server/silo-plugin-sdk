@@ -104,7 +104,12 @@ without knowing which provider supplied the markers.
   for a segment that is not reportable.
 - `ReportMarkerRequest` carries the same identity a fetch carries, including
   `episode_numbering`, plus the segment kind. It carries no bounds: a report is
-  a complaint that a segment is wrong, not a replacement to store.
+  a complaint that a segment is wrong, not a replacement to store. Its
+  `season_number` is `optional`, and presence means what it means everywhere
+  else in this contract: unset is "the host could not place the episode in a
+  season", an explicit zero is Specials, and a movie leaves it unset. A provider
+  that cannot tell those apart may report the wrong episode, so refuse instead of
+  guessing.
 - `ReportMarkerResponse.outcome` is reported, already reported, or refused.
   already reported is settled, not a failure: a service that keys one report
   per account per item answers it for a repeat, and the viewer is told the

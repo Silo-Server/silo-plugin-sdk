@@ -67,10 +67,11 @@ func TestMarkerReportingRoundTripWhenProviderImplementsIt(t *testing.T) {
 	provider := &reportingMarkerProvider{}
 	client := dialPlugin(t, runtime.CapabilityServers{Runtime: stubRuntime{}, MarkerProvider: provider})
 
+	season := int32(5)
 	got, err := client.MarkerReporting().ReportMarker(context.Background(), &pluginv1.ReportMarkerRequest{
 		ItemType:         "episode",
 		ExternalIds:      &pluginv1.MarkerExternalIDs{ImdbId: "tt0903747"},
-		SeasonNumber:     5,
+		SeasonNumber:     &season,
 		EpisodeNumber:    14,
 		Segment:          "intro",
 		EpisodeNumbering: "tvdb",
