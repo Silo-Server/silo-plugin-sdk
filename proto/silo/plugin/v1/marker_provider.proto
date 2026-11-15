@@ -12,6 +12,32 @@ service MarkerProvider {
   rpc GetMarkerProviderStats(GetMarkerProviderStatsRequest) returns (MarkerProviderStatsResponse);
 }
 
+// MarkerReporting is separate from MarkerProvider so adding reporting does not
+// add methods to the released MarkerProviderServer Go interface. Register it
+// with runtime.WithMarkerReporting; the SDK runtime also registers it when the
+// MarkerProvider server itself implements MarkerReportingServer.
+//
+// A plugin that does not serve it answers Unimplemented, and hosts treat that,
+// and a MarkerReportOutcome the host does not recognize, as "this provider
+// cannot report": a client offers no report control for a segment the provider
+// did not mark reportable, and a report that arrives anyway fails as
+// unsupported rather than as an error.
+service MarkerReporting {
+  // ReportMarker tells the provider that the segment the host is showing for
+  // this item is wrong. It is a viewer's complaint about one segment, not a
+  // submission: it carries no bounds, and the provider decides what its service
+  // does with it.
+  //
+  // The host resolves the item and its numbering itself and calls the provider
+  // that supplied the segment, so a provider can trust the identity it is
+  // given. Refusals the plugin classes as faults use gRPC status codes like
+  // SubmitMarker: InvalidArgument for a request the provider will never accept,
+  // FailedPrecondition for provider state such as a credential an operator has
+  // not configured, and ResourceExhausted with RetryInfo when the provider
+  // wants the caller to try later.
+  rpc ReportMarker(ReportMarkerRequest) returns (ReportMarkerResponse);
+}
+
 message MarkerExternalIDs {
   string tmdb_id = 1;
   string imdb_id = 2;
@@ -64,6 +90,16 @@ message MarkerSegment {
   // The provider asserts the item has no segment of this kind. start_seconds
   // and end_seconds are unset; confidence applies to the absence.
   bool absent = 8;
+  // The provider would accept a report for this segment now, so a host may
+  // offer a client a control that says the segment is wrong. A provider sets it
+  // per segment and only when it really would: a provider that reports through
+  // a service credential sets it only while that credential is configured.
+  //
+  // Plain bool, so a host that predates the field reads false and a plugin that
+  // predates it sends false. Absence and zero mean the same thing here: not
+  // reportable, which is also what a host must assume for a provider that does
+  // not serve MarkerReporting.
+  bool reportable = 9;
 }
 
 message FetchMarkersResponse {
@@ -119,4 +155,53 @@ message MarkerProviderStatsResponse {
   int32 current_streak = 6;
   int32 best_streak = 7;
   google.protobuf.Struct metadata = 8;
+}
+
+// The item fields follow FetchMarkersRequest, because a report is about the
+// markers the host fetched for the same item. external_ids names the title,
+// season_number and episode_number place the episode in it in the host
+// catalog's numbering, and episode_numbering is the external ID key of the
+// provider whose numbering the host used. A provider that reads season and
+// episode in its own numbering must translate them by that key, the same way it
+// does for a fetch: the numbers alone can name a different episode.
+message ReportMarkerRequest {
+  string item_type = 1; // "movie" | "episode"
+  MarkerExternalIDs external_ids = 2;
+  int32 season_number = 3;
+  int32 episode_number = 4;
+  string segment = 5; // "intro" | "credits" | "recap" | "preview"
+  double duration_seconds = 6;
+  MarkerExternalIDs episode_external_ids = 7;
+  string episode_title = 8;
+  string episode_numbering = 9;
+  // The file the viewer was watching, as in FetchMarkersRequest. A report is
+  // about one copy of the media, so a provider that keys reports by file can
+  // use them; a provider that keys them by media ignores them.
+  string file_hash = 10;
+  int64 file_size = 11;
+  google.protobuf.Struct metadata = 12;
+}
+
+message ReportMarkerResponse {
+  MarkerReportOutcome outcome = 1;
+  // Open vocabulary explaining a REFUSED outcome, for example
+  // "segment_not_reportable" or "unsupported_media". A host that does not
+  // recognize a value reads it as a plain refusal and shows the viewer that the
+  // provider would not take the report.
+  string reason = 2;
+  // What to tell the viewer or the administrator about a refusal, in the
+  // provider's own words. Never carries a credential.
+  string detail = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+enum MarkerReportOutcome {
+  MARKER_REPORT_OUTCOME_UNSPECIFIED = 0;
+  MARKER_REPORT_OUTCOME_REPORTED = 1;
+  // The provider already holds this report, for example because the service
+  // keys one report per account per item. Settled, not a failure.
+  MARKER_REPORT_OUTCOME_ALREADY_REPORTED = 2;
+  // The provider declined and the report was not recorded. reason and detail
+  // say why; the caller may report again later only if reason says so.
+  MARKER_REPORT_OUTCOME_REFUSED = 3;
 }

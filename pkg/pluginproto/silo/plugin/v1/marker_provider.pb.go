@@ -22,6 +22,62 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type MarkerReportOutcome int32
+
+const (
+	MarkerReportOutcome_MARKER_REPORT_OUTCOME_UNSPECIFIED MarkerReportOutcome = 0
+	MarkerReportOutcome_MARKER_REPORT_OUTCOME_REPORTED    MarkerReportOutcome = 1
+	// The provider already holds this report, for example because the service
+	// keys one report per account per item. Settled, not a failure.
+	MarkerReportOutcome_MARKER_REPORT_OUTCOME_ALREADY_REPORTED MarkerReportOutcome = 2
+	// The provider declined and the report was not recorded. reason and detail
+	// say why; the caller may report again later only if reason says so.
+	MarkerReportOutcome_MARKER_REPORT_OUTCOME_REFUSED MarkerReportOutcome = 3
+)
+
+// Enum value maps for MarkerReportOutcome.
+var (
+	MarkerReportOutcome_name = map[int32]string{
+		0: "MARKER_REPORT_OUTCOME_UNSPECIFIED",
+		1: "MARKER_REPORT_OUTCOME_REPORTED",
+		2: "MARKER_REPORT_OUTCOME_ALREADY_REPORTED",
+		3: "MARKER_REPORT_OUTCOME_REFUSED",
+	}
+	MarkerReportOutcome_value = map[string]int32{
+		"MARKER_REPORT_OUTCOME_UNSPECIFIED":      0,
+		"MARKER_REPORT_OUTCOME_REPORTED":         1,
+		"MARKER_REPORT_OUTCOME_ALREADY_REPORTED": 2,
+		"MARKER_REPORT_OUTCOME_REFUSED":          3,
+	}
+)
+
+func (x MarkerReportOutcome) Enum() *MarkerReportOutcome {
+	p := new(MarkerReportOutcome)
+	*p = x
+	return p
+}
+
+func (x MarkerReportOutcome) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MarkerReportOutcome) Descriptor() protoreflect.EnumDescriptor {
+	return file_silo_plugin_v1_marker_provider_proto_enumTypes[0].Descriptor()
+}
+
+func (MarkerReportOutcome) Type() protoreflect.EnumType {
+	return &file_silo_plugin_v1_marker_provider_proto_enumTypes[0]
+}
+
+func (x MarkerReportOutcome) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MarkerReportOutcome.Descriptor instead.
+func (MarkerReportOutcome) EnumDescriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_marker_provider_proto_rawDescGZIP(), []int{0}
+}
+
 type MarkerExternalIDs struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TmdbId        string                 `protobuf:"bytes,1,opt,name=tmdb_id,json=tmdbId,proto3" json:"tmdb_id,omitempty"`
@@ -252,7 +308,17 @@ type MarkerSegment struct {
 	Metadata        *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// The provider asserts the item has no segment of this kind. start_seconds
 	// and end_seconds are unset; confidence applies to the absence.
-	Absent        bool `protobuf:"varint,8,opt,name=absent,proto3" json:"absent,omitempty"`
+	Absent bool `protobuf:"varint,8,opt,name=absent,proto3" json:"absent,omitempty"`
+	// The provider would accept a report for this segment now, so a host may
+	// offer a client a control that says the segment is wrong. A provider sets it
+	// per segment and only when it really would: a provider that reports through
+	// a service credential sets it only while that credential is configured.
+	//
+	// Plain bool, so a host that predates the field reads false and a plugin that
+	// predates it sends false. Absence and zero mean the same thing here: not
+	// reportable, which is also what a host must assume for a provider that does
+	// not serve MarkerReporting.
+	Reportable    bool `protobuf:"varint,9,opt,name=reportable,proto3" json:"reportable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -339,6 +405,13 @@ func (x *MarkerSegment) GetMetadata() *structpb.Struct {
 func (x *MarkerSegment) GetAbsent() bool {
 	if x != nil {
 		return x.Absent
+	}
+	return false
+}
+
+func (x *MarkerSegment) GetReportable() bool {
+	if x != nil {
+		return x.Reportable
 	}
 	return false
 }
@@ -788,6 +861,222 @@ func (x *MarkerProviderStatsResponse) GetMetadata() *structpb.Struct {
 	return nil
 }
 
+// The item fields follow FetchMarkersRequest, because a report is about the
+// markers the host fetched for the same item. external_ids names the title,
+// season_number and episode_number place the episode in it in the host
+// catalog's numbering, and episode_numbering is the external ID key of the
+// provider whose numbering the host used. A provider that reads season and
+// episode in its own numbering must translate them by that key, the same way it
+// does for a fetch: the numbers alone can name a different episode.
+type ReportMarkerRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ItemType           string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"` // "movie" | "episode"
+	ExternalIds        *MarkerExternalIDs     `protobuf:"bytes,2,opt,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
+	SeasonNumber       int32                  `protobuf:"varint,3,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	EpisodeNumber      int32                  `protobuf:"varint,4,opt,name=episode_number,json=episodeNumber,proto3" json:"episode_number,omitempty"`
+	Segment            string                 `protobuf:"bytes,5,opt,name=segment,proto3" json:"segment,omitempty"` // "intro" | "credits" | "recap" | "preview"
+	DurationSeconds    float64                `protobuf:"fixed64,6,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	EpisodeExternalIds *MarkerExternalIDs     `protobuf:"bytes,7,opt,name=episode_external_ids,json=episodeExternalIds,proto3" json:"episode_external_ids,omitempty"`
+	EpisodeTitle       string                 `protobuf:"bytes,8,opt,name=episode_title,json=episodeTitle,proto3" json:"episode_title,omitempty"`
+	EpisodeNumbering   string                 `protobuf:"bytes,9,opt,name=episode_numbering,json=episodeNumbering,proto3" json:"episode_numbering,omitempty"`
+	// The file the viewer was watching, as in FetchMarkersRequest. A report is
+	// about one copy of the media, so a provider that keys reports by file can
+	// use them; a provider that keys them by media ignores them.
+	FileHash      string           `protobuf:"bytes,10,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
+	FileSize      int64            `protobuf:"varint,11,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
+	Metadata      *structpb.Struct `protobuf:"bytes,12,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportMarkerRequest) Reset() {
+	*x = ReportMarkerRequest{}
+	mi := &file_silo_plugin_v1_marker_provider_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportMarkerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportMarkerRequest) ProtoMessage() {}
+
+func (x *ReportMarkerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_marker_provider_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportMarkerRequest.ProtoReflect.Descriptor instead.
+func (*ReportMarkerRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_marker_provider_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ReportMarkerRequest) GetItemType() string {
+	if x != nil {
+		return x.ItemType
+	}
+	return ""
+}
+
+func (x *ReportMarkerRequest) GetExternalIds() *MarkerExternalIDs {
+	if x != nil {
+		return x.ExternalIds
+	}
+	return nil
+}
+
+func (x *ReportMarkerRequest) GetSeasonNumber() int32 {
+	if x != nil {
+		return x.SeasonNumber
+	}
+	return 0
+}
+
+func (x *ReportMarkerRequest) GetEpisodeNumber() int32 {
+	if x != nil {
+		return x.EpisodeNumber
+	}
+	return 0
+}
+
+func (x *ReportMarkerRequest) GetSegment() string {
+	if x != nil {
+		return x.Segment
+	}
+	return ""
+}
+
+func (x *ReportMarkerRequest) GetDurationSeconds() float64 {
+	if x != nil {
+		return x.DurationSeconds
+	}
+	return 0
+}
+
+func (x *ReportMarkerRequest) GetEpisodeExternalIds() *MarkerExternalIDs {
+	if x != nil {
+		return x.EpisodeExternalIds
+	}
+	return nil
+}
+
+func (x *ReportMarkerRequest) GetEpisodeTitle() string {
+	if x != nil {
+		return x.EpisodeTitle
+	}
+	return ""
+}
+
+func (x *ReportMarkerRequest) GetEpisodeNumbering() string {
+	if x != nil {
+		return x.EpisodeNumbering
+	}
+	return ""
+}
+
+func (x *ReportMarkerRequest) GetFileHash() string {
+	if x != nil {
+		return x.FileHash
+	}
+	return ""
+}
+
+func (x *ReportMarkerRequest) GetFileSize() int64 {
+	if x != nil {
+		return x.FileSize
+	}
+	return 0
+}
+
+func (x *ReportMarkerRequest) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type ReportMarkerResponse struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Outcome MarkerReportOutcome    `protobuf:"varint,1,opt,name=outcome,proto3,enum=silo.plugin.v1.MarkerReportOutcome" json:"outcome,omitempty"`
+	// Open vocabulary explaining a REFUSED outcome, for example
+	// "segment_not_reportable" or "unsupported_media". A host that does not
+	// recognize a value reads it as a plain refusal and shows the viewer that the
+	// provider would not take the report.
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// What to tell the viewer or the administrator about a refusal, in the
+	// provider's own words. Never carries a credential.
+	Detail        string           `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`
+	Metadata      *structpb.Struct `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportMarkerResponse) Reset() {
+	*x = ReportMarkerResponse{}
+	mi := &file_silo_plugin_v1_marker_provider_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportMarkerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportMarkerResponse) ProtoMessage() {}
+
+func (x *ReportMarkerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_marker_provider_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportMarkerResponse.ProtoReflect.Descriptor instead.
+func (*ReportMarkerResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_marker_provider_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ReportMarkerResponse) GetOutcome() MarkerReportOutcome {
+	if x != nil {
+		return x.Outcome
+	}
+	return MarkerReportOutcome_MARKER_REPORT_OUTCOME_UNSPECIFIED
+}
+
+func (x *ReportMarkerResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ReportMarkerResponse) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *ReportMarkerResponse) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 var File_silo_plugin_v1_marker_provider_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
@@ -811,7 +1100,7 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\tfile_hash\x18\n" +
 	" \x01(\tR\bfileHash\x12\x1b\n" +
 	"\tfile_size\x18\v \x01(\x03R\bfileSize\x12%\n" +
-	"\x0eaccepts_absent\x18\f \x01(\bR\racceptsAbsent\"\xd1\x02\n" +
+	"\x0eaccepts_absent\x18\f \x01(\bR\racceptsAbsent\"\xf1\x02\n" +
 	"\rMarkerSegment\x12\x18\n" +
 	"\asegment\x18\x01 \x01(\tR\asegment\x12(\n" +
 	"\rstart_seconds\x18\x02 \x01(\x01H\x00R\fstartSeconds\x88\x01\x01\x12$\n" +
@@ -823,7 +1112,10 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\x10submission_count\x18\x05 \x01(\x05R\x0fsubmissionCount\x12\x1c\n" +
 	"\talgorithm\x18\x06 \x01(\tR\talgorithm\x123\n" +
 	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x16\n" +
-	"\x06absent\x18\b \x01(\bR\x06absentB\x10\n" +
+	"\x06absent\x18\b \x01(\bR\x06absent\x12\x1e\n" +
+	"\n" +
+	"reportable\x18\t \x01(\bR\n" +
+	"reportableB\x10\n" +
 	"\x0e_start_secondsB\x0e\n" +
 	"\f_end_seconds\"\x84\x01\n" +
 	"\x14FetchMarkersResponse\x127\n" +
@@ -869,11 +1161,37 @@ const file_silo_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\x0ecurrent_streak\x18\x06 \x01(\x05R\rcurrentStreak\x12\x1f\n" +
 	"\vbest_streak\x18\a \x01(\x05R\n" +
 	"bestStreak\x123\n" +
-	"\bmetadata\x18\b \x01(\v2\x17.google.protobuf.StructR\bmetadata2\xbc\x02\n" +
+	"\bmetadata\x18\b \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\x9f\x04\n" +
+	"\x13ReportMarkerRequest\x12\x1b\n" +
+	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
+	"\fexternal_ids\x18\x02 \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
+	"\rseason_number\x18\x03 \x01(\x05R\fseasonNumber\x12%\n" +
+	"\x0eepisode_number\x18\x04 \x01(\x05R\repisodeNumber\x12\x18\n" +
+	"\asegment\x18\x05 \x01(\tR\asegment\x12)\n" +
+	"\x10duration_seconds\x18\x06 \x01(\x01R\x0fdurationSeconds\x12S\n" +
+	"\x14episode_external_ids\x18\a \x01(\v2!.silo.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
+	"\repisode_title\x18\b \x01(\tR\fepisodeTitle\x12+\n" +
+	"\x11episode_numbering\x18\t \x01(\tR\x10episodeNumbering\x12\x1b\n" +
+	"\tfile_hash\x18\n" +
+	" \x01(\tR\bfileHash\x12\x1b\n" +
+	"\tfile_size\x18\v \x01(\x03R\bfileSize\x123\n" +
+	"\bmetadata\x18\f \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xba\x01\n" +
+	"\x14ReportMarkerResponse\x12=\n" +
+	"\aoutcome\x18\x01 \x01(\x0e2#.silo.plugin.v1.MarkerReportOutcomeR\aoutcome\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x16\n" +
+	"\x06detail\x18\x03 \x01(\tR\x06detail\x123\n" +
+	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata*\xaf\x01\n" +
+	"\x13MarkerReportOutcome\x12%\n" +
+	"!MARKER_REPORT_OUTCOME_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1eMARKER_REPORT_OUTCOME_REPORTED\x10\x01\x12*\n" +
+	"&MARKER_REPORT_OUTCOME_ALREADY_REPORTED\x10\x02\x12!\n" +
+	"\x1dMARKER_REPORT_OUTCOME_REFUSED\x10\x032\xbc\x02\n" +
 	"\x0eMarkerProvider\x12Y\n" +
 	"\fFetchMarkers\x12#.silo.plugin.v1.FetchMarkersRequest\x1a$.silo.plugin.v1.FetchMarkersResponse\x12Y\n" +
 	"\fSubmitMarker\x12#.silo.plugin.v1.SubmitMarkerRequest\x1a$.silo.plugin.v1.SubmitMarkerResponse\x12t\n" +
-	"\x16GetMarkerProviderStats\x12-.silo.plugin.v1.GetMarkerProviderStatsRequest\x1a+.silo.plugin.v1.MarkerProviderStatsResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
+	"\x16GetMarkerProviderStats\x12-.silo.plugin.v1.GetMarkerProviderStatsRequest\x1a+.silo.plugin.v1.MarkerProviderStatsResponse2l\n" +
+	"\x0fMarkerReporting\x12Y\n" +
+	"\fReportMarker\x12#.silo.plugin.v1.ReportMarkerRequest\x1a$.silo.plugin.v1.ReportMarkerResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_silo_plugin_v1_marker_provider_proto_rawDescOnce sync.Once
@@ -887,42 +1205,53 @@ func file_silo_plugin_v1_marker_provider_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_marker_provider_proto_rawDescData
 }
 
-var file_silo_plugin_v1_marker_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_silo_plugin_v1_marker_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_silo_plugin_v1_marker_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_silo_plugin_v1_marker_provider_proto_goTypes = []any{
-	(*MarkerExternalIDs)(nil),             // 0: silo.plugin.v1.MarkerExternalIDs
-	(*FetchMarkersRequest)(nil),           // 1: silo.plugin.v1.FetchMarkersRequest
-	(*MarkerSegment)(nil),                 // 2: silo.plugin.v1.MarkerSegment
-	(*FetchMarkersResponse)(nil),          // 3: silo.plugin.v1.FetchMarkersResponse
-	(*SubmitMarkerRequest)(nil),           // 4: silo.plugin.v1.SubmitMarkerRequest
-	(*SubmitMarkerResponse)(nil),          // 5: silo.plugin.v1.SubmitMarkerResponse
-	(*GetMarkerProviderStatsRequest)(nil), // 6: silo.plugin.v1.GetMarkerProviderStatsRequest
-	(*MarkerProviderStatsResponse)(nil),   // 7: silo.plugin.v1.MarkerProviderStatsResponse
-	(*structpb.Struct)(nil),               // 8: google.protobuf.Struct
+	(MarkerReportOutcome)(0),              // 0: silo.plugin.v1.MarkerReportOutcome
+	(*MarkerExternalIDs)(nil),             // 1: silo.plugin.v1.MarkerExternalIDs
+	(*FetchMarkersRequest)(nil),           // 2: silo.plugin.v1.FetchMarkersRequest
+	(*MarkerSegment)(nil),                 // 3: silo.plugin.v1.MarkerSegment
+	(*FetchMarkersResponse)(nil),          // 4: silo.plugin.v1.FetchMarkersResponse
+	(*SubmitMarkerRequest)(nil),           // 5: silo.plugin.v1.SubmitMarkerRequest
+	(*SubmitMarkerResponse)(nil),          // 6: silo.plugin.v1.SubmitMarkerResponse
+	(*GetMarkerProviderStatsRequest)(nil), // 7: silo.plugin.v1.GetMarkerProviderStatsRequest
+	(*MarkerProviderStatsResponse)(nil),   // 8: silo.plugin.v1.MarkerProviderStatsResponse
+	(*ReportMarkerRequest)(nil),           // 9: silo.plugin.v1.ReportMarkerRequest
+	(*ReportMarkerResponse)(nil),          // 10: silo.plugin.v1.ReportMarkerResponse
+	(*structpb.Struct)(nil),               // 11: google.protobuf.Struct
 }
 var file_silo_plugin_v1_marker_provider_proto_depIdxs = []int32{
-	8,  // 0: silo.plugin.v1.MarkerExternalIDs.provider_ids:type_name -> google.protobuf.Struct
-	0,  // 1: silo.plugin.v1.FetchMarkersRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
-	8,  // 2: silo.plugin.v1.FetchMarkersRequest.metadata:type_name -> google.protobuf.Struct
-	0,  // 3: silo.plugin.v1.FetchMarkersRequest.episode_external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
-	8,  // 4: silo.plugin.v1.MarkerSegment.metadata:type_name -> google.protobuf.Struct
-	2,  // 5: silo.plugin.v1.FetchMarkersResponse.markers:type_name -> silo.plugin.v1.MarkerSegment
-	8,  // 6: silo.plugin.v1.FetchMarkersResponse.metadata:type_name -> google.protobuf.Struct
-	0,  // 7: silo.plugin.v1.SubmitMarkerRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
-	8,  // 8: silo.plugin.v1.SubmitMarkerRequest.metadata:type_name -> google.protobuf.Struct
-	0,  // 9: silo.plugin.v1.SubmitMarkerRequest.episode_external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
-	8,  // 10: silo.plugin.v1.SubmitMarkerResponse.metadata:type_name -> google.protobuf.Struct
-	8,  // 11: silo.plugin.v1.MarkerProviderStatsResponse.metadata:type_name -> google.protobuf.Struct
-	1,  // 12: silo.plugin.v1.MarkerProvider.FetchMarkers:input_type -> silo.plugin.v1.FetchMarkersRequest
-	4,  // 13: silo.plugin.v1.MarkerProvider.SubmitMarker:input_type -> silo.plugin.v1.SubmitMarkerRequest
-	6,  // 14: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:input_type -> silo.plugin.v1.GetMarkerProviderStatsRequest
-	3,  // 15: silo.plugin.v1.MarkerProvider.FetchMarkers:output_type -> silo.plugin.v1.FetchMarkersResponse
-	5,  // 16: silo.plugin.v1.MarkerProvider.SubmitMarker:output_type -> silo.plugin.v1.SubmitMarkerResponse
-	7,  // 17: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:output_type -> silo.plugin.v1.MarkerProviderStatsResponse
-	15, // [15:18] is the sub-list for method output_type
-	12, // [12:15] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	11, // 0: silo.plugin.v1.MarkerExternalIDs.provider_ids:type_name -> google.protobuf.Struct
+	1,  // 1: silo.plugin.v1.FetchMarkersRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	11, // 2: silo.plugin.v1.FetchMarkersRequest.metadata:type_name -> google.protobuf.Struct
+	1,  // 3: silo.plugin.v1.FetchMarkersRequest.episode_external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	11, // 4: silo.plugin.v1.MarkerSegment.metadata:type_name -> google.protobuf.Struct
+	3,  // 5: silo.plugin.v1.FetchMarkersResponse.markers:type_name -> silo.plugin.v1.MarkerSegment
+	11, // 6: silo.plugin.v1.FetchMarkersResponse.metadata:type_name -> google.protobuf.Struct
+	1,  // 7: silo.plugin.v1.SubmitMarkerRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	11, // 8: silo.plugin.v1.SubmitMarkerRequest.metadata:type_name -> google.protobuf.Struct
+	1,  // 9: silo.plugin.v1.SubmitMarkerRequest.episode_external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	11, // 10: silo.plugin.v1.SubmitMarkerResponse.metadata:type_name -> google.protobuf.Struct
+	11, // 11: silo.plugin.v1.MarkerProviderStatsResponse.metadata:type_name -> google.protobuf.Struct
+	1,  // 12: silo.plugin.v1.ReportMarkerRequest.external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	1,  // 13: silo.plugin.v1.ReportMarkerRequest.episode_external_ids:type_name -> silo.plugin.v1.MarkerExternalIDs
+	11, // 14: silo.plugin.v1.ReportMarkerRequest.metadata:type_name -> google.protobuf.Struct
+	0,  // 15: silo.plugin.v1.ReportMarkerResponse.outcome:type_name -> silo.plugin.v1.MarkerReportOutcome
+	11, // 16: silo.plugin.v1.ReportMarkerResponse.metadata:type_name -> google.protobuf.Struct
+	2,  // 17: silo.plugin.v1.MarkerProvider.FetchMarkers:input_type -> silo.plugin.v1.FetchMarkersRequest
+	5,  // 18: silo.plugin.v1.MarkerProvider.SubmitMarker:input_type -> silo.plugin.v1.SubmitMarkerRequest
+	7,  // 19: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:input_type -> silo.plugin.v1.GetMarkerProviderStatsRequest
+	9,  // 20: silo.plugin.v1.MarkerReporting.ReportMarker:input_type -> silo.plugin.v1.ReportMarkerRequest
+	4,  // 21: silo.plugin.v1.MarkerProvider.FetchMarkers:output_type -> silo.plugin.v1.FetchMarkersResponse
+	6,  // 22: silo.plugin.v1.MarkerProvider.SubmitMarker:output_type -> silo.plugin.v1.SubmitMarkerResponse
+	8,  // 23: silo.plugin.v1.MarkerProvider.GetMarkerProviderStats:output_type -> silo.plugin.v1.MarkerProviderStatsResponse
+	10, // 24: silo.plugin.v1.MarkerReporting.ReportMarker:output_type -> silo.plugin.v1.ReportMarkerResponse
+	21, // [21:25] is the sub-list for method output_type
+	17, // [17:21] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_marker_provider_proto_init() }
@@ -937,13 +1266,14 @@ func file_silo_plugin_v1_marker_provider_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_marker_provider_proto_rawDesc), len(file_silo_plugin_v1_marker_provider_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   8,
+			NumEnums:      1,
+			NumMessages:   10,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_silo_plugin_v1_marker_provider_proto_goTypes,
 		DependencyIndexes: file_silo_plugin_v1_marker_provider_proto_depIdxs,
+		EnumInfos:         file_silo_plugin_v1_marker_provider_proto_enumTypes,
 		MessageInfos:      file_silo_plugin_v1_marker_provider_proto_msgTypes,
 	}.Build()
 	File_silo_plugin_v1_marker_provider_proto = out.File

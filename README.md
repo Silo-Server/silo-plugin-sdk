@@ -500,6 +500,12 @@ starting fetch priority and contribution defaults travel in the capability's
 `metadata`. See [docs/marker-provider.md](docs/marker-provider.md) for those
 keys, the file facts the host sends, and absent segments.
 
+A provider can also accept reports that a segment is wrong: it serves the
+separate `MarkerReporting` service and marks the segments it would accept a
+report for with `MarkerSegment.reportable`, and the host exposes one report
+operation that every client can call. See the same doc for the request, the
+outcomes, and what to tell the viewer.
+
 ## Network access providers
 
 `network_access_provider.v1` lets a resident plugin give the deployment an

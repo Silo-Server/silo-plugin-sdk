@@ -46,6 +46,7 @@ type serveManifestOptions struct {
 	authProviderChecks           pluginv1.AuthProviderChecksServer
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configurationChecks          pluginv1.ConfigurationChecksServer
+	markerReporting              pluginv1.MarkerReportingServer
 	configure                    ConfigureFunc
 }
 
@@ -94,6 +95,18 @@ func WithNetworkIdentityAuth(server pluginv1.NetworkIdentityAuthServer) ServeMan
 func WithConfigurationChecks(server pluginv1.ConfigurationChecksServer) ServeManifestOption {
 	return func(options *serveManifestOptions) {
 		options.configurationChecks = server
+	}
+}
+
+// WithMarkerReporting registers the separate MarkerReporting service, which
+// lets a viewer report an incorrect segment to a marker provider. Without it,
+// the runtime registers the service only when the MarkerProvider server itself
+// implements MarkerReportingServer. Serving it is also what makes
+// MarkerSegment.reportable meaningful: a host offers a report control only for
+// a segment the provider marked reportable.
+func WithMarkerReporting(server pluginv1.MarkerReportingServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.markerReporting = server
 	}
 }
 
@@ -205,6 +218,9 @@ func manifestServeConfig(
 		return ServeConfig{}, fmt.Errorf("plugin manifest declares %q but no ConfigurationChecks server is registered; pass runtime.WithConfigurationChecks",
 			manifest.ConfigurationCheckKey)
 	}
+	if isNilServer(resolved.markerReporting) {
+		resolved.markerReporting = nil
+	}
 	servers.Runtime = &manifestRuntime{manifest: m, configure: resolved.configure}
 	return ServeConfig{
 		Servers: servers,
@@ -213,6 +229,7 @@ func manifestServeConfig(
 			authProviderChecks:           resolved.authProviderChecks,
 			networkIdentityAuth:          resolved.networkIdentityAuth,
 			configurationChecks:          resolved.configurationChecks,
+			markerReporting:              resolved.markerReporting,
 		}),
 	}, nil
 }

@@ -193,3 +193,149 @@ var MarkerProvider_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "silo/plugin/v1/marker_provider.proto",
 }
+
+const (
+	MarkerReporting_ReportMarker_FullMethodName = "/silo.plugin.v1.MarkerReporting/ReportMarker"
+)
+
+// MarkerReportingClient is the client API for MarkerReporting service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// MarkerReporting is separate from MarkerProvider so adding reporting does not
+// add methods to the released MarkerProviderServer Go interface. Register it
+// with runtime.WithMarkerReporting; the SDK runtime also registers it when the
+// MarkerProvider server itself implements MarkerReportingServer.
+//
+// A plugin that does not serve it answers Unimplemented, and hosts treat that,
+// and a MarkerReportOutcome the host does not recognize, as "this provider
+// cannot report": a client offers no report control for a segment the provider
+// did not mark reportable, and a report that arrives anyway fails as
+// unsupported rather than as an error.
+type MarkerReportingClient interface {
+	// ReportMarker tells the provider that the segment the host is showing for
+	// this item is wrong. It is a viewer's complaint about one segment, not a
+	// submission: it carries no bounds, and the provider decides what its service
+	// does with it.
+	//
+	// The host resolves the item and its numbering itself and calls the provider
+	// that supplied the segment, so a provider can trust the identity it is
+	// given. Refusals the plugin classes as faults use gRPC status codes like
+	// SubmitMarker: InvalidArgument for a request the provider will never accept,
+	// FailedPrecondition for provider state such as a credential an operator has
+	// not configured, and ResourceExhausted with RetryInfo when the provider
+	// wants the caller to try later.
+	ReportMarker(ctx context.Context, in *ReportMarkerRequest, opts ...grpc.CallOption) (*ReportMarkerResponse, error)
+}
+
+type markerReportingClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewMarkerReportingClient(cc grpc.ClientConnInterface) MarkerReportingClient {
+	return &markerReportingClient{cc}
+}
+
+func (c *markerReportingClient) ReportMarker(ctx context.Context, in *ReportMarkerRequest, opts ...grpc.CallOption) (*ReportMarkerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportMarkerResponse)
+	err := c.cc.Invoke(ctx, MarkerReporting_ReportMarker_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// MarkerReportingServer is the server API for MarkerReporting service.
+// All implementations should embed UnimplementedMarkerReportingServer
+// for forward compatibility.
+//
+// MarkerReporting is separate from MarkerProvider so adding reporting does not
+// add methods to the released MarkerProviderServer Go interface. Register it
+// with runtime.WithMarkerReporting; the SDK runtime also registers it when the
+// MarkerProvider server itself implements MarkerReportingServer.
+//
+// A plugin that does not serve it answers Unimplemented, and hosts treat that,
+// and a MarkerReportOutcome the host does not recognize, as "this provider
+// cannot report": a client offers no report control for a segment the provider
+// did not mark reportable, and a report that arrives anyway fails as
+// unsupported rather than as an error.
+type MarkerReportingServer interface {
+	// ReportMarker tells the provider that the segment the host is showing for
+	// this item is wrong. It is a viewer's complaint about one segment, not a
+	// submission: it carries no bounds, and the provider decides what its service
+	// does with it.
+	//
+	// The host resolves the item and its numbering itself and calls the provider
+	// that supplied the segment, so a provider can trust the identity it is
+	// given. Refusals the plugin classes as faults use gRPC status codes like
+	// SubmitMarker: InvalidArgument for a request the provider will never accept,
+	// FailedPrecondition for provider state such as a credential an operator has
+	// not configured, and ResourceExhausted with RetryInfo when the provider
+	// wants the caller to try later.
+	ReportMarker(context.Context, *ReportMarkerRequest) (*ReportMarkerResponse, error)
+}
+
+// UnimplementedMarkerReportingServer should be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedMarkerReportingServer struct{}
+
+func (UnimplementedMarkerReportingServer) ReportMarker(context.Context, *ReportMarkerRequest) (*ReportMarkerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportMarker not implemented")
+}
+func (UnimplementedMarkerReportingServer) testEmbeddedByValue() {}
+
+// UnsafeMarkerReportingServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MarkerReportingServer will
+// result in compilation errors.
+type UnsafeMarkerReportingServer interface {
+	mustEmbedUnimplementedMarkerReportingServer()
+}
+
+func RegisterMarkerReportingServer(s grpc.ServiceRegistrar, srv MarkerReportingServer) {
+	// If the following call panics, it indicates UnimplementedMarkerReportingServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&MarkerReporting_ServiceDesc, srv)
+}
+
+func _MarkerReporting_ReportMarker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportMarkerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarkerReportingServer).ReportMarker(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MarkerReporting_ReportMarker_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarkerReportingServer).ReportMarker(ctx, req.(*ReportMarkerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// MarkerReporting_ServiceDesc is the grpc.ServiceDesc for MarkerReporting service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var MarkerReporting_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "silo.plugin.v1.MarkerReporting",
+	HandlerType: (*MarkerReportingServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ReportMarker",
+			Handler:    _MarkerReporting_ReportMarker_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "silo/plugin/v1/marker_provider.proto",
+}
