@@ -331,6 +331,102 @@ func validateRequestRouterCapability(descriptor *pluginv1.CapabilityDescriptor) 
 	if err := ValidateRequestRouterWording(descriptor.GetRequestRouter().GetWording()); err != nil {
 		return fmt.Errorf("plugin capability %q: %w", descriptor.GetId(), err)
 	}
+	if err := validateRequesterOptions(descriptor); err != nil {
+		return fmt.Errorf("plugin capability %q: %w", descriptor.GetId(), err)
+	}
+	return nil
+}
+
+// Media types a RequesterOption may name; they match
+// RequestDescriptor.media_type.
+const (
+	RequesterOptionMediaTypeMovie  = "movie"
+	RequesterOptionMediaTypeSeries = "series"
+)
+
+// Values of a RequesterOption's chooser_field select: who chooses the option
+// on a server.
+const (
+	// RequesterOptionChooserAdmin: nobody chooses; the saved value applies.
+	RequesterOptionChooserAdmin = "admin"
+	// RequesterOptionChooserRequester: the requester chooses when
+	// requesting, and an approving admin may change the pick.
+	RequesterOptionChooserRequester = "requester"
+	// RequesterOptionChooserApprover: the admin chooses when approving.
+	RequesterOptionChooserApprover = "approver"
+)
+
+// validateRequesterOptions checks each requester option against the
+// capability's admin forms: field must be a select with dynamic options over
+// a string property, and chooser_field a select that lists its own options,
+// each a chooser value, so a host can list the choices and read who chooses.
+// A field may be listed once per media type.
+func validateRequesterOptions(descriptor *pluginv1.CapabilityDescriptor) error {
+	options := descriptor.GetRequestRouter().GetRequesterOptions()
+	if len(options) == 0 {
+		return nil
+	}
+	fields := map[string]*pluginv1.AdminFormField{}
+	// The json_schema type of each form field. A schema that does not parse
+	// is reported by the admin form validation.
+	types := map[string]string{}
+	for _, schema := range descriptor.GetConfigSchema() {
+		var parsed struct {
+			Properties map[string]struct {
+				Type string `json:"type"`
+			} `json:"properties"`
+		}
+		_ = json.Unmarshal([]byte(schema.GetJsonSchema()), &parsed)
+		for _, field := range schema.GetAdminForm().GetFields() {
+			fields[field.GetKey()] = field
+			types[field.GetKey()] = parsed.Properties[field.GetKey()].Type
+		}
+	}
+	seen := map[string]bool{}
+	for i, option := range options {
+		name := fmt.Sprintf("request_router requester_options[%d]", i)
+		key := option.GetField()
+		if key == "" {
+			return fmt.Errorf("%s: field is required", name)
+		}
+		field, ok := fields[key]
+		if !ok || field.GetControl() != pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT || !field.GetDynamicOptions() {
+			return fmt.Errorf("%s: field %q must be a select with dynamic_options in the capability's admin form", name, key)
+		}
+		// A pick is a ConfigOption value, which is a string. Set on a
+		// property of another type it would change the type the plugin reads.
+		if propertyType := types[key]; propertyType != "" && propertyType != "string" {
+			return fmt.Errorf("%s: field %q must be a string property in json_schema, not %s: a pick is passed as a string", name, key, propertyType)
+		}
+		mediaType := option.GetMediaType()
+		switch mediaType {
+		case "", RequesterOptionMediaTypeMovie, RequesterOptionMediaTypeSeries:
+		default:
+			return fmt.Errorf("%s: media_type %q must be %q, %q or empty", name, mediaType, RequesterOptionMediaTypeMovie, RequesterOptionMediaTypeSeries)
+		}
+		// An option for every media type overlaps one for a single type.
+		if seen[key+"/"] || seen[key+"/"+mediaType] || (mediaType == "" && (seen[key+"/"+RequesterOptionMediaTypeMovie] || seen[key+"/"+RequesterOptionMediaTypeSeries])) {
+			return fmt.Errorf("%s: field %q is listed more than once for a media type", name, key)
+		}
+		seen[key+"/"+mediaType] = true
+		if err := validateWordingValue("label", option.GetLabel(), MaxRequestWordingLabelRunes); err != nil {
+			return fmt.Errorf("%s: %w", name, err)
+		}
+		if chooser := option.GetChooserField(); chooser != "" {
+			field, ok := fields[chooser]
+			if !ok || field.GetControl() != pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_SELECT || field.GetDynamicOptions() || len(field.GetOptions()) == 0 {
+				return fmt.Errorf("%s: chooser_field %q must be a select that lists its options in the capability's admin form", name, chooser)
+			}
+			for _, choice := range field.GetOptions() {
+				switch choice.GetValue() {
+				case RequesterOptionChooserAdmin, RequesterOptionChooserRequester, RequesterOptionChooserApprover:
+				default:
+					return fmt.Errorf("%s: chooser_field %q option %q must be %q, %q or %q", name, chooser, choice.GetValue(),
+						RequesterOptionChooserAdmin, RequesterOptionChooserRequester, RequesterOptionChooserApprover)
+				}
+			}
+		}
+	}
 	return nil
 }
 

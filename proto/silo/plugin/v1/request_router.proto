@@ -73,6 +73,42 @@ message RequestRouterDescriptor {
   // base_url_optional declares that the plugin works without a base URL. The
   // host's admin form then saves and tests a server without one.
   bool base_url_optional = 5;
+  // requester_options lists the connection settings a requester may choose
+  // when making a request, such as a quality profile. Empty means requesters
+  // choose nothing, which is how hosts treat plugins built before this field.
+  repeated RequesterOption requester_options = 6;
+}
+
+// RequesterOption lets the requester, or the admin who approves, choose one
+// connection setting for a single request. The host offers the choices that
+// ListConfigOptions returns for field on the server the request would go to,
+// checks the pick against them, and passes it to Fulfill as that key of
+// RouterConnection.config, over the server's own value and over a routing
+// rule's. The plugin reads the config as it always does, so honouring a pick
+// needs no code beyond the manifest. When nobody picks, the config stays as
+// the admin set it.
+message RequesterOption {
+  // field is the config key the requester sets. It must name a select field
+  // of the capability's admin form that has dynamic_options, so the host has
+  // a list to offer and to check a pick against. Its json_schema property
+  // must be a string: a pick is a ConfigOption value, and the host sets it
+  // as that string.
+  string field = 1;
+  // media_type limits the option to requests of one media type: "movie" or
+  // "series". Empty offers it for both.
+  string media_type = 2;
+  // label names the choice to requesters, e.g. "Quality". Empty means the
+  // admin form field's label. At most 24 characters, on a single line
+  // without leading or trailing spaces.
+  string label = 3;
+  // chooser_field is the config key of a select in the capability's admin
+  // form that names who chooses on a server: "admin" (nobody; the saved value
+  // applies), "requester" (the requester when requesting; an approving admin
+  // may change it) or "approver" (the admin when approving). The select lists
+  // its options itself, each with one of those values. A server with any
+  // other value, or none, is "admin". Empty lets requesters choose on every
+  // server.
+  string chooser_field = 4;
 }
 
 // RequestRouterWording names the part of a request that a request router
