@@ -54,6 +54,9 @@ type RuntimeHostClient interface {
 	// PublishEventToInstallation publishes an event addressed to one specific
 	// plugin installation. Use this when the caller discovered a peer through
 	// ListInstalledPlugins and needs to avoid plugin_id ambiguity.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	PublishEventToInstallation(ctx context.Context, in *PublishEventToInstallationRequest, opts ...grpc.CallOption) (*PublishEventToInstallationResponse, error)
 	// GetHostInfo returns public-safe host URLs and identity metadata plugins can
 	// use when constructing callback URLs or external-facing links.
@@ -73,18 +76,33 @@ type RuntimeHostClient interface {
 	// ListLibraryMedia returns public-safe catalog metadata from the host
 	// libraries. It is intended for browse/search surfaces; it must not include
 	// filesystem paths, stream URLs, or other playback grants.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	ListLibraryMedia(ctx context.Context, in *ListLibraryMediaRequest, opts ...grpc.CallOption) (*ListLibraryMediaResponse, error)
 	// GetCatalogStats returns aggregate public-safe counts for host libraries.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	GetCatalogStats(ctx context.Context, in *GetCatalogStatsRequest, opts ...grpc.CallOption) (*GetCatalogStatsResponse, error)
 	// ResolveCatalogImageURLs resolves stored catalog image paths using the
 	// host's configured image resolver, returning browser-usable URLs.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	ResolveCatalogImageURLs(ctx context.Context, in *ResolveCatalogImageURLsRequest, opts ...grpc.CallOption) (*ResolveCatalogImageURLsResponse, error)
 	// MintScopedStream mints a short-lived, narrowly scoped stream URL for a
 	// plugin-owned public access workflow such as guest passes.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	MintScopedStream(ctx context.Context, in *MintScopedStreamRequest, opts ...grpc.CallOption) (*MintScopedStreamResponse, error)
 	// CallPluginHTTP invokes another installed plugin's HttpRoutes handler
 	// through the host control plane. Calls are treated as authenticated
 	// service-to-service traffic, but never as admin traffic.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	CallPluginHTTP(ctx context.Context, in *CallPluginHTTPRequest, opts ...grpc.CallOption) (*CallPluginHTTPResponse, error)
 	// ReadInstanceState reads one key of the calling plugin instance's private
 	// state. The scope (installation plus host) is derived by the host and never
@@ -285,6 +303,9 @@ type RuntimeHostServer interface {
 	// PublishEventToInstallation publishes an event addressed to one specific
 	// plugin installation. Use this when the caller discovered a peer through
 	// ListInstalledPlugins and needs to avoid plugin_id ambiguity.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	PublishEventToInstallation(context.Context, *PublishEventToInstallationRequest) (*PublishEventToInstallationResponse, error)
 	// GetHostInfo returns public-safe host URLs and identity metadata plugins can
 	// use when constructing callback URLs or external-facing links.
@@ -304,18 +325,33 @@ type RuntimeHostServer interface {
 	// ListLibraryMedia returns public-safe catalog metadata from the host
 	// libraries. It is intended for browse/search surfaces; it must not include
 	// filesystem paths, stream URLs, or other playback grants.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	ListLibraryMedia(context.Context, *ListLibraryMediaRequest) (*ListLibraryMediaResponse, error)
 	// GetCatalogStats returns aggregate public-safe counts for host libraries.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	GetCatalogStats(context.Context, *GetCatalogStatsRequest) (*GetCatalogStatsResponse, error)
 	// ResolveCatalogImageURLs resolves stored catalog image paths using the
 	// host's configured image resolver, returning browser-usable URLs.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	ResolveCatalogImageURLs(context.Context, *ResolveCatalogImageURLsRequest) (*ResolveCatalogImageURLsResponse, error)
 	// MintScopedStream mints a short-lived, narrowly scoped stream URL for a
 	// plugin-owned public access workflow such as guest passes.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	MintScopedStream(context.Context, *MintScopedStreamRequest) (*MintScopedStreamResponse, error)
 	// CallPluginHTTP invokes another installed plugin's HttpRoutes handler
 	// through the host control plane. Calls are treated as authenticated
 	// service-to-service traffic, but never as admin traffic.
+	//
+	// Silo does not implement this RPC yet, so a call fails with the gRPC
+	// status UNIMPLEMENTED.
 	CallPluginHTTP(context.Context, *CallPluginHTTPRequest) (*CallPluginHTTPResponse, error)
 	// ReadInstanceState reads one key of the calling plugin instance's private
 	// state. The scope (installation plus host) is derived by the host and never

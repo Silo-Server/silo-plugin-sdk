@@ -29,6 +29,11 @@ func (e *HTTPStatusError) Error() string {
 	return fmt.Sprintf("runtimehost: plugin HTTP returned status %d", e.StatusCode)
 }
 
+// CallPluginJSON makes a JSON request to another installed plugin's
+// http_routes.v1 handler through CallPluginHTTP.
+//
+// Silo does not implement CallPluginHTTP yet, so a call that reaches the host
+// fails with the gRPC status codes.Unimplemented.
 func (c *Client) CallPluginJSON(ctx context.Context, req CallPluginJSONRequest) error {
 	method := req.Method
 	if method == "" {
