@@ -1,9 +1,6 @@
 package events
 
-import (
-	"encoding/json"
-	"time"
-)
+import "time"
 
 // LibraryChanged is the payload of catalog.library.changed.
 type LibraryChanged struct {
@@ -40,41 +37,17 @@ type SessionEvent struct {
 	State string `json:"state"`
 	// EndReason is why a stopped session ended.
 	EndReason string `json:"end_reason,omitempty"`
-	// Session is the live session on a started, paused or resumed event, as
-	// the /api/v2 AdminPlaybackSession schema describes it. Absent when no
-	// server has a live record of it. DecodeSession reads common fields.
-	Session json.RawMessage `json:"session,omitempty"`
-	// History is the history entry a stopped event recorded, as the /api/v2
-	// AdminPlaybackHistoryEntry schema describes it. DecodeHistory reads
-	// common fields.
-	History json.RawMessage `json:"history,omitempty"`
+	// Session is the live session on a started, paused or resumed event.
+	// Absent when no server has a live record of it.
+	Session *PlaybackSession `json:"session,omitempty"`
+	// History is the history entry a stopped event recorded.
+	History *PlaybackHistoryEntry `json:"history,omitempty"`
 }
 
-// DecodeSession decodes the live session. It returns nil when the event has
-// none.
-func (e SessionEvent) DecodeSession() (*PlaybackSession, error) {
-	return decodeOptional[PlaybackSession](e.Session)
-}
-
-// DecodeHistory decodes the history entry. It returns nil when the event has
-// none.
-func (e SessionEvent) DecodeHistory() (*PlaybackHistoryEntry, error) {
-	return decodeOptional[PlaybackHistoryEntry](e.History)
-}
-
-func decodeOptional[T any](raw json.RawMessage) (*T, error) {
-	if len(raw) == 0 || string(raw) == "null" {
-		return nil, nil
-	}
-	out := new(T)
-	if err := json.Unmarshal(raw, out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// PlaybackSession is a subset of the /api/v2 AdminPlaybackSession schema. As
-// in /api/v2, IDs are strings.
+// PlaybackSession is a playback session as plugins see it: these fields of
+// the /api/v2 AdminPlaybackSession schema and no others. As in /api/v2, IDs
+// are strings. A field the host adds to that schema reaches plugins only when
+// an SDK release adds it here.
 type PlaybackSession struct {
 	SessionID           string    `json:"session_id"`
 	UserID              string    `json:"user_id"`
@@ -104,8 +77,9 @@ type PlaybackSession struct {
 	StreamBitrateKbps *int   `json:"stream_bitrate_kbps"`
 }
 
-// PlaybackHistoryEntry is a subset of the /api/v2 AdminPlaybackHistoryEntry
-// schema. As in /api/v2, IDs are strings.
+// PlaybackHistoryEntry is a finished session as plugins see it: these fields
+// of the /api/v2 AdminPlaybackHistoryEntry schema and no others. As in
+// /api/v2, IDs are strings.
 type PlaybackHistoryEntry struct {
 	SessionID       string    `json:"session_id"`
 	UserID          string    `json:"user_id"`
@@ -210,9 +184,30 @@ type Notification struct {
 	PosterPath string `json:"poster_path,omitempty"`
 	// PosterURL is a poster URL when the host has one ready. It can expire.
 	PosterURL string `json:"poster_url,omitempty"`
-	// ReasonFlags is a JSON object whose shape depends on Type: why an
-	// episode was announced (favorite, watchlist, continue_watching,
-	// next_up) or which request changed.
-	ReasonFlags json.RawMessage `json:"reason_flags,omitempty"`
-	CreatedAt   time.Time       `json:"created_at"`
+	// ReasonFlags says why the notification was sent. Which fields are set
+	// depends on Type.
+	ReasonFlags *NotificationReason `json:"reason_flags,omitempty"`
+	CreatedAt   time.Time           `json:"created_at"`
+}
+
+// NotificationReason is a notification's reason_flags. A new-episode
+// notification sets NextUp. A request or watchlist notification names the
+// title. Other types set nothing.
+type NotificationReason struct {
+	// NextUp: the episode is the next one after what the profile watched.
+	NextUp bool `json:"next_up,omitempty"`
+	// RequestID is the media request a request.* notification is about.
+	RequestID string `json:"request_id,omitempty"`
+	// TMDBID is the title's ID at TMDB, which is a number there. It is the
+	// one identifier in the catalog that isn't a string.
+	TMDBID int64 `json:"tmdb_id,omitempty"`
+	// MediaType is "movie" or "series".
+	MediaType string `json:"media_type,omitempty"`
+	Title     string `json:"title,omitempty"`
+	Year      int    `json:"year,omitempty"`
+	// Reason is the message an administrator gave when declining a request.
+	Reason string `json:"reason,omitempty"`
+	// Follower marks a request.fulfilled notification sent to a profile that
+	// followed the title and did not request it.
+	Follower bool `json:"follower,omitempty"`
 }

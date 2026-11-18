@@ -70,29 +70,52 @@ func TestProjectKeepsOnlyPublicFields(t *testing.T) {
 	}
 }
 
-func TestProjectKeepsNestedAPIObjects(t *testing.T) {
-	// session is an /api/v2 object governed by that contract: every field
-	// passes through, not only the ones PlaybackSession reads.
+func TestProjectKeepsOnlyCatalogFieldsOfNestedObjects(t *testing.T) {
+	// A nested object is allowlisted like the payload itself: a field the
+	// host's own schema has and the catalog type lacks doesn't reach plugins.
 	raw := []byte(`{"session_id":"s1","seq":3,"at":"2026-11-04T10:00:00.123Z","state":"playing",
-		"session":{"session_id":"s1","user_id":"7","media_title":"Heat","routing_egress":"direct"}}`)
+		"session":{"session_id":"s1","user_id":"7","media_title":"Heat","client_user_agent":"UA/1","routing_egress":"direct"}}`)
 	out, err := events.Project(events.SessionStarted, raw)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var event events.SessionEvent
+	var event struct {
+		Session map[string]any `json:"session"`
+		History map[string]any `json:"history"`
+	}
 	if err := json.Unmarshal(out, &event); err != nil {
 		t.Fatal(err)
 	}
-	var session map[string]any
-	if err := json.Unmarshal(event.Session, &session); err != nil || session["routing_egress"] != "direct" {
-		t.Fatalf("nested session = %s, %v", event.Session, err)
+	if event.Session["user_id"] != "7" || event.Session["media_title"] != "Heat" {
+		t.Fatalf("session = %v, want its catalog fields", event.Session)
 	}
-	typed, err := event.DecodeSession()
-	if err != nil || typed.UserID != "7" || typed.MediaTitle != "Heat" {
-		t.Fatalf("DecodeSession() = %+v, %v", typed, err)
+	for _, internal := range []string{"client_user_agent", "routing_egress"} {
+		if _, leaked := event.Session[internal]; leaked {
+			t.Errorf("session carries %q, which PlaybackSession doesn't declare", internal)
+		}
 	}
-	if history, err := event.DecodeHistory(); history != nil || err != nil {
-		t.Fatalf("DecodeHistory() = %+v, %v; want nil for a started event", history, err)
+	if event.History != nil {
+		t.Fatalf("history = %v, want none on a started event", event.History)
+	}
+
+	raw = []byte(`{"id":"d1","type":"request.declined","user_id":"7","profile_id":"p1","created_at":"2026-11-04T10:00:00Z",
+		"reason_flags":{"request_id":"r1","tmdb_id":603,"media_type":"movie","reason":"Not available","internal_note":"x"}}`)
+	out, err = events.Project(events.NotificationCreated, raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var notification struct {
+		ReasonFlags map[string]any `json:"reason_flags"`
+	}
+	if err := json.Unmarshal(out, &notification); err != nil {
+		t.Fatal(err)
+	}
+	flags := notification.ReasonFlags
+	if flags["request_id"] != "r1" || flags["tmdb_id"] != float64(603) || flags["reason"] != "Not available" {
+		t.Fatalf("reason_flags = %v, want the request's catalog fields", flags)
+	}
+	if _, leaked := flags["internal_note"]; leaked {
+		t.Errorf("reason_flags carries a field NotificationReason doesn't declare: %v", flags)
 	}
 }
 
@@ -109,7 +132,7 @@ func TestProjectRejectsNamesOutsideTheCatalog(t *testing.T) {
 func TestDecode(t *testing.T) {
 	payload, err := structpb.NewStruct(map[string]any{
 		"id": "d1", "type": "episode.available", "user_id": "7", "profile_id": "p1",
-		"season_number": 2, "reason_flags": map[string]any{"favorite": true},
+		"season_number": 2, "reason_flags": map[string]any{"next_up": true},
 		"created_at": "2026-11-04T10:00:00Z",
 	})
 	if err != nil {
@@ -119,7 +142,7 @@ func TestDecode(t *testing.T) {
 	if err := events.Decode(payload, &n); err != nil {
 		t.Fatal(err)
 	}
-	if n.UserID != "7" || n.ProfileID != "p1" || n.SeasonNumber == nil || *n.SeasonNumber != 2 || string(n.ReasonFlags) != `{"favorite":true}` {
+	if n.UserID != "7" || n.ProfileID != "p1" || n.SeasonNumber == nil || *n.SeasonNumber != 2 || n.ReasonFlags == nil || !n.ReasonFlags.NextUp {
 		t.Fatalf("Decode() = %+v", n)
 	}
 	if err := events.Decode(nil, &n); err == nil {

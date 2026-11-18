@@ -31,7 +31,7 @@ func (s *server) HandleEvent(ctx context.Context, req *pluginv1.HandleEventReque
 		if err := events.Decode(req.GetPayload(), &event); err != nil {
 			return &pluginv1.HandleEventResponse{}, nil // malformed: ignore, don't retry
 		}
-		session, _ := event.DecodeSession()
+		session := event.Session // nil when no server has a live record
 		// ...
 	}
 	return &pluginv1.HandleEventResponse{}, nil
@@ -78,7 +78,7 @@ the events the plugin uses.
 | Event | Access | Payload | When |
 |---|---|---|---|
 | `catalog.library.changed` | public | `LibraryChanged` | A scan or refresh changed a library. |
-| `catalog.item.changed` | public | `ItemChanged` | A catalog item's metadata, artwork or files changed. |
+| `catalog.item.changed` | public | `ItemChanged` | A catalog item's metadata or artwork changed. |
 | `session.started` | admin | `SessionEvent` | A playback session started. |
 | `session.paused` | admin | `SessionEvent` | A playback session paused. |
 | `session.resumed` | admin | `SessionEvent` | A paused session resumed. |
@@ -97,19 +97,24 @@ Notes on specific payloads:
 
 - **`SessionEvent`** carries the live session (`session`, on started, paused
   and resumed) or the history entry the end recorded (`history`, on stopped).
-  These are the `/api/v2` `AdminPlaybackSession` and
-  `AdminPlaybackHistoryEntry` objects, with every field that schema defines.
-  `DecodeSession` and `DecodeHistory` read the common ones. A session's
-  events can arrive out of order; `seq` orders them.
+  They carry the fields of `PlaybackSession` and `PlaybackHistoryEntry` and
+  no others: a field the host adds to its `/api/v2` `AdminPlaybackSession`
+  or `AdminPlaybackHistoryEntry` schema reaches plugins only when an SDK
+  release adds it to these types. A session's events can arrive out of
+  order; `seq` orders them.
 - **`Notification`** identifies its recipient by `user_id` and `profile_id`
-  together. Profile IDs repeat across accounts.
+  together. Profile IDs repeat across accounts. `reason_flags` carries the
+  fields of `NotificationReason`: `next_up` on a new episode, and the title
+  (`request_id`, `tmdb_id`, `media_type`, `title`, `year`, the decline
+  `reason`, `follower`) on a request or watchlist notification.
 - **`notification.created` is provisional.** A plugin that sends a profile's
   notifications somewhere else (Pushover, ntfy and the like) should provide a
   `notification_channel.v1` destination, which gets the host's preferences,
   queue and retries. This event may leave the catalog before SDK 1.0.
 - Every identifier is a JSON string, as in `/api/v2`: `library_id`,
   `user_id`, `created_by_user_id`, `content_id`, `profile_id`. Don't parse or
-  compare them as numbers.
+  compare them as numbers. The one exception is `reason_flags.tmdb_id`, TMDB's
+  own numeric ID.
 
 ## Hosts
 

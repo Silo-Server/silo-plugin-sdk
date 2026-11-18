@@ -50,8 +50,9 @@ const (
 	// CatalogLibraryChanged: a scan or refresh changed a library. Payload
 	// LibraryChanged.
 	CatalogLibraryChanged = "catalog.library.changed"
-	// CatalogItemChanged: one catalog item's metadata, artwork or files
-	// changed. Payload ItemChanged.
+	// CatalogItemChanged: one catalog item's metadata or artwork changed.
+	// Items a scan adds, removes or re-files are reported by
+	// CatalogLibraryChanged, not one by one. Payload ItemChanged.
 	CatalogItemChanged = "catalog.item.changed"
 
 	// SessionStarted, SessionPaused, SessionResumed and SessionStopped follow
@@ -107,7 +108,7 @@ func define[T any](name string, access Access, description string) Definition {
 
 var catalog = []Definition{
 	define[LibraryChanged](CatalogLibraryChanged, AccessPublic, "A scan or refresh changed a library."),
-	define[ItemChanged](CatalogItemChanged, AccessPublic, "A catalog item's metadata, artwork or files changed."),
+	define[ItemChanged](CatalogItemChanged, AccessPublic, "A catalog item's metadata or artwork changed."),
 
 	define[SessionEvent](SessionStarted, AccessAdmin, "A playback session started."),
 	define[SessionEvent](SessionPaused, AccessAdmin, "A playback session paused."),
