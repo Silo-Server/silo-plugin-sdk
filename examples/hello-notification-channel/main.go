@@ -10,9 +10,11 @@ package main
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math"
+	"mime"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -73,6 +75,11 @@ func (c *channel) ValidateDestination(_ context.Context, req *pluginv1.ValidateN
 			Message: "The topic must be 1 to 64 letters, digits, hyphens or underscores.",
 		}, nil
 	}
+	if !validToken(req.GetConfig().GetFields()["access_token"].GetStringValue()) {
+		return &pluginv1.ValidateNotificationDestinationResponse{
+			Message: "The access token can only contain printable ASCII characters.",
+		}, nil
+	}
 	if !validServerURL(c.server()) {
 		return &pluginv1.ValidateNotificationDestinationResponse{
 			Message: "The administrator's ntfy server URL isn't valid. Ask them to fix it in the plugin's settings.",
@@ -88,11 +95,30 @@ func validServerURL(raw string) bool {
 	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
+// validToken reports whether token can go in an HTTP header unchanged.
+func validToken(token string) bool {
+	return !strings.ContainsFunc(token, func(r rune) bool { return r < 0x20 || r > 0x7e })
+}
+
+// headerValue makes text safe for an HTTP header: Go refuses control
+// characters, so they become spaces, and ntfy reads non-ASCII text only
+// RFC 2047 encoded.
+func headerValue(text string) string {
+	text = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return ' '
+		}
+		return r
+	}, text)
+	return mime.BEncoding.Encode("utf-8", strings.TrimSpace(text))
+}
+
 func (c *channel) SendNotification(ctx context.Context, req *pluginv1.SendNotificationRequest) (*pluginv1.SendNotificationResponse, error) {
 	fields := req.GetConfig().GetFields()
 	topic := fields["topic"].GetStringValue()
-	if !topicPattern.MatchString(topic) {
-		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_DESTINATION_INVALID, "The topic isn't valid."), nil
+	token := fields["access_token"].GetStringValue()
+	if !topicPattern.MatchString(topic) || !validToken(token) {
+		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_DESTINATION_INVALID, "The topic or access token isn't valid."), nil
 	}
 	msg := req.GetMessage()
 	body := msg.GetBody()
@@ -103,11 +129,11 @@ func (c *channel) SendNotification(ctx context.Context, req *pluginv1.SendNotifi
 	if err != nil {
 		return nil, err
 	}
-	httpReq.Header.Set("Title", msg.GetTitle())
+	httpReq.Header.Set("Title", headerValue(msg.GetTitle()))
 	if msg.GetUrl() != "" {
-		httpReq.Header.Set("Click", msg.GetUrl())
+		httpReq.Header.Set("Click", headerValue(msg.GetUrl()))
 	}
-	if token := fields["access_token"].GetStringValue(); token != "" {
+	if token != "" {
 		httpReq.Header.Set("Authorization", "Bearer "+token)
 	}
 	resp, err := c.http.Do(httpReq)
@@ -116,13 +142,22 @@ func (c *channel) SendNotification(ctx context.Context, req *pluginv1.SendNotifi
 		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_RETRY, "Couldn't reach the ntfy server."), nil
 	}
 	defer resp.Body.Close()
-	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 64<<10))
+	respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
 
 	switch {
 	case resp.StatusCode < 300:
 		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_DELIVERED, ""), nil
-	case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
+	case resp.StatusCode < 400:
+		// The client doesn't follow redirects: a redirect, such as to a
+		// proxy's login page, would turn the POST into a GET and its 200
+		// would look like a delivery.
+		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_RETRY, fmt.Sprintf("The ntfy server redirected the message (%d).", resp.StatusCode)), nil
+	case refusedByNtfy(resp.StatusCode, respBody):
 		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_DESTINATION_INVALID, "ntfy refused the access token for this topic."), nil
+	case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
+		// Not ntfy's own answer, so maybe a proxy in front of it: retry
+		// rather than disable a destination that may be fine.
+		return outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_RETRY, fmt.Sprintf("The ntfy server answered %d.", resp.StatusCode)), nil
 	case resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500:
 		out := outcome(pluginv1.NotificationSendOutcome_NOTIFICATION_SEND_OUTCOME_RETRY, fmt.Sprintf("ntfy answered %d.", resp.StatusCode))
 		// Pass ntfy's wait through unshortened; the host applies its own cap.
@@ -135,12 +170,39 @@ func (c *channel) SendNotification(ctx context.Context, req *pluginv1.SendNotifi
 	}
 }
 
+// refusedByNtfy reports whether a 401 or 403 is ntfy's own refusal of the
+// topic's credentials, which comes as JSON such as
+// {"code":40101,"http":401,"error":"unauthorized"}. A proxy or CDN in front
+// of ntfy answers differently, and only ntfy's answer proves the
+// destination's settings wrong.
+func refusedByNtfy(status int, body []byte) bool {
+	if status != http.StatusUnauthorized && status != http.StatusForbidden {
+		return false
+	}
+	var ntfyErr struct {
+		Code int `json:"code"`
+		HTTP int `json:"http"`
+	}
+	return json.Unmarshal(body, &ntfyErr) == nil && ntfyErr.HTTP == status && ntfyErr.Code/100 == status
+}
+
 func outcome(o pluginv1.NotificationSendOutcome, message string) *pluginv1.SendNotificationResponse {
 	return &pluginv1.SendNotificationResponse{Outcome: o, Message: message}
 }
 
+// newHTTPClient returns a client that doesn't follow redirects, so
+// SendNotification sees them.
+func newHTTPClient() *http.Client {
+	return &http.Client{
+		Timeout: 10 * time.Second,
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+}
+
 func main() {
-	ntfy := &channel{http: &http.Client{Timeout: 10 * time.Second}, serverURL: defaultServerURL}
+	ntfy := &channel{http: newHTTPClient(), serverURL: defaultServerURL}
 	sdkruntime.ServeManifestWithOptions(manifestJSON, version, sdkruntime.CapabilityServers{},
 		sdkruntime.WithConfigure(ntfy.configure),
 		sdkruntime.WithNotificationChannel(ntfy),
