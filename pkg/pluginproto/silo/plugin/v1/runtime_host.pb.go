@@ -2148,7 +2148,16 @@ type ReadInstanceStateResponse struct {
 	// Stored value; empty when found is false.
 	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
 	// False when no value is stored under key in this instance's scope.
-	Found         bool `protobuf:"varint,2,opt,name=found,proto3" json:"found,omitempty"`
+	Found bool `protobuf:"varint,2,opt,name=found,proto3" json:"found,omitempty"`
+	// Version of the stored value: 1 after the first write, one more after
+	// each later write. 0 when found is false. Pass it as
+	// WriteInstanceStateRequest.expected_version to write only if no one else
+	// wrote the key since.
+	Version int64 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	// True when the host keeps versions and honors expected_version. Older
+	// hosts leave it false and ignore expected_version, writing
+	// unconditionally.
+	Versioned     bool `protobuf:"varint,4,opt,name=versioned,proto3" json:"versioned,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2197,14 +2206,32 @@ func (x *ReadInstanceStateResponse) GetFound() bool {
 	return false
 }
 
+func (x *ReadInstanceStateResponse) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *ReadInstanceStateResponse) GetVersioned() bool {
+	if x != nil {
+		return x.Versioned
+	}
+	return false
+}
+
 type WriteInstanceStateRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// State key, <= 256 bytes.
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// Value to store, <= 256 KiB.
-	Value         []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	// When set, the host writes only if the key's current version equals it,
+	// and 0 means the key must not exist yet. Otherwise it fails with ABORTED
+	// and changes nothing. Unset writes unconditionally.
+	ExpectedVersion *int64 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3,oneof" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *WriteInstanceStateRequest) Reset() {
@@ -2251,8 +2278,17 @@ func (x *WriteInstanceStateRequest) GetValue() []byte {
 	return nil
 }
 
+func (x *WriteInstanceStateRequest) GetExpectedVersion() int64 {
+	if x != nil && x.ExpectedVersion != nil {
+		return *x.ExpectedVersion
+	}
+	return 0
+}
+
 type WriteInstanceStateResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Version of the value just written. Older hosts leave it 0.
+	Version       int64 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2285,6 +2321,13 @@ func (x *WriteInstanceStateResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use WriteInstanceStateResponse.ProtoReflect.Descriptor instead.
 func (*WriteInstanceStateResponse) Descriptor() ([]byte, []int) {
 	return file_silo_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *WriteInstanceStateResponse) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
 }
 
 type ReportNetworkAccessStatusRequest struct {
@@ -2549,14 +2592,19 @@ const file_silo_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\",\n" +
 	"\x18ReadInstanceStateRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\"G\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"\x7f\n" +
 	"\x19ReadInstanceStateResponse\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\fR\x05value\x12\x14\n" +
-	"\x05found\x18\x02 \x01(\bR\x05found\"C\n" +
+	"\x05found\x18\x02 \x01(\bR\x05found\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\x12\x1c\n" +
+	"\tversioned\x18\x04 \x01(\bR\tversioned\"\x88\x01\n" +
 	"\x19WriteInstanceStateRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\fR\x05value\"\x1c\n" +
-	"\x1aWriteInstanceStateResponse\"_\n" +
+	"\x05value\x18\x02 \x01(\fR\x05value\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x03H\x00R\x0fexpectedVersion\x88\x01\x01B\x13\n" +
+	"\x11_expected_version\"6\n" +
+	"\x1aWriteInstanceStateResponse\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\x03R\aversion\"_\n" +
 	" ReportNetworkAccessStatusRequest\x12;\n" +
 	"\x06status\x18\x01 \x01(\v2#.silo.plugin.v1.NetworkAccessStatusR\x06status\"#\n" +
 	"!ReportNetworkAccessStatusResponse2\xc1\r\n" +
@@ -2702,6 +2750,7 @@ func file_silo_plugin_v1_runtime_host_proto_init() {
 	}
 	file_silo_plugin_v1_common_proto_init()
 	file_silo_plugin_v1_network_access_provider_proto_init()
+	file_silo_plugin_v1_runtime_host_proto_msgTypes[35].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
