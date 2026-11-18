@@ -44,9 +44,11 @@ type RequestDescriptor struct {
 	Seasons []int32 `protobuf:"varint,10,rep,packed,name=seasons,proto3" json:"seasons,omitempty"`
 	// season_details describes each requested season as the host's metadata
 	// source (TMDB) numbers it, so a plugin whose download service numbers the
-	// series differently can find the same episodes. It lists the seasons in
-	// `seasons`, in the same order, when the host knows them; it is empty for
-	// a whole-series request and for requests made before the field existed.
+	// series differently can find the same episodes. It describes the seasons
+	// in `seasons` that the host has details for, in the same order, and may
+	// leave some out, so a plugin finds a season's detail by
+	// RequestedSeason.number rather than by position. It is empty for a
+	// whole-series request and for requests made before the field existed.
 	SeasonDetails []*RequestedSeason `protobuf:"bytes,11,rep,name=season_details,json=seasonDetails,proto3" json:"season_details,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -164,8 +166,11 @@ func (x *RequestDescriptor) GetSeasonDetails() []*RequestedSeason {
 // 24-episode season on TMDB can be two 12-episode seasons on Sonarr); a
 // plugin matches by air date rather than by number: the season is the first
 // episode_count regular episodes, in airing order, that air on or after
-// first_air_date. Specials (season 0) are not regular episodes and are always
-// matched by number; a host need not describe them.
+// first_air_date. When fewer episodes match, the season is the ones that do.
+// The plugin matches the season by number instead when it has no detail, when
+// the detail has no date or a count of 0, or when no episode matches. Specials
+// (season 0) are not regular episodes and are always matched by number; a host
+// need not describe them.
 type RequestedSeason struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// number is the season number in `RequestDescriptor.seasons`.
@@ -174,8 +179,8 @@ type RequestedSeason struct {
 	// when it has none yet; the plugin then matches the season by number.
 	FirstAirDate string `protobuf:"bytes,2,opt,name=first_air_date,json=firstAirDate,proto3" json:"first_air_date,omitempty"`
 	// episode_count is the number of episodes the season had when the request
-	// was made; 0 when unknown. Episodes the season gains later are not
-	// counted.
+	// was made, or 0 when unknown; the plugin then matches the season by
+	// number. Episodes the season gains later are not counted.
 	EpisodeCount  int32 `protobuf:"varint,3,opt,name=episode_count,json=episodeCount,proto3" json:"episode_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

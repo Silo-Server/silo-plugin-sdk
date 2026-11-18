@@ -154,13 +154,16 @@ wire, the host decides who may receive a season-only request from the
 manifest's `RequestRouterDescriptor.supports_seasons` flag instead. An absent
 descriptor means the flag is false.
 
-`RequestDescriptor.season_details` (added in v0.33.0) is a repeated field, so
+`RequestDescriptor.season_details` (added in v0.34.0) is a repeated field, so
 it has no presence: a host that predates it, a whole-series request, and a
 request made before the host stored the details all send an empty list. A
-plugin then matches `seasons` by number, as before. A detail with an empty
-`first_air_date` or an `episode_count` of 0 is matched by number too, and so
-is season `0` (Specials) whatever its detail says. A
-plugin built before the field existed ignores it.
+plugin then matches `seasons` by number, as before. The list may leave out
+seasons in `seasons`, so a plugin finds each detail by its `number`, not its
+position. A season with no detail, a detail with an empty `first_air_date` or
+an `episode_count` of 0, and a detail that matches no episode in the plugin's
+service are matched by number too, and so is season `0` (Specials) whatever
+its detail says. When fewer than `episode_count` episodes match, the season is
+the ones that do. A plugin built before the field existed ignores it.
 
 `TargetStatus.progress` is a message field, so its presence is the `nil` check.
 Unset means the target has nothing in flight, and the host clears the progress
