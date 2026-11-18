@@ -207,8 +207,13 @@ and quality governance; the plugin routes the request to a configured
 connection and reports its status.
 
 A series request may name seasons in `RequestDescriptor.seasons`. Season `0`
-is Specials, and an empty list means the whole series. A plugin that fulfils
-seasons individually declares it in its manifest:
+is Specials, and an empty list means the whole series. Season numbers are the
+host's (TMDB's), and download services number some series differently, so
+`RequestDescriptor.season_details` also gives each requested season's first
+air date and episode count. A plugin can then match the season as the first
+that many regular episodes airing from that date. A season with no detail, or
+a detail without a date or count, is matched by its number. A plugin that fulfils seasons individually
+declares it in its manifest:
 
 ```json
 {
