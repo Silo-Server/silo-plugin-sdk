@@ -150,7 +150,8 @@ descriptor means the flag is false.
 it has no presence: a host that predates it, a whole-series request, and a
 request made before the host stored the details all send an empty list. A
 plugin then matches `seasons` by number, as before. A detail with an empty
-`first_air_date` or an `episode_count` of 0 is matched by number too. A
+`first_air_date` or an `episode_count` of 0 is matched by number too, and so
+is season `0` (Specials) whatever its detail says. A
 plugin built before the field existed ignores it.
 
 `TargetStatus.progress` is a message field, so its presence is the `nil` check.

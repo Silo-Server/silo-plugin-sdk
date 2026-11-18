@@ -164,7 +164,8 @@ func (x *RequestDescriptor) GetSeasonDetails() []*RequestedSeason {
 // 24-episode season on TMDB can be two 12-episode seasons on Sonarr); a
 // plugin matches by air date rather than by number: the season is the first
 // episode_count regular episodes, in airing order, that air on or after
-// first_air_date.
+// first_air_date. Specials (season 0) are not regular episodes and are always
+// matched by number; a host need not describe them.
 type RequestedSeason struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// number is the season number in `RequestDescriptor.seasons`.
