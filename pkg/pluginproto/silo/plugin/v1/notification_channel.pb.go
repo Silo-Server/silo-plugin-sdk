@@ -301,8 +301,8 @@ func (x *SendNotificationRequest) GetCapabilityId() string {
 type NotificationMessage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Type of the notification, such as "episode.available",
-	// "request.approved", "request.declined", "request.fulfilled" or "test".
-	// The vocabulary is open.
+	// "watchlist.available", "request.approved", "request.declined",
+	// "request.fulfilled" or "test". The vocabulary is open.
 	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	// Short title, such as "New episode of Severance".
 	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
@@ -407,8 +407,10 @@ type SendNotificationResponse struct {
 	// Short reason for a failure, shown to the destination's owner. Never
 	// include secrets.
 	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	// With RETRY: wait at least this long before the next attempt. 0 leaves
-	// the delay to the host.
+	// With RETRY: wait at least this long before the next attempt, up to a
+	// host cap (six hours on Silo). A plugin asked to wait longer is called
+	// again sooner and should answer RETRY with the wait that remains. It
+	// never shortens the host's own delay. 0 leaves the delay to the host.
 	RetryAfterSeconds int32 `protobuf:"varint,3,opt,name=retry_after_seconds,json=retryAfterSeconds,proto3" json:"retry_after_seconds,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
