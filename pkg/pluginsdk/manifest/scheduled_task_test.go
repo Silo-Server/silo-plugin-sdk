@@ -24,6 +24,7 @@ func TestValidateScheduledTaskDefaultTrigger(t *testing.T) {
 		{name: "type this SDK doesn't know", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "cron"}},
 		{name: "no type", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{IntervalMs: 300_000}, wantErr: "type is required"},
 		{name: "interval too short", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "interval", IntervalMs: 5_000}, wantErr: "interval_ms"},
+		{name: "interval too long for a timer", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "interval", IntervalMs: 9_223_372_036_855}, wantErr: "interval_ms"},
 		{name: "daily without time", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "daily"}, wantErr: "time_of_day"},
 		{name: "daily at 24:00", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "daily", TimeOfDay: "24:00"}, wantErr: "time_of_day"},
 		{name: "weekly on day 7", typ: "scheduled_task.v1", trigger: &pluginv1.ScheduledTaskTrigger{Type: "weekly", TimeOfDay: "18:00", DayOfWeek: 7}, wantErr: "day_of_week"},

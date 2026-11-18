@@ -23,6 +23,9 @@ const (
 	// MinTriggerIntervalMs is the shortest default interval a manifest may
 	// declare.
 	MinTriggerIntervalMs = 60_000
+	// MaxTriggerIntervalMs is the longest interval a host timer holds
+	// (about 292 years); a longer one overflows.
+	MaxTriggerIntervalMs = 9_223_372_036_854
 )
 
 func validateScheduledTaskCapability(descriptor *pluginv1.CapabilityDescriptor) error {
@@ -46,6 +49,9 @@ func validateScheduledTaskCapability(descriptor *pluginv1.CapabilityDescriptor) 
 	case TriggerTypeInterval:
 		if trigger.GetIntervalMs() < MinTriggerIntervalMs {
 			return invalid("interval_ms must be at least %d", MinTriggerIntervalMs)
+		}
+		if trigger.GetIntervalMs() > MaxTriggerIntervalMs {
+			return invalid("interval_ms must be at most %d", MaxTriggerIntervalMs)
 		}
 	case TriggerTypeWeekly:
 		if day := trigger.GetDayOfWeek(); day < 0 || day > 6 {

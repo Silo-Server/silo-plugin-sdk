@@ -21,7 +21,7 @@ the capability's default:
 
 | `type` | Fields | Runs |
 |---|---|---|
-| `interval` | `interval_ms`, at least 60000 | Every `interval_ms` milliseconds. |
+| `interval` | `interval_ms`, from 60000 to 9223372036854 | Every `interval_ms` milliseconds. |
 | `daily` | `time_of_day`, `"HH:MM"` | Once a day at that time, in the time zone of the Silo server process (its `TZ`; UTC in the default container). |
 | `weekly` | `time_of_day`, `day_of_week` (0 is Sunday) | Once a week, in the same time zone. |
 | `startup` | none | Once when Silo starts. Servers that start together share one run. |
