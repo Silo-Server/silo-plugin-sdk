@@ -38,6 +38,36 @@ message RequestDescriptor {
   // declare RequestRouterDescriptor.supports_seasons must fulfil only these
   // seasons; see that field for the full contract.
   repeated int32 seasons = 10;
+  // season_details describes each requested season as the host's metadata
+  // source (TMDB) numbers it, so a plugin whose download service numbers the
+  // series differently can find the same episodes. It describes the seasons
+  // in `seasons` that the host has details for, in the same order, and may
+  // leave some out, so a plugin finds a season's detail by
+  // RequestedSeason.number rather than by position. It is empty for a
+  // whole-series request and for requests made before the field existed.
+  repeated RequestedSeason season_details = 11;
+}
+
+// RequestedSeason is one requested season as the host's metadata source
+// numbers it. Download services can split or merge seasons differently (one
+// 24-episode season on TMDB can be two 12-episode seasons on Sonarr); a
+// plugin matches by air date rather than by number: the season is the first
+// episode_count regular episodes, in airing order, that air on or after
+// first_air_date. When fewer episodes match, the season is the ones that do.
+// The plugin matches the season by number instead when it has no detail, when
+// the detail has no date or a count of 0, or when no episode matches. Specials
+// (season 0) are not regular episodes and are always matched by number; a host
+// need not describe them.
+message RequestedSeason {
+  // number is the season number in `RequestDescriptor.seasons`.
+  int32 number = 1;
+  // first_air_date is the season's first air date as YYYY-MM-DD, or empty
+  // when it has none yet; the plugin then matches the season by number.
+  string first_air_date = 2;
+  // episode_count is the number of episodes the season had when the request
+  // was made, or 0 when unknown; the plugin then matches the season by
+  // number. Episodes the season gains later are not counted.
+  int32 episode_count = 3;
 }
 
 // RequestRouterDescriptor is typed request_router.v1 contract metadata that the
