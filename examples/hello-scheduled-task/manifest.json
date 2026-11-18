@@ -8,7 +8,10 @@
       "type": "scheduled_task.v1",
       "id": "hello",
       "display_name": "Hello Task",
-      "description": "A minimal scheduled task example."
+      "description": "A minimal scheduled task example.",
+      "scheduled_task": {
+        "default_trigger": { "type": "daily", "time_of_day": "03:00" }
+      }
     }
   ]
 }
