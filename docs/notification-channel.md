@@ -174,7 +174,9 @@ Because of that cap, a plugin whose service asks for a longer wait, such as
 a daily quota that resets in 20 hours, is called again after six hours. It
 should then answer `RETRY` again with the wait that remains.
 
-A gRPC error, or no answer within 15 seconds, counts as `RETRY`. Put a short
+A gRPC error your plugin returns counts as `RETRY`. So does no answer within
+15 seconds or a failed connection, which Silo also treats as the plugin being
+unavailable (see below). Put a short
 reason in `message`; the destination's owner sees it. Never include secrets.
 
 Silo disables a destination in two cases only:
