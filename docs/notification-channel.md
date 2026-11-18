@@ -62,8 +62,10 @@ which has to rebuild preferences, retries and deduplication itself.
   `additionalProperties` may only be `false` or absent. `$ref`,
   `allOf`/`anyOf`/`oneOf`/`not`, conditionals, nested objects and arrays are
   refused, because people who aren't administrators fill the form in on every
-  client. Every schema field needs an `admin_form` field and every form field
-  must name a schema field; clients render only the form.
+  client.
+- `admin_form` is required and is one flat list of at least one field: one
+  form field per schema field, and every form field names a schema field.
+  Clients render only the form. See [Destination form](#destination-form).
   `manifest.ValidateDestinationSchema` checks all of this.
 - Silo checks each submitted setting against the schema before calling the
   plugin: only declared fields; the value has the declared type; `required`
@@ -76,6 +78,40 @@ which has to rebuild preferences, retries and deduplication itself.
   user leaves them blank to keep the stored value.
 - A manifest can declare several `notification_channel.v1` capabilities. One
   server answers for all of them; each request carries its `capability_id`.
+
+## Destination form
+
+A destination form is one flat list of fields. Every Silo client has to
+render it for people who aren't administrators, so it allows only what a
+flat list of scalar fields needs.
+
+| Control | Schema field type |
+|---|---|
+| `ADMIN_FORM_CONTROL_TEXT` | `string` |
+| `ADMIN_FORM_CONTROL_PASSWORD` | `string` |
+| `ADMIN_FORM_CONTROL_NUMBER` | `integer` or `number` |
+| `ADMIN_FORM_CONTROL_SWITCH` | `boolean` |
+| `ADMIN_FORM_CONTROL_SELECT`, with static `options` | `string`, `integer` or `number` |
+
+A field must set `key`, `label` and `control`, and may set `description`,
+`placeholder`, `required`, `secret` (string fields only), `default_value`
+and, on a `SELECT` only, `options`.
+
+Refused:
+
+- `sections` (the generic form doesn't need them: without sections it
+  renders the fields in order) and `submit_label`
+- `show_when`, `dynamic_options` and `exclusive_group_field`. A destination
+  has no options lookup; the admin `ListConfigOptions` call is for
+  administrators only.
+- `validation`: put `minimum`, `maximum`, `minLength`, `maxLength` and
+  `pattern` in the JSON schema, where Silo checks them
+- `ADMIN_FORM_CONTROL_TEXTAREA`, `multiline`, `rows`,
+  `ADMIN_FORM_CONTROL_MULTI_SELECT` and an unset control
+- a `SELECT` without options, and `options` on any other control
+
+Loosening these rules later is additive; tightening them would break
+published plugins, so they start narrow.
 
 ## Serving
 
@@ -99,6 +135,12 @@ service whether a user key exists, is fine. Silo waits 10 seconds. When the
 plugin doesn't answer in time, returns a gRPC error, or isn't running, the
 save fails with `503` (the plugin isn't available) and `Retry-After: 30`.
 
+A valid answer doesn't mean the settings get saved: Silo checks them first
+and saves afterwards, and the save can still fail, for example on the
+per-profile destination limit or because another edit landed first. So
+`ValidateDestination` must not create remote state, such as a subscription
+or a webhook on the service, that would be a problem to leak.
+
 ### SendNotification
 
 Silo calls it once per message and destination, possibly from different
@@ -120,7 +162,7 @@ Map the service's answer onto an outcome:
 | Outcome | Use for | Silo then |
 |---|---|---|
 | `DELIVERED` (or an empty response) | The service accepted the message. | Records the success. |
-| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays, for about a day, then drops the message and disables the destination (see below). `retry_after_seconds` makes the next wait at least that long, up to 6 hours; it never shortens the schedule. |
+| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays, for about a day, then drops the message and may disable the destination (see below). `retry_after_seconds` makes the next wait at least that long, up to a host cap of six hours; it never shortens the schedule. |
 | `FAILED` | This message can't be sent, but the destination works. | Drops the message. |
 | `DESTINATION_INVALID` | The service definitely refused the settings, such as a revoked token or a deleted topic. | Drops the message and disables the destination at once, until its owner edits it. |
 
@@ -128,16 +170,46 @@ Map the service's answer onto an outcome:
 the service's own response says the settings are wrong. A 401 from a proxy or
 CDN, a timeout or a 5xx is `RETRY`.
 
+Because of that cap, a plugin whose service asks for a longer wait, such as
+a daily quota that resets in 20 hours, is called again after six hours. It
+should then answer `RETRY` again with the wait that remains.
+
 A gRPC error, or no answer within 15 seconds, counts as `RETRY`. Put a short
 reason in `message`; the destination's owner sees it. Never include secrets.
 
-Silo disables a destination in two cases only: the plugin answers
-`DESTINATION_INVALID`, or sends keep failing until the retry schedule runs
-out. When the last attempt failed because the plugin was off, removed or
-unreachable, Silo drops the message but leaves the destination enabled, so
-it works again once the plugin is back. Silo also doesn't disable a
-destination whose owner saved new settings while the failing send ran. A
-disabled destination gets nothing until its owner edits or re-enables it.
+Silo disables a destination in two cases only:
+
+- the plugin answers `DESTINATION_INVALID`, or
+- sends keep failing until the retry schedule runs out, and the destination
+  had no successful send in the meantime. One message that keeps failing
+  while others get through doesn't disable it.
+
+A transport failure is the plugin being unavailable, not the destination
+failing: when the plugin was off, removed, unreachable, or its process
+exited during the call, Silo drops a message whose retries ran out but
+leaves the destination enabled, so it works again once the plugin is back.
+Silo also doesn't disable a destination whose owner saved new settings while
+the failing send ran. A disabled destination gets nothing until its owner
+edits or re-enables it.
+
+### What a plugin isn't told
+
+- **Destination changes.** Silo doesn't tell the plugin when a destination
+  is edited, disabled or deleted. Every call carries the destination's
+  current settings, so keep no per-destination state that would need
+  cleaning up.
+- **The recipient's language.** Requests carry no locale. Silo renders
+  `title` and `body`; a plugin that renders its own text from `details`
+  has no way to pick the recipient's language.
+
+## Compatibility
+
+A Silo server whose SDK predates `notification_channel.v1` refuses to
+install or load a plugin that declares it: its manifest validation rejects
+the whole plugin with `plugin capability "<id>": unknown type
+"notification_channel.v1"`. The same happens to a plugin that declares any
+capability type the host's SDK doesn't know, so put a notification channel
+in its own plugin, not in one that must keep working on older servers.
 
 ## Network requests
 
