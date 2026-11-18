@@ -193,7 +193,9 @@ events.
 
 An `event_consumer.v1` capability lists the event names it wants in its
 manifest `subscriptions`, and the host calls `EventConsumer.HandleEvent` for
-each matching event. Once Silo has stored an event, it delivers it to each
+each matching event. The host delivers the catalog events in
+[events.md](events.md), which also documents their payloads, and plugin
+events; it ignores a subscription to any other name. Once Silo has stored an event, it delivers it to each
 subscribing installation at least once, however many Silo servers run,
 unless every attempt fails:
 
