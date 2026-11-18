@@ -53,6 +53,11 @@ func TestValidateNotificationChannel(t *testing.T) {
 		{name: "array field", capability: channelWithSchema(`{"type":"object","properties":{"tags":{"type":"array"}}}`), wantErr: "type string, integer"},
 		{name: "ref", capability: channelWithSchema(`{"type":"object","properties":{"topic":{"$ref":"#/$defs/topic"}}}`), wantErr: "plain scalars"},
 		{name: "conditional", capability: channelWithSchema(`{"type":"object","properties":{"topic":{"type":"string"}},"allOf":[{"required":["topic"]}]}`), wantErr: "flat list"},
+		{name: "required field without a form field", capability: channelWithForm(`{"type":"object","properties":{"topic":{"type":"string"},"token":{"type":"string"}},"required":["token"]}`, "topic"), wantErr: `"token" has no admin_form field`},
+		{name: "fields without a form", capability: channelWithSchema(`{"type":"object","properties":{"topic":{"type":"string"}}}`), wantErr: "has no admin_form field"},
+		{name: "additional properties allowed", capability: channelWithForm(`{"type":"object","properties":{"topic":{"type":"string"}},"additionalProperties":true}`, "topic"), wantErr: "additionalProperties"},
+		{name: "additional properties schema", capability: channelWithForm(`{"type":"object","properties":{"topic":{"type":"string"}},"additionalProperties":{"type":"string"}}`, "topic"), wantErr: "additionalProperties"},
+		{name: "nullable field", capability: channelWithForm(`{"type":"object","properties":{"topic":{"type":["string","null"]}}}`, "topic"), wantErr: "json_schema"},
 		{name: "required names no field", capability: channelWithSchema(`{"type":"object","properties":{"topic":{"type":"string"}},"required":["server"]}`), wantErr: "isn't a field"},
 		{name: "id not a slug", capability: &pluginv1.CapabilityDescriptor{Type: "notification_channel.v1", Id: "Ntfy Push",
 			NotificationChannel: &pluginv1.NotificationChannelDescriptor{DisplayName: "ntfy", DestinationSchema: schema}}, wantErr: "slug"},
@@ -73,4 +78,27 @@ func channelWithSchema(jsonSchema string) *pluginv1.CapabilityDescriptor {
 	return &pluginv1.CapabilityDescriptor{Type: "notification_channel.v1", Id: "ntfy",
 		NotificationChannel: &pluginv1.NotificationChannelDescriptor{DisplayName: "ntfy",
 			DestinationSchema: &pluginv1.ConfigSchema{Key: "destination", JsonSchema: jsonSchema}}}
+}
+
+func channelWithForm(jsonSchema string, formKeys ...string) *pluginv1.CapabilityDescriptor {
+	descriptor := channelWithSchema(jsonSchema)
+	form := &pluginv1.AdminFormDescriptor{}
+	for _, key := range formKeys {
+		form.Fields = append(form.Fields, &pluginv1.AdminFormField{Key: key, Label: key})
+	}
+	descriptor.GetNotificationChannel().GetDestinationSchema().AdminForm = form
+	return descriptor
+}
+
+func TestValidateDestinationSchemaAcceptsFlatForm(t *testing.T) {
+	for _, jsonSchema := range []string{
+		`{"type":"object","properties":{"topic":{"type":"string","minLength":1},"priority":{"type":"integer","minimum":1,"maximum":5},"markdown":{"type":"boolean"}},"required":["topic"],"additionalProperties":false}`,
+		`{"type":"object","properties":{"topic":{"type":"string"},"priority":{"type":"integer"},"markdown":{"type":"boolean"}}}`,
+	} {
+		err := publicmanifest.Validate(&pluginv1.PluginManifest{PluginId: "silo.test", Version: "1.0.0",
+			Capabilities: []*pluginv1.CapabilityDescriptor{channelWithForm(jsonSchema, "topic", "priority", "markdown")}})
+		if err != nil {
+			t.Fatalf("Validate(%s) = %v", jsonSchema, err)
+		}
+	}
 }

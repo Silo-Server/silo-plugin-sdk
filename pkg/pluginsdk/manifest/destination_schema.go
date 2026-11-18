@@ -22,9 +22,10 @@ var (
 // a valid ConfigSchema whose json_schema is one object of scalar fields.
 // Fields are string, integer, number or boolean, with optional title,
 // description, default, enum, format, minimum/maximum and
-// minLength/maxLength/pattern. $ref, allOf/anyOf/oneOf/not, conditionals,
-// nested objects and arrays are refused. Hosts call it when they accept a
-// notification_channel capability.
+// minLength/maxLength/pattern. Every field has an admin_form field and every
+// admin_form field names a field. additionalProperties may only be false.
+// $ref, allOf/anyOf/oneOf/not, conditionals, nested objects and arrays are
+// refused. Hosts call it when they accept a notification_channel capability.
 func ValidateDestinationSchema(schema *pluginv1.ConfigSchema) error {
 	if schema == nil {
 		return fmt.Errorf("destination_schema is required")
@@ -62,10 +63,11 @@ func ValidateDestinationSchema(schema *pluginv1.ConfigSchema) error {
 			return fmt.Errorf("destination_schema field %q must have type string, integer, number or boolean", name)
 		}
 	}
+	// Hosts store only declared fields, so a schema can't allow others.
 	if raw, ok := root["additionalProperties"]; ok {
 		var allowed bool
-		if err := json.Unmarshal(raw, &allowed); err != nil {
-			return fmt.Errorf("destination_schema additionalProperties must be a boolean")
+		if err := json.Unmarshal(raw, &allowed); err != nil || allowed {
+			return fmt.Errorf("destination_schema additionalProperties must be false or absent")
 		}
 	}
 	if raw, ok := root["required"]; ok {
@@ -77,6 +79,18 @@ func ValidateDestinationSchema(schema *pluginv1.ConfigSchema) error {
 			if _, ok := properties[name]; !ok {
 				return fmt.Errorf("destination_schema requires %q, which isn't a field", name)
 			}
+		}
+	}
+	// Clients render only the form, so every field needs a form input.
+	// validateConfigSchema already checked that each form field names a
+	// property.
+	inForm := make(map[string]bool, len(properties))
+	for _, field := range schema.GetAdminForm().GetFields() {
+		inForm[field.GetKey()] = true
+	}
+	for name := range properties {
+		if !inForm[name] {
+			return fmt.Errorf("destination_schema field %q has no admin_form field", name)
 		}
 	}
 	return nil
