@@ -179,7 +179,8 @@ a message can arrive twice. `delivery_key` is the same on every attempt:
 pass it to the service as an idempotency key where it has one.
 
 The message arrives rendered: `title`, `body`, `url` (opens the item in
-Silo) and `image_url` (a poster, which can expire). `details` carries the
+Silo; empty when the server has no public URL set) and `image_url` (a
+poster, which can expire; empty when there is none). `details` carries the
 same fields as the `Notification` type in `pkg/pluginsdk/events` (the
 `notification.created` event's payload; identifiers are strings), for
 plugins that render their own text. `type` is `episode.available`,
