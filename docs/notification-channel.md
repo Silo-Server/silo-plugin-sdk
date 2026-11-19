@@ -197,7 +197,7 @@ Map the service's answer onto an outcome:
 | Outcome | Use for | Silo then |
 |---|---|---|
 | `DELIVERED` (or an empty response) | The service accepted the message. | Records the success. |
-| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays. A message older than the retry window, about a day, is dropped whatever its attempt count, and the destination may be disabled (see below). `retry_after_seconds` makes the next wait at least that long, up to a host cap of six hours; it never shortens the schedule. |
+| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays. After ten attempts over about a day the message is dropped, and the destination may be disabled (see below). `retry_after_seconds` makes the next wait at least that long, up to a host cap of six hours; it never shortens the schedule. |
 | `FAILED` | This message can't be sent, but the destination works. | Drops the message. |
 | `DESTINATION_INVALID` | The service definitely refused the settings, such as a revoked token or a deleted topic. | Drops the message and disables the destination at once, until its owner turns it back on. |
 
