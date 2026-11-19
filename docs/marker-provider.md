@@ -90,6 +90,42 @@ and carries one segment with its bounds. Since v0.30.0 it also carries:
   the bounds are unset. Hosts send it only to providers that declare
   `supports_absent`.
 
+## Reporting
+
+A segment can be wrong, and the viewer watching it knows first. A provider that
+accepts reports serves the separate `MarkerReporting` service, and the host
+exposes one operation of its own for it, so every client offers the same control
+without knowing which provider supplied the markers.
+
+- `MarkerSegment.reportable` (added in v0.33.0) says, per segment, that the
+  provider would accept a report for it now. Set it only when that is true: a
+  provider that reports through a shared service credential sets it only while
+  the operator has configured that credential. The host draws no report control
+  for a segment that is not reportable.
+- `ReportMarkerRequest` carries the same identity a fetch carries, including
+  `episode_numbering`, plus the segment kind. It carries no bounds: a report is
+  a complaint that a segment is wrong, not a replacement to store. Its
+  `season_number` is `optional`, and presence means what it means everywhere
+  else in this contract: unset is "the host could not place the episode in a
+  season", an explicit zero is Specials, and a movie leaves it unset. A provider
+  that cannot tell those apart may report the wrong episode, so refuse instead of
+  guessing.
+- `ReportMarkerResponse.outcome` is reported, already reported, or refused.
+  already reported is settled, not a failure: a service that keys one report
+  per account per item answers it for a repeat, and the viewer is told the
+  segment is already known about. A refusal carries `reason`, an open
+  vocabulary, and `detail`, words for the viewer or the administrator.
+- Faults the provider classes as errors use gRPC status codes, as `SubmitMarker`
+  does: InvalidArgument for a request it will never accept, FailedPrecondition
+  for missing provider state such as an unconfigured credential, and
+  ResourceExhausted with RetryInfo when the caller should try later.
+
+Register the service with `runtime.WithMarkerReporting`, or implement
+`MarkerReportingServer` on the same type as your `MarkerProviderServer` and the
+runtime registers it for you. A provider that does not serve it answers
+Unimplemented, which hosts read as "this provider cannot report", not as an
+error: no client is offered a report control for it.
+
 ## Compatibility
 
 All the v0.30.0 fields are additive. A host older than v0.30.0 leaves them
@@ -97,3 +133,12 @@ empty: no file facts, `accepts_absent` false, and no `source`, `algorithm`,
 `confidence`, or `absent` on submissions. Providers must handle an empty
 `file_hash` and a `file_size` of 0, and treat a submission with an empty
 `source` as one whose origin is unknown.
+
+Reporting is additive too. `MarkerProvider` and `CapabilityServers` are
+unchanged: the report RPC is a separate service so a provider that implements the
+released interface directly still compiles. A plugin built before v0.33.0 sends
+no `reportable` and serves no `MarkerReporting`, so a host that has both offers
+no report control for it; a host built before it ignores the service and reads
+`reportable` as false. A host must not offer a report for a segment that came
+from a provider it cannot call: treat a provider that does not serve
+`MarkerReporting` as unable to report, whatever `reportable` says.

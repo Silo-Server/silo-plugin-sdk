@@ -102,8 +102,8 @@ Adding an RPC to a released service adds a method to its Go server interface,
 which breaks plugins that implement the interface directly rather than
 embedding the generated `Unimplemented...Server`. New RPCs for a released
 capability therefore go in a separate service, such as
-`WatchSyncDeviceAuthorizationService`, `AuthProviderChecks` or
-`NetworkIdentityAuth`. A plugin that
+`WatchSyncDeviceAuthorizationService`, `AuthProviderChecks`,
+`NetworkIdentityAuth`, or `MarkerReporting`. A plugin that
 does not register the new service answers `Unimplemented`, and hosts treat that
 as "not supported". A network provider cannot fall back that way: without
 `AuthProviderChecks.CheckAccount`, a person removed from the overlay would stay
@@ -221,6 +221,17 @@ of 0, `accepts_absent` false, and submissions without `source`, `algorithm`,
 `MarkerSegment` with `absent` set unless the request's `accepts_absent` is
 true: an older host reads a segment without bounds as covering the whole
 file. See [marker-provider.md](marker-provider.md).
+
+`MarkerSegment.reportable` (added in v0.33.0) is a plain bool, so it has no
+presence: false means the provider would not accept a report for that segment,
+which is also what a host that predates the field reads and what a plugin that
+predates it sends. Report RPCs are in the separate `MarkerReporting` service, so
+the released `MarkerProviderServer` interface keeps its three methods; a provider
+that does not serve the service answers Unimplemented, which a host must treat as
+"cannot report" rather than as a failure. `MarkerReportOutcome` and
+`ReportMarkerResponse.reason` are open vocabularies: a host reads an outcome it
+does not recognize as a refusal, and a reason it does not recognize as a plain
+refusal.
 
 `SeasonRecord.backdrop_path` (added in v0.31.0) is a plain string, like
 `poster_path`. Empty means the provider has no landscape art for the season,

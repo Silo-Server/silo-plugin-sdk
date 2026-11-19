@@ -117,3 +117,33 @@ func TestSubmitMarkerRequest_EpisodeIdentityRoundTrips(t *testing.T) {
 		t.Fatalf("decoded episode identity = %+v", &decoded)
 	}
 }
+
+// A report tells an omitted season apart from Specials: season zero is
+// Specials, and an unset season means the host could not place the episode in
+// one. Flattening the two would let a report land on the wrong episode.
+func TestReportMarkerRequest_SeasonNumberPreservesPresenceAndSpecials(t *testing.T) {
+	seasonZero := int32(0)
+	assertOptionalInt32Presence(
+		t,
+		&ReportMarkerRequest{SeasonNumber: &seasonZero},
+		&ReportMarkerRequest{},
+		func(message proto.Message) *int32 {
+			return message.(*ReportMarkerRequest).SeasonNumber
+		},
+	)
+	assertFieldNumber(t, &ReportMarkerRequest{}, "season_number", 3)
+	assertOptionalInt32Field(t, &ReportMarkerRequest{}, "season_number", 3)
+
+	seasonFive := int32(5)
+	data, err := proto.Marshal(&ReportMarkerRequest{SeasonNumber: &seasonFive})
+	if err != nil {
+		t.Fatalf("marshal season five: %v", err)
+	}
+	var decoded ReportMarkerRequest
+	if err := proto.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("unmarshal season five: %v", err)
+	}
+	if decoded.SeasonNumber == nil || decoded.GetSeasonNumber() != 5 {
+		t.Fatalf("season five = %v, want present value 5", decoded.SeasonNumber)
+	}
+}

@@ -95,13 +95,15 @@ type optionalServices struct {
 	authProviderChecks           pluginv1.AuthProviderChecksServer
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configurationChecks          pluginv1.ConfigurationChecksServer
+	markerReporting              pluginv1.MarkerReportingServer
 }
 
 func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalServices) plugin.PluginSet {
 	// Compare fields one by one: == on the struct would panic for a server
 	// whose dynamic type is not comparable.
 	if optional.watchSyncDeviceAuthorization == nil && optional.authProviderChecks == nil &&
-		optional.networkIdentityAuth == nil && optional.configurationChecks == nil {
+		optional.networkIdentityAuth == nil && optional.configurationChecks == nil &&
+		optional.markerReporting == nil {
 		return DefaultPluginSet(servers)
 	}
 	return plugin.PluginSet{
@@ -141,6 +143,14 @@ func (c *Client) ImageResolver() pluginv1.ImageResolverClient {
 
 func (c *Client) MarkerProvider() pluginv1.MarkerProviderClient {
 	return pluginv1.NewMarkerProviderClient(c.conn)
+}
+
+// MarkerReporting returns the client for reporting an incorrect segment, the
+// separate service a marker provider serves when it accepts reports. Plugins
+// built before it existed answer Unimplemented, which hosts read as "this
+// provider cannot report".
+func (c *Client) MarkerReporting() pluginv1.MarkerReportingClient {
+	return pluginv1.NewMarkerReportingClient(c.conn)
 }
 
 func (c *Client) MediaAnalyzer() pluginv1.MediaAnalyzerClient {
@@ -240,10 +250,19 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) 
 // nil pointer passed to the option counts as no server, so the startup checks
 // in manifestServeConfig catch it instead of the first call panicking.
 func resolveAuthService[S any](authProvider pluginv1.AuthProviderServer, explicit S) S {
+	return resolveService(authProvider, explicit)
+}
+
+// resolveService returns the server to register for a service kept out of a
+// capability's released server interface: the explicit one from its
+// ServeManifest option, else the capability server when it also implements the
+// service, else nil. A nil pointer passed to the option counts as no server, so
+// a startup check sees it as missing instead of the first call panicking.
+func resolveService[S any](capability any, explicit S) S {
 	if !isNilServer(explicit) {
 		return explicit
 	}
-	if server, ok := authProvider.(S); ok {
+	if server, ok := capability.(S); ok && !isNilServer(server) {
 		return server
 	}
 	var none S
@@ -275,6 +294,11 @@ func (p *GRPCPlugin) registerServers(
 	}
 	if p.Servers.MarkerProvider != nil {
 		pluginv1.RegisterMarkerProviderServer(server, p.Servers.MarkerProvider)
+	}
+	// MarkerReporting lives in its own service so the released
+	// MarkerProviderServer interface stays unchanged.
+	if reporting := resolveService(p.Servers.MarkerProvider, optional.markerReporting); reporting != nil {
+		pluginv1.RegisterMarkerReportingServer(server, reporting)
 	}
 	if p.Servers.MediaAnalyzer != nil {
 		pluginv1.RegisterMediaAnalyzerServer(server, p.Servers.MediaAnalyzer)
