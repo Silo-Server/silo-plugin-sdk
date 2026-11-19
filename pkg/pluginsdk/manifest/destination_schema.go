@@ -177,6 +177,10 @@ func parseDestinationProperty(name string, raw json.RawMessage) (*destinationPro
 	if bounds.Minimum != nil && bounds.Maximum != nil && *bounds.Minimum > *bounds.Maximum {
 		return nil, fmt.Errorf("destination_schema field %q has minimum %v above maximum %v", name, *bounds.Minimum, *bounds.Maximum)
 	}
+	// An integer field whose bounds hold no whole number can never be filled in.
+	if p.typ == "integer" && bounds.Minimum != nil && bounds.Maximum != nil && math.Ceil(*bounds.Minimum) > math.Floor(*bounds.Maximum) {
+		return nil, fmt.Errorf("destination_schema field %q has no whole number between minimum %v and maximum %v", name, *bounds.Minimum, *bounds.Maximum)
+	}
 	for keyword, length := range map[string]*int{"minLength": bounds.MinLength, "maxLength": bounds.MaxLength} {
 		if length != nil && *length < 0 {
 			return nil, fmt.Errorf("destination_schema field %q has a negative %s", name, keyword)
@@ -198,6 +202,11 @@ func parseDestinationProperty(name string, raw json.RawMessage) (*destinationPro
 	return p, nil
 }
 
+// MaxSafeInteger is the largest whole number a setting carries exactly:
+// settings travel as JSON numbers and protobuf values, which are doubles.
+// Hosts refuse an integer setting beyond it in either direction.
+const MaxSafeInteger = 1<<53 - 1
+
 // checkValue reports why value can't be stored in the field: it isn't a
 // scalar of the field's type, or it fails the field's own checks.
 func (p *destinationProperty) checkValue(value any) error {
@@ -209,6 +218,9 @@ func (p *destinationProperty) checkValue(value any) error {
 		ok = p.typ == "boolean"
 	case float64:
 		ok = p.typ == "number" || (p.typ == "integer" && v == math.Trunc(v))
+		if ok && p.typ == "integer" && math.Abs(v) > MaxSafeInteger {
+			return fmt.Errorf("is outside the whole numbers a setting can hold exactly (up to %d); use a string field for a larger identifier", int64(MaxSafeInteger))
+		}
 	}
 	if !ok {
 		return fmt.Errorf("isn't of type %s", p.typ)
@@ -229,6 +241,9 @@ func (p *destinationProperty) optionValue(raw string) (any, error) {
 		n, err := strconv.ParseInt(raw, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("isn't an integer")
+		}
+		if n > MaxSafeInteger || n < -MaxSafeInteger {
+			return nil, fmt.Errorf("is outside the whole numbers a setting can hold exactly (up to %d); use a string field for a larger identifier", int64(MaxSafeInteger))
 		}
 		return float64(n), nil
 	case "number":

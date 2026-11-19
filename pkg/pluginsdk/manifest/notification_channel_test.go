@@ -321,6 +321,11 @@ func TestValidateDestinationSchemaRefusesUnsavableForms(t *testing.T) {
 			form.Fields = append(form.Fields, &pluginv1.AdminFormField{Key: "token", Label: "Again", Control: pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_PASSWORD})
 		}, wantErr: "duplicated"},
 		{name: "minimum above maximum", schema: replace(`"minimum":1,"maximum":5`, `"minimum":5,"maximum":1`), wantErr: "minimum 5 above maximum 1"},
+		{name: "integer bounds holding no whole number", schema: replace(`"minimum":1,"maximum":5`, `"minimum":0.1,"maximum":0.9`), wantErr: "no whole number between"},
+		{name: "integer option too large to carry exactly", schema: replace(`"level":{"type":"integer","enum":[1,2]}`, `"level":{"type":"integer"}`),
+			form: func(form *pluginv1.AdminFormDescriptor) {
+				field(form, "level").Options[1].Value = "9007199254740993"
+			}, wantErr: "outside the whole numbers a setting can hold exactly"},
 		{name: "minLength above maxLength", schema: replace(`"minLength":1,"maxLength":64`, `"minLength":65,"maxLength":64`), wantErr: "minLength 65 above maxLength 64"},
 		{name: "negative length", schema: replace(`"minLength":1`, `"minLength":-1`), wantErr: "negative minLength"},
 		{name: "minimum on a string", schema: replace(`"format":"password"`, `"minimum":1`), wantErr: "applies only to an integer or number field"},

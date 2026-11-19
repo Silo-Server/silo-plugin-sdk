@@ -113,7 +113,12 @@ install refuses a form unless:
 - the schema compiles as Silo compiles it, and each `pattern` is valid Go
   RE2
 - `minimum` is at most `maximum`, `minLength` is at most `maxLength`, and
-  lengths aren't negative
+  lengths aren't negative; an integer field's bounds hold at least one whole
+  number
+- an integer value (an option, a default, or what a user enters) is at most
+  9007199254740991 in either direction, because settings travel as JSON and
+  protobuf numbers. Use a string field for a larger identifier, such as a
+  chat ID
 - every option value parses as the field's type (an integer field's options
   are integers), and no two options have the same value
 - a field with `enum` uses a `SELECT`, and its options are exactly the
@@ -215,9 +220,13 @@ the destination's owner sees it. Never include secrets.
 Silo disables a destination in two cases only:
 
 - the plugin answers `DESTINATION_INVALID`, or
-- a message is dropped at the end of the retry window after failed attempts,
-  and the destination had no successful send in the meantime. One message
-  that keeps failing while others get through doesn't disable it.
+- a message runs out of retries (ten attempts over about a day) after failed
+  attempts, and the destination had no successful send in the meantime. One
+  message that keeps failing while others get through doesn't disable it.
+
+A message that is still waiting 36 hours after it was queued, for example
+after several long `retry_after_seconds` waits, is dropped without another
+send. That alone doesn't disable the destination.
 
 A failure to reach the plugin is the plugin being unavailable, not the
 destination failing: the plugin is off, removed or not running, the
