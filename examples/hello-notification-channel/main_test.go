@@ -8,8 +8,17 @@ import (
 	"testing"
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+// TestManifestIsValid keeps the example's destination form within the rules
+// hosts enforce at install.
+func TestManifestIsValid(t *testing.T) {
+	if _, err := manifest.LoadWithChecksum(manifestJSON, "0.1.0"); err != nil {
+		t.Fatal(err)
+	}
+}
 
 // send posts one message through a fake ntfy server and returns the outcome
 // and the request the server saw.
