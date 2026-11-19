@@ -177,9 +177,19 @@ func parseDestinationProperty(name string, raw json.RawMessage) (*destinationPro
 	if bounds.Minimum != nil && bounds.Maximum != nil && *bounds.Minimum > *bounds.Maximum {
 		return nil, fmt.Errorf("destination_schema field %q has minimum %v above maximum %v", name, *bounds.Minimum, *bounds.Maximum)
 	}
-	// An integer field whose bounds hold no whole number can never be filled in.
-	if p.typ == "integer" && bounds.Minimum != nil && bounds.Maximum != nil && math.Ceil(*bounds.Minimum) > math.Floor(*bounds.Maximum) {
-		return nil, fmt.Errorf("destination_schema field %q has no whole number between minimum %v and maximum %v", name, *bounds.Minimum, *bounds.Maximum)
+	// An integer field whose bounds hold no whole number a setting can carry
+	// (see MaxSafeInteger) can never be filled in.
+	if p.typ == "integer" {
+		lowest, highest := float64(-MaxSafeInteger), float64(MaxSafeInteger)
+		if bounds.Minimum != nil {
+			lowest = math.Max(lowest, math.Ceil(*bounds.Minimum))
+		}
+		if bounds.Maximum != nil {
+			highest = math.Min(highest, math.Floor(*bounds.Maximum))
+		}
+		if lowest > highest {
+			return nil, fmt.Errorf("destination_schema field %q has bounds that hold no whole number a setting can carry (up to %d in either direction)", name, int64(MaxSafeInteger))
+		}
 	}
 	for keyword, length := range map[string]*int{"minLength": bounds.MinLength, "maxLength": bounds.MaxLength} {
 		if length != nil && *length < 0 {

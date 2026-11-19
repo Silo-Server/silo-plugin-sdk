@@ -221,13 +221,13 @@ the destination's owner sees it. Never include secrets.
 Silo disables a destination in two cases only:
 
 - the plugin answers `DESTINATION_INVALID`, or
-- a message runs out of retries (ten attempts over about a day) after failed
-  attempts, and the destination had no successful send in the meantime. One
+- a message runs out of retries (ten attempts over about a day), or is still
+  waiting 36 hours after it was queued (for example after several long
+  `retry_after_seconds` waits), after failed attempts, and the destination
+  had no successful send and no edit by its owner in the meantime. One
   message that keeps failing while others get through doesn't disable it.
 
-A message that is still waiting 36 hours after it was queued, for example
-after several long `retry_after_seconds` waits, is dropped without another
-send. That alone doesn't disable the destination.
+A message still waiting after 36 hours is dropped without another send.
 
 A failure to reach the plugin is the plugin being unavailable, not the
 destination failing: the plugin is off, removed or not running, the

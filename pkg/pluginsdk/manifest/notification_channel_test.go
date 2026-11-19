@@ -324,7 +324,8 @@ func TestValidateDestinationSchemaRefusesUnsavableForms(t *testing.T) {
 		{name: "secret select", form: func(form *pluginv1.AdminFormDescriptor) {
 			field(form, "server").Secret = true
 		}, wantErr: "its control must be PASSWORD or TEXT"},
-		{name: "integer bounds holding no whole number", schema: replace(`"minimum":1,"maximum":5`, `"minimum":0.1,"maximum":0.9`), wantErr: "no whole number between"},
+		{name: "integer bounds holding no whole number", schema: replace(`"minimum":1,"maximum":5`, `"minimum":0.1,"maximum":0.9`), wantErr: "hold no whole number"},
+		{name: "integer minimum beyond what a setting can carry", schema: replace(`"minimum":1,"maximum":5`, `"minimum":9007199254740992`), wantErr: "hold no whole number"},
 		{name: "integer option too large to carry exactly", schema: replace(`"level":{"type":"integer","enum":[1,2]}`, `"level":{"type":"integer"}`),
 			form: func(form *pluginv1.AdminFormDescriptor) {
 				field(form, "level").Options[1].Value = "9007199254740993"
