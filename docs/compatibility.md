@@ -262,6 +262,16 @@ and ignores the field, so it applies its usual idle-stop rule. The field takes
 effect only on a host that both stops idle plugins and reads it; on a host that
 never stops idle plugins, it changes nothing.
 
+### New capability types
+
+Manifest validation refuses a capability type its SDK doesn't know, and it
+refuses the whole plugin, not only that capability: an older host fails to
+install or load it with `plugin capability "<id>": unknown type "<type>"`.
+A plugin that declares a newer type, such as `notification_channel.v1`,
+therefore needs a host built on an SDK that knows it. Ship a new capability
+type in its own plugin rather than adding it to one that must keep working
+on older hosts.
+
 ### Watch-sync batch size
 
 `WatchSyncProviderDescriptor.max_batch_size` accepts 1 to 1000 from v0.27.0;

@@ -165,8 +165,8 @@ type JobEvent struct {
 type Notification struct {
 	ID string `json:"id"`
 	// Type is the delivery type, such as "episode.available",
-	// "request.approved", "request.declined" or "request.fulfilled". The
-	// vocabulary is open.
+	// "watchlist.available", "request.approved", "request.declined" or
+	// "request.fulfilled". The vocabulary is open.
 	Type string `json:"type"`
 	// UserID is the account that owns the profile. Profile IDs repeat across
 	// accounts, so identify a recipient by UserID and ProfileID together.
