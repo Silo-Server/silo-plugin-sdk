@@ -321,6 +321,9 @@ func TestValidateDestinationSchemaRefusesUnsavableForms(t *testing.T) {
 			form.Fields = append(form.Fields, &pluginv1.AdminFormField{Key: "token", Label: "Again", Control: pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_PASSWORD})
 		}, wantErr: "duplicated"},
 		{name: "minimum above maximum", schema: replace(`"minimum":1,"maximum":5`, `"minimum":5,"maximum":1`), wantErr: "minimum 5 above maximum 1"},
+		{name: "secret select", form: func(form *pluginv1.AdminFormDescriptor) {
+			field(form, "server").Secret = true
+		}, wantErr: "its control must be PASSWORD or TEXT"},
 		{name: "integer bounds holding no whole number", schema: replace(`"minimum":1,"maximum":5`, `"minimum":0.1,"maximum":0.9`), wantErr: "no whole number between"},
 		{name: "integer option too large to carry exactly", schema: replace(`"level":{"type":"integer","enum":[1,2]}`, `"level":{"type":"integer"}`),
 			form: func(form *pluginv1.AdminFormDescriptor) {

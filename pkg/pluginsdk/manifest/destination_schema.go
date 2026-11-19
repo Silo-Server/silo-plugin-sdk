@@ -318,6 +318,10 @@ func validateDestinationForm(form *pluginv1.AdminFormDescriptor, properties map[
 		if field.GetSecret() && property.typ != "string" {
 			return fmt.Errorf("destination_schema admin_form field %q is secret but not a string field", key)
 		}
+		// A secret is typed, never picked: clients show it as a masked input.
+		if field.GetSecret() && control != pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_PASSWORD && control != pluginv1.AdminFormControl_ADMIN_FORM_CONTROL_TEXT {
+			return fmt.Errorf("destination_schema admin_form field %q is secret, so its control must be PASSWORD or TEXT, not %s", key, control)
+		}
 		if field.GetRequired() != slices.Contains(required, key) {
 			return fmt.Errorf("destination_schema admin_form field %q: required on the form field and the schema's required list must agree", key)
 		}

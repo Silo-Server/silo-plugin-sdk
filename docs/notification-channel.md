@@ -119,6 +119,7 @@ install refuses a form unless:
   9007199254740991 in either direction, because settings travel as JSON and
   protobuf numbers. Use a string field for a larger identifier, such as a
   chat ID
+- a `secret` field uses the `PASSWORD` or `TEXT` control
 - every option value parses as the field's type (an integer field's options
   are integers), and no two options have the same value
 - a field with `enum` uses a `SELECT`, and its options are exactly the
