@@ -57,12 +57,14 @@ which has to rebuild preferences, retries and deduplication itself.
   so keep it stable across releases.
 - `destination_schema` is a `ConfigSchema` with a flat form: one object of
   string, integer, number or boolean fields, each with optional `title`,
-  `description`, `default`, `enum`, `format`, `minimum`/`maximum` and
-  `minLength`/`maxLength`/`pattern`, plus a top-level `required` list.
-  `additionalProperties` may only be `false` or absent. `$ref`,
-  `allOf`/`anyOf`/`oneOf`/`not`, conditionals, nested objects and arrays are
-  refused, because people who aren't administrators fill the form in on every
-  client.
+  `description`, `default` and `enum`, `minimum`/`maximum` on integer and
+  number fields, and `format` and `minLength`/`maxLength`/`pattern` on string
+  fields, plus a top-level `required` list. `additionalProperties` may only
+  be `false` or absent. `$schema`, `$ref`, `allOf`/`anyOf`/`oneOf`/`not`,
+  conditionals, nested objects and arrays are refused, because people who
+  aren't administrators fill the form in on every client. Silo compiles the
+  schema as JSON Schema draft 2020-12, the draft it uses for all plugin
+  configuration.
 - `admin_form` is required and is one flat list of at least one field: one
   form field per schema field, and every form field names a schema field.
   Clients render only the form. See [Destination form](#destination-form).
@@ -72,8 +74,12 @@ which has to rebuild preferences, retries and deduplication itself.
   fields present when a destination is created (a stored secret left blank
   on an edit counts as present); `enum`; `minLength`, `maxLength` and
   `pattern` on strings; `minimum` and `maximum` on numbers. It doesn't check
-  `format` or anything else, so check whatever else matters in
-  `ValidateDestination`.
+  `format` (in draft 2020-12 it's only an annotation) or anything else, so
+  check whatever else matters in `ValidateDestination`.
+- `pattern` is Go RE2 syntax (Go's `regexp`: no lookahead, lookbehind or
+  backreferences), and install refuses a pattern that doesn't compile.
+  Clients may use it to check input as the user types; the host's check on
+  save is the one that counts.
 - Mark credentials `secret`: the host never returns them, and on an edit the
   user leaves them blank to keep the stored value.
 - A manifest can declare several `notification_channel.v1` capabilities. One
@@ -96,6 +102,27 @@ flat list of scalar fields needs.
 A field must set `key`, `label` and `control`, and may set `description`,
 `placeholder`, `required`, `secret` (string fields only), `default_value`
 and, on a `SELECT` only, `options`.
+
+Every form must also be one a client can render and Silo can save, so
+install refuses a form unless:
+
+- each field's `key` is exactly its schema property's name: a letter
+  followed by up to 63 letters, digits, underscores or hyphens, used once
+- a field's `required` matches whether the schema's `required` list names
+  it
+- the schema compiles as Silo compiles it, and each `pattern` is valid Go
+  RE2
+- `minimum` is at most `maximum`, `minLength` is at most `maxLength`, and
+  lengths aren't negative
+- every option value parses as the field's type (an integer field's options
+  are integers), and no two options have the same value
+- a field with `enum` uses a `SELECT`, and its options are exactly the
+  `enum` values. Every option passes the field's other checks. Without
+  `enum`, Silo accepts any value of the field's type that passes its
+  checks, not only the options; declare `enum` to hold it to them.
+- a `default` in the schema and a `default_value` on the form are each a
+  value of the field's type that passes the field's checks and, on a
+  `SELECT`, is one of the options
 
 Refused:
 
@@ -131,9 +158,11 @@ sdkruntime.ServeManifestWithOptions(manifestJSON, version, sdkruntime.Capability
 Silo calls it before saving a destination. Check the settings and return
 `valid: false` with a `message` the user can act on. Return a gRPC error only
 when the check itself couldn't run. A network check, such as asking the
-service whether a user key exists, is fine. Silo waits 10 seconds. When the
-plugin doesn't answer in time, returns a gRPC error, or isn't running, the
-save fails with `503` (the plugin isn't available) and `Retry-After: 30`.
+service whether a user key exists, is fine. Silo gives the call 10 seconds,
+counted once it has reached the plugin; starting a stopped plugin comes
+first and isn't part of them. When the plugin doesn't answer in time,
+returns a gRPC error, or isn't running, the save fails with `503` (the
+plugin isn't available) and `Retry-After: 30`.
 
 A valid answer doesn't mean the settings get saved: Silo checks them first
 and saves afterwards, and the save can still fail, for example on the
@@ -162,9 +191,9 @@ Map the service's answer onto an outcome:
 | Outcome | Use for | Silo then |
 |---|---|---|
 | `DELIVERED` (or an empty response) | The service accepted the message. | Records the success. |
-| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays, for about a day, then drops the message and may disable the destination (see below). `retry_after_seconds` makes the next wait at least that long, up to a host cap of six hours; it never shortens the schedule. |
+| `RETRY` | A timeout, a rate limit, a 5xx. Set `retry_after_seconds` when the service says how long to wait. | Tries again later with growing delays. A message older than the retry window, about a day, is dropped whatever its attempt count, and the destination may be disabled (see below). `retry_after_seconds` makes the next wait at least that long, up to a host cap of six hours; it never shortens the schedule. |
 | `FAILED` | This message can't be sent, but the destination works. | Drops the message. |
-| `DESTINATION_INVALID` | The service definitely refused the settings, such as a revoked token or a deleted topic. | Drops the message and disables the destination at once, until its owner edits it. |
+| `DESTINATION_INVALID` | The service definitely refused the settings, such as a revoked token or a deleted topic. | Drops the message and disables the destination at once, until its owner turns it back on. |
 
 `DESTINATION_INVALID` takes effect on the first answer, so return it only when
 the service's own response says the settings are wrong. A 401 from a proxy or
@@ -174,25 +203,33 @@ Because of that cap, a plugin whose service asks for a longer wait, such as
 a daily quota that resets in 20 hours, is called again after six hours. It
 should then answer `RETRY` again with the wait that remains.
 
-A gRPC error your plugin returns counts as `RETRY`. So does no answer within
-15 seconds or a failed connection, which Silo also treats as the plugin being
-unavailable (see below). Put a short
-reason in `message`; the destination's owner sees it. Never include secrets.
+Silo allows 10 seconds to reach the plugin, starting it when needed, and
+then 15 seconds for the call. A gRPC error your plugin returns, or no answer
+within those 15 seconds, counts as `RETRY`: an ordinary failed attempt,
+which retries and can lead to the destination being disabled under the "no
+successful send" rule below. Only a failure to reach the plugin counts as
+the plugin being unavailable (see below). Put a short reason in `message`;
+the destination's owner sees it. Never include secrets.
 
 Silo disables a destination in two cases only:
 
 - the plugin answers `DESTINATION_INVALID`, or
-- sends keep failing until the retry schedule runs out, and the destination
-  had no successful send in the meantime. One message that keeps failing
-  while others get through doesn't disable it.
+- a message is dropped at the end of the retry window after failed attempts,
+  and the destination had no successful send in the meantime. One message
+  that keeps failing while others get through doesn't disable it.
 
-A transport failure is the plugin being unavailable, not the destination
-failing: when the plugin was off, removed, unreachable, or its process
-exited during the call, Silo drops a message whose retries ran out but
-leaves the destination enabled, so it works again once the plugin is back.
-Silo also doesn't disable a destination whose owner saved new settings while
-the failing send ran. A disabled destination gets nothing until its owner
-edits or re-enables it.
+A failure to reach the plugin is the plugin being unavailable, not the
+destination failing: the plugin is off, removed or not running, the
+connection fails or closes (its process exited during the call), or the
+call ends with gRPC `Unavailable`. Silo retries such a message like any
+other and drops it once it's older than the retry window, but leaves the
+destination enabled, so it works again once the plugin is back. Silo also
+doesn't disable a destination whose owner saved new settings while the
+failing send ran.
+
+A disabled destination is turned off and gets nothing until its owner
+turns it back on. Saving new settings clears the reason shown and the
+failure count but leaves the destination off.
 
 ### What a plugin isn't told
 
