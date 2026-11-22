@@ -14,7 +14,9 @@ release builds resolve the SDK from a published module tag.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/events` — the host event catalog: event names, access classes, and typed payloads (see [docs/events.md](docs/events.md)).
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
+- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/httproute` — reads the signed-in viewer (account, role, verified profile) the host passes to an `http_routes.v1` handler.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
 - `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding, including `ServeManifestWithOptions` options such as `WithConfigure`, `WithAuthProviderChecks` and `WithConfigurationChecks`.
@@ -29,7 +31,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `marker_provider.v1`
 - `media_analyzer.v1`
 - `image_resolver.v1`
-- `scheduled_task.v1`
+- `scheduled_task.v1` (see [docs/scheduled-task.md](docs/scheduled-task.md))
 - `event_consumer.v1`
 - `auth_provider.v1`
 - `http_routes.v1`
@@ -37,6 +39,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `scan_source.v1`
 - `watch_sync_provider.v1`
 - `network_access_provider.v1`
+- `notification_channel.v1` (see [docs/notification-channel.md](docs/notification-channel.md))
 - `audiobook_backend.v1`
 - `ebook_backend.v1`
 
@@ -93,6 +96,35 @@ Curated catalog tooling should call
 `manifest.ValidateCatalogPresentation(manifest, canonicalRepositoryURL)` to
 require the complete block and prevent a published `source_url` from drifting
 away from the repository that produced the release.
+
+## Staying running between calls
+
+The host starts a plugin process on first use and can stop it after a period
+with no host calls; the next call starts it again. A plugin that does work
+between host calls (its own timers, a background sync, or a listener it opened
+itself) loses that work when it is stopped. Such a plugin can set
+`stay_running` in its manifest:
+
+```json
+{
+  "plugin_id": "silo.example",
+  "version": "1.0.0",
+  "stay_running": true
+}
+```
+
+- `stay_running` only turns off idle stops. The host still starts the plugin on
+  first use, and still stops it on update, disable, config change, crash, and
+  shutdown.
+- Leave it unset to keep a cache warm or to avoid a cold start. Idle stops free
+  memory on small servers, and a restarted plugin rebuilds its cache on the
+  next call.
+- It is not the same as a resident plugin. `network_access_provider.v1` plugins
+  are started at boot and supervised by the host whether or not they set it.
+- Added in v0.33.0. Absent and `false` mean the same thing. Setting it to
+  `true` needs a Silo host with Silo-Server/silo-server#2502; an older host
+  refuses the plugin binary, or installs the archive but cannot start it. See
+  [docs/compatibility.md](docs/compatibility.md#idle-stops).
 
 ## Calling back into the host
 
@@ -178,8 +210,15 @@ and quality governance; the plugin routes the request to a configured
 connection and reports its status.
 
 A series request may name seasons in `RequestDescriptor.seasons`. Season `0`
-is Specials, and an empty list means the whole series. A plugin that fulfils
-seasons individually declares it in its manifest:
+is Specials, and an empty list means the whole series. Season numbers are the
+host's (TMDB's), and download services number some series differently, so
+`RequestDescriptor.season_details` also gives each requested season's first
+air date and episode count. A plugin finds a season's detail by its `number`
+and matches the season as the first that many regular episodes airing from
+that date, or the ones it finds when fewer match. A season with no detail, a
+detail without a date or count, and a detail that matches no episode are
+matched by number. A plugin that fulfils seasons individually declares it in
+its manifest:
 
 ```json
 {
@@ -550,6 +589,38 @@ is a complete plugin with tests.
 ## Self-describing binaries
 
 Direct binary upload works best when the plugin embeds a manifest template and computes its own executable checksum at runtime before returning `Runtime.GetManifest`. That keeps the plugin installable without requiring a checked-out Silo repository or a sibling `manifest.json` file at upload time. The example plugin shows the pattern.
+
+## CPU limit (`GOMAXPROCS`)
+
+Silo server releases that include
+[silo-server#3959](https://github.com/Silo-Server/silo-server/pull/3959) start
+each plugin process with `GOMAXPROCS` set to 4, or to the server's own
+`GOMAXPROCS` when that is lower. Plugins that declare
+`network_access_provider.v1` are not capped, because client traffic flows
+through them, and neither is the short `manifest` run at install time. A plugin
+process receives only an allowlisted part of the server's environment, so
+without this cap a plugin on a host with no cgroup CPU quota sizes its Go
+runtime to every CPU on the host.
+
+The cap limits how many goroutines run Go code at the same time. A goroutine
+blocked on network I/O or in a syscall (file reads, `stat`, extended
+attributes) does not count against it, so I/O-bound plugins are unaffected.
+Because the variable is set, Go's automatic, cgroup-aware `GOMAXPROCS` is off
+inside the plugin.
+
+A plugin with real CPU-bound work, such as hashing, decoding or parsing large
+files, pure-Go SQLite under heavy load, or parallel tree walks with many
+workers, can opt out in `main` before it serves. `runtime.SetDefaultGOMAXPROCS`
+(Go 1.25 and later) ignores the environment variable and restores the runtime
+default; `runtime.GOMAXPROCS(n)` sets an explicit value instead.
+
+```go
+func main() {
+	goruntime.SetDefaultGOMAXPROCS() // goruntime is the standard "runtime" package
+
+	sdkruntime.Serve(sdkruntime.ServeConfig{ /* ... */ })
+}
+```
 
 ## Compatibility
 

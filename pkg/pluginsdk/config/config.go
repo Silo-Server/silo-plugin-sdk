@@ -43,19 +43,7 @@ func ValidateValue(schema *pluginv1.ConfigSchema, kind string, key string, value
 		schemaJSON = `{}`
 	}
 
-	var schemaDoc any
-	if err := json.Unmarshal([]byte(schemaJSON), &schemaDoc); err != nil {
-		return fmt.Errorf("parse %s schema %q: %w", kind, key, err)
-	}
-
-	compiler := jsonschema.NewCompiler()
-	compiler.DefaultDraft(jsonschema.Draft2020)
-	resourceName := "memory://config/" + key + ".schema.json"
-	if err := compiler.AddResource(resourceName, schemaDoc); err != nil {
-		return fmt.Errorf("load %s schema %q: %w", kind, key, err)
-	}
-
-	compiled, err := compiler.Compile(resourceName)
+	compiled, err := CompileSchema(schemaJSON)
 	if err != nil {
 		return fmt.Errorf("compile %s schema %q: %w", kind, key, err)
 	}
@@ -69,4 +57,22 @@ func ValidateValue(schema *pluginv1.ConfigSchema, kind string, key string, value
 	}
 
 	return nil
+}
+
+// CompileSchema compiles a JSON Schema the way ValidateValue does: draft
+// 2020-12 unless the schema names another with $schema, and Go regexp
+// (RE2) syntax for pattern. Manifest validation uses it to refuse a schema
+// a host could never check values against.
+func CompileSchema(schemaJSON string) (*jsonschema.Schema, error) {
+	var schemaDoc any
+	if err := json.Unmarshal([]byte(schemaJSON), &schemaDoc); err != nil {
+		return nil, fmt.Errorf("parse schema: %w", err)
+	}
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	const resourceName = "memory://config/schema.json"
+	if err := compiler.AddResource(resourceName, schemaDoc); err != nil {
+		return nil, fmt.Errorf("load schema: %w", err)
+	}
+	return compiler.Compile(resourceName)
 }

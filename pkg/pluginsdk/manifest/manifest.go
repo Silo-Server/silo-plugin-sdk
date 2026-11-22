@@ -153,6 +153,12 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 		if err := validateAuthProviderCapability(capability); err != nil {
 			return err
 		}
+		if err := validateNotificationChannelCapability(capability); err != nil {
+			return err
+		}
+		if err := validateScheduledTaskCapability(capability); err != nil {
+			return err
+		}
 	}
 	if err := validateNetworkAuthPairing(manifest); err != nil {
 		return err

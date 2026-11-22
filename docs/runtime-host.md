@@ -22,7 +22,7 @@ plugin, the plugin calls back into the host.
 | `MintScopedStream(request)` | Mint a short-lived stream grant for plugin-owned public access workflows. |
 | `CallPluginHTTP(request)` | Invoke another installed plugin's HTTP route through the host control plane. |
 | `ReadInstanceState(key)` | Read one key of the calling instance's encrypted, host-scoped state. |
-| `WriteInstanceState(key, value)` | Write one key of that state. Key ≤ 256 bytes, value ≤ 256 KiB, ≤ 256 keys per scope. |
+| `WriteInstanceState(key, value, expected_version?)` | Write one key of that state. Key ≤ 256 bytes, value ≤ 256 KiB, ≤ 256 keys per scope. With `expected_version`, write only if no one else wrote the key since it was read; see [Shared state](#shared-state). |
 | `ReportNetworkAccessStatus(status)` | Push a `network_access_provider.v1` status change so the host does not poll. |
 
 ## Using it from a plugin
@@ -177,6 +177,27 @@ body, decodes the response into `Response`, and returns `*runtimehost.HTTPStatus
 for HTTP status codes 400 and above. The lower-level `CallPluginHTTP` remains
 available when a plugin needs custom content types or raw bytes.
 
+### Shared state
+
+Every API server runs its own process of a plugin, and all of them read and
+write the same instance state on the API host. Two processes that read a
+key, change it, and write it back can lose one of the changes. Use
+`UpdateInstanceState` for such a key: it writes only if the key is unchanged
+since the read, and otherwise reads again and repeats your change.
+
+```go
+err := host.UpdateInstanceState(ctx, "profiles", func(current []byte, found bool) ([]byte, error) {
+	settings := decode(current, found)
+	settings[profileID] = updated
+	return encode(settings)
+})
+```
+
+The function can run more than once, so it must not have side effects.
+`ReadInstanceStateVersion` and `WriteInstanceStateIf` are the two steps on
+their own. A host that doesn't keep versions answers
+`ErrInstanceStateUnversioned`; `UpdateInstanceState` then writes nothing.
+
 ### Addressing events
 
 `PublishEvent` broadcasts to every matching `event_consumer.v1` subscription.
@@ -193,7 +214,9 @@ events.
 
 An `event_consumer.v1` capability lists the event names it wants in its
 manifest `subscriptions`, and the host calls `EventConsumer.HandleEvent` for
-each matching event. Once Silo has stored an event, it delivers it to each
+each matching event. The host delivers the catalog events in
+[events.md](events.md), which also documents their payloads, and plugin
+events; it ignores a subscription to any other name. Once Silo has stored an event, it delivers it to each
 subscribing installation at least once, however many Silo servers run,
 unless every attempt fails:
 
