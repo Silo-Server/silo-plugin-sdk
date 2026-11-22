@@ -208,9 +208,12 @@ for _, p := range plugins {
         continue
     }
     sent[p.GetPluginId()] = true
-    err = host.PublishEventTo(ctx, p.GetPluginId(), "title.requested", map[string]any{
+    if err := host.PublishEventTo(ctx, p.GetPluginId(), "title.requested", map[string]any{
         "title": "The Matrix",
-    })
+    }); err != nil {
+        // Report each failure and keep going, so one peer can't block the rest.
+        log.Printf("publish title.requested to %s: %v", p.GetPluginId(), err)
+    }
 }
 ```
 
