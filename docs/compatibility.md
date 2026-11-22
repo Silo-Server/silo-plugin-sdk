@@ -52,6 +52,14 @@ with a `default` arm rather than an exhaustive match, and do not assume the
 constants shipped in any given SDK tag are the complete set. The same rule
 applies to any future open vocabulary added to `v1`.
 
+Event subscriptions are open too. The manifest validator doesn't check them,
+so manifests that predate the event catalog keep loading, and a plugin built
+against a newer SDK loads on an older host, which ignores an event it doesn't
+deliver. `manifest.SubscriptionProblems` reports names no host delivers, for a
+plugin's own tests. The catalog and its payload types in `pkg/pluginsdk/events`
+change additively: an event or a payload field is never renamed or removed
+(see [events.md](events.md)).
+
 `FetchMarkersRequest.episode_numbering` and `SubmitMarkerRequest.episode_numbering`
 are open too. Hosts send an external ID key, today `tvdb` or `tmdb`, or leave the
 field empty when they cannot tell. A marker provider treats a value it does not
@@ -102,6 +110,11 @@ as "not supported". A network provider cannot fall back that way: without
 signed in until the session's absolute age limit, so `ServeManifestWithOptions`
 refuses to start a plugin that declares the `network` mode without it.
 
+`ConfigurationChecks` (v0.32.0) is declared by the manifest metadata key
+`"configuration_check": true`. Hosts call it only for plugins that declare the
+key, so a host that predates the service ignores the key, and a plugin built
+before it keeps the host's built-in probes.
+
 ## Presence-Sensitive Optional Fields
 
 Some contract fields use proto3 `optional` because absence and zero have
@@ -141,6 +154,17 @@ wire, the host decides who may receive a season-only request from the
 manifest's `RequestRouterDescriptor.supports_seasons` flag instead. An absent
 descriptor means the flag is false.
 
+`RequestDescriptor.season_details` (added in v0.34.0) is a repeated field, so
+it has no presence: a host that predates it, a whole-series request, and a
+request made before the host stored the details all send an empty list. A
+plugin then matches `seasons` by number, as before. The list may leave out
+seasons in `seasons`, so a plugin finds each detail by its `number`, not its
+position. A season with no detail, a detail with an empty `first_air_date` or
+an `episode_count` of 0, and a detail that matches no episode in the plugin's
+service are matched by number too, and so is season `0` (Specials) whatever
+its detail says. When fewer than `episode_count` episodes match, the season is
+the ones that do. A plugin built before the field existed ignores it.
+
 `TargetStatus.progress` is a message field, so its presence is the `nil` check.
 Unset means the target has nothing in flight, and the host clears the progress
 it stored for it. A set `progress` must carry a `phase`: the host counts one
@@ -179,6 +203,35 @@ metadata stored when the plugin was installed or updated. A host built on an
 older SDK stored that metadata without them, so they take effect after the
 plugin is next updated on a host that reads them.
 
+`MetadataItem.overview_language` and the `title_language` and
+`overview_language` fields on `SeasonRecord` and `EpisodeRecord` (added in
+v0.29.0) are plain strings, like the older `MetadataItem.title_language`.
+Empty means the text is in the requested language, or the plugin cannot tell;
+hosts read every plugin built before the fields existed that way. A plugin
+sets one when the provider had no text in the requested language and it
+returned another language's text instead, such as a record's original-language
+overview. Hosts rank that text below another provider's text in the requested
+language and may replace it with text fetched in a fallback language. Hosts
+that predate the fields ignore them.
+
+The marker fields added in v0.30.0 are plain scalars, so they have no
+presence. A host that predates them sends an empty `file_hash`, a `file_size`
+of 0, `accepts_absent` false, and submissions without `source`, `algorithm`,
+`confidence`, or `absent`. A marker provider must not return a
+`MarkerSegment` with `absent` set unless the request's `accepts_absent` is
+true: an older host reads a segment without bounds as covering the whole
+file. See [marker-provider.md](marker-provider.md).
+
+`SeasonRecord.backdrop_path` (added in v0.31.0) is a plain string, like
+`poster_path`. Empty means the provider has no landscape art for the season,
+which is how hosts read every plugin built before the field existed. A host
+that reads it may clear a season backdrop an earlier refresh stored when every
+season provider answers without one, unless an admin locked the series'
+artwork, so a plugin should leave it empty only when the provider really has
+no season backdrop. Hosts that predate the field ignore it. The season-scoped
+`GetImages` gallery is unchanged: an `ImageRecord` of type backdrop with
+`season_number` set already offers a season backdrop for picking.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and
@@ -190,6 +243,34 @@ verify images by the per-image field rather than assume a filtered response.
 - Host installs should reject incompatible API versions before runtime startup.
 - A plugin binary should return the same manifest shape that Silo installs, except that binaries may compute their checksum dynamically at runtime.
 - From this version, `convert.DecodeCapability` ignores fields and enum values it does not know, so a server node built on this SDK or later, in a mixed-version cluster sharing one database, still loads capability metadata written by a newer SDK; it only loses the parts added after its own SDK version. Nodes built on an earlier SDK decode strictly and reject such metadata, so upgrade every node past them before installing plugins that publish newer fields.
+
+### Idle stops
+
+`PluginManifest.stay_running` (v0.33.0) is a plain `bool`, so absent and
+`false` both leave idle stops on, and protobuf leaves a `false` value off the
+wire.
+
+A plugin that sets it to `true` needs a Silo host that includes
+Silo-Server/silo-server#2502. Before that change, Silo read a bare plugin
+binary's manifest strictly and refused to install one with a field it did not
+know. It installed such a plugin from an archive, but then stopped it at start:
+the installed manifest had dropped the field, while the copy the plugin
+reported over gRPC kept it, so the two did not match.
+
+A host with #2502 but an SDK older than v0.33.0 installs and starts the plugin
+and ignores the field, so it applies its usual idle-stop rule. The field takes
+effect only on a host that both stops idle plugins and reads it; on a host that
+never stops idle plugins, it changes nothing.
+
+### New capability types
+
+Manifest validation refuses a capability type its SDK doesn't know, and it
+refuses the whole plugin, not only that capability: an older host fails to
+install or load it with `plugin capability "<id>": unknown type "<type>"`.
+A plugin that declares a newer type, such as `notification_channel.v1`,
+therefore needs a host built on an SDK that knows it. Ship a new capability
+type in its own plugin rather than adding it to one that must keep working
+on older hosts.
 
 ### Watch-sync batch size
 

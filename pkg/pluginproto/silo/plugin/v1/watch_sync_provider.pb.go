@@ -2605,6 +2605,12 @@ func (x *WatchSyncListRemoteStateRequest) GetStateKinds() []WatchSyncRemoteState
 	return nil
 }
 
+// Watched state for a MOVIE or EPISODE item is its plays. On a SERIES item it
+// means the account finished the series as of last_watched_at, which is then
+// required: the host marks every local regular-season episode that had aired
+// by that time, or that has no air date, and leaves specials (season 0)
+// alone. Use it only when the provider lists no episodes for a finished
+// series. Hosts before Silo's SERIES support skip such an item with a warning.
 type WatchSyncRemoteWatchedState struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Number of completed plays known to the provider. Must be at least one when

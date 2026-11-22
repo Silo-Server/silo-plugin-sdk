@@ -57,6 +57,11 @@ const (
 // must be a boolean.
 const AuthProviderConnectionTestKey = "connection_test"
 
+// ConfigurationCheckKey is the manifest-level metadata key that declares
+// support for ConfigurationChecks.TestConfiguration. Its value must be a
+// boolean.
+const ConfigurationCheckKey = "configuration_check"
+
 func knownCapabilityTypeSet() map[string]struct{} {
 	out := make(map[string]struct{}, len(capability.KnownTypes))
 	for _, typ := range capability.KnownTypes {
@@ -121,6 +126,11 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 	if err := validatePresentation(manifest.GetPresentation()); err != nil {
 		return err
 	}
+	if value, ok := manifest.GetMetadata().GetFields()[ConfigurationCheckKey]; ok {
+		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
+			return fmt.Errorf("plugin manifest metadata %q must be a boolean", ConfigurationCheckKey)
+		}
+	}
 	for _, capability := range manifest.Capabilities {
 		if capability.Type == "" {
 			return fmt.Errorf("plugin capability type is required")
@@ -141,6 +151,12 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 			return err
 		}
 		if err := validateAuthProviderCapability(capability); err != nil {
+			return err
+		}
+		if err := validateNotificationChannelCapability(capability); err != nil {
+			return err
+		}
+		if err := validateScheduledTaskCapability(capability); err != nil {
 			return err
 		}
 	}
@@ -465,6 +481,14 @@ func AuthProviderSupportsConnectionTest(descriptor *pluginv1.CapabilityDescripto
 		return false
 	}
 	return descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey].GetBoolValue()
+}
+
+// SupportsConfigurationCheck reports whether a manifest declares
+// ConfigurationChecks.TestConfiguration support through its
+// "configuration_check" metadata. Hosts should call TestConfiguration only
+// when this is true.
+func SupportsConfigurationCheck(manifest *pluginv1.PluginManifest) bool {
+	return manifest.GetMetadata().GetFields()[ConfigurationCheckKey].GetBoolValue()
 }
 
 // ValidateCatalogPresentation applies the stricter presentation contract used

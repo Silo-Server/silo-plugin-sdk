@@ -102,3 +102,34 @@ func TestLoadFromDisk(t *testing.T) {
 		t.Fatalf("capability id = %q, want hello", got)
 	}
 }
+
+func TestConfigurationCheckDeclaration(t *testing.T) {
+	cases := []struct {
+		name     string
+		metadata string
+		want     bool
+		wantErr  bool
+	}{
+		{"absent", ``, false, false},
+		{"true", `, "metadata": {"configuration_check": true}`, true, false},
+		{"false", `, "metadata": {"configuration_check": false}`, false, false},
+		{"string", `, "metadata": {"configuration_check": "true"}`, false, true},
+		{"null", `, "metadata": {"configuration_check": null}`, false, true},
+	}
+	for _, tc := range cases {
+		raw := []byte(`{"plugin_id": "test.check", "version": "0.1.0", "checksum": "0", "silo_api_version": "v1"` + tc.metadata + `}`)
+		m, err := manifest.Load(raw)
+		if tc.wantErr {
+			if err == nil {
+				t.Errorf("%s: Load = nil, want an error", tc.name)
+			}
+			continue
+		}
+		if err != nil {
+			t.Fatalf("%s: Load = %v", tc.name, err)
+		}
+		if got := manifest.SupportsConfigurationCheck(m); got != tc.want {
+			t.Errorf("%s: SupportsConfigurationCheck = %v, want %v", tc.name, got, tc.want)
+		}
+	}
+}

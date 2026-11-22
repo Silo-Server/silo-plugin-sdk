@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability"
 	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
@@ -45,6 +46,8 @@ type serveManifestOptions struct {
 	watchSyncDeviceAuthorization pluginv1.WatchSyncDeviceAuthorizationServiceServer
 	authProviderChecks           pluginv1.AuthProviderChecksServer
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
+	configurationChecks          pluginv1.ConfigurationChecksServer
+	notificationChannel          pluginv1.NotificationChannelServer
 	configure                    ConfigureFunc
 }
 
@@ -83,6 +86,26 @@ func WithAuthProviderChecks(server pluginv1.AuthProviderChecksServer) ServeManif
 func WithNetworkIdentityAuth(server pluginv1.NetworkIdentityAuthServer) ServeManifestOption {
 	return func(options *serveManifestOptions) {
 		options.networkIdentityAuth = server
+	}
+}
+
+// WithConfigurationChecks registers the ConfigurationChecks service, which
+// runs the plugin's own check when an operator presses Check Connection on
+// its settings page. Declare it with the manifest metadata key
+// "configuration_check": true; the host does not call the service otherwise.
+func WithConfigurationChecks(server pluginv1.ConfigurationChecksServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.configurationChecks = server
+	}
+}
+
+// WithNotificationChannel registers the NotificationChannel service for a
+// plugin that declares notification_channel.v1 capabilities. One server
+// answers for every such capability in the manifest; each request names its
+// capability_id.
+func WithNotificationChannel(server pluginv1.NotificationChannelServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.notificationChannel = server
 	}
 }
 
@@ -126,7 +149,8 @@ func ServeManifest(manifestBytes []byte, version string, servers CapabilityServe
 // Besides manifest errors, it panics when an auth_provider.v1 capability
 // declares "connection_test": true but no AuthProviderChecks server would be
 // registered, or declares the "network" auth mode but no NetworkIdentityAuth
-// or no AuthProviderChecks server would be registered.
+// or no AuthProviderChecks server would be registered, and when the manifest
+// declares "configuration_check": true without WithConfigurationChecks.
 func ServeManifestWithOptions(
 	manifestBytes []byte,
 	version string,
@@ -184,6 +208,26 @@ func manifestServeConfig(
 			}
 		}
 	}
+	// A typed-nil server counts as none, so it is neither registered nor
+	// accepted for the declaration.
+	if isNilServer(resolved.configurationChecks) {
+		resolved.configurationChecks = nil
+	}
+	if manifest.SupportsConfigurationCheck(m) && resolved.configurationChecks == nil {
+		return ServeConfig{}, fmt.Errorf("plugin manifest declares %q but no ConfigurationChecks server is registered; pass runtime.WithConfigurationChecks",
+			manifest.ConfigurationCheckKey)
+	}
+	if isNilServer(resolved.notificationChannel) {
+		resolved.notificationChannel = nil
+	}
+	if resolved.notificationChannel == nil {
+		for _, descriptor := range m.GetCapabilities() {
+			if descriptor.GetType() == capability.NotificationChannel {
+				return ServeConfig{}, fmt.Errorf("plugin capability %q is %s but no NotificationChannel server is registered; pass runtime.WithNotificationChannel",
+					descriptor.GetId(), capability.NotificationChannel)
+			}
+		}
+	}
 	servers.Runtime = &manifestRuntime{manifest: m, configure: resolved.configure}
 	return ServeConfig{
 		Servers: servers,
@@ -191,6 +235,8 @@ func manifestServeConfig(
 			watchSyncDeviceAuthorization: resolved.watchSyncDeviceAuthorization,
 			authProviderChecks:           resolved.authProviderChecks,
 			networkIdentityAuth:          resolved.networkIdentityAuth,
+			configurationChecks:          resolved.configurationChecks,
+			notificationChannel:          resolved.notificationChannel,
 		}),
 	}, nil
 }
