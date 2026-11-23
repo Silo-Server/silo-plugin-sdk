@@ -187,6 +187,7 @@ when finding another plugin:
 
 ```go
 import (
+    "log"
     "slices"
 
     "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability"
