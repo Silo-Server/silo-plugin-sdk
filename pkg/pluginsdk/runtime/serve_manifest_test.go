@@ -424,3 +424,62 @@ func TestManifestServeConfigSkipsTypedNilConfigurationChecks(t *testing.T) {
 		t.Fatalf("TestConfiguration error = %v, want Unimplemented", err)
 	}
 }
+
+// episodeOrderLister answers with one order per series, so a test can tell
+// the request reached the plugin.
+type episodeOrderLister struct {
+	pluginv1.UnimplementedEpisodeOrdersServer
+}
+
+func (episodeOrderLister) ListEpisodeOrders(_ context.Context, req *pluginv1.ListEpisodeOrdersRequest) (*pluginv1.ListEpisodeOrdersResponse, error) {
+	return &pluginv1.ListEpisodeOrdersResponse{Orders: []*pluginv1.EpisodeOrder{{
+		Id:           "absolute",
+		Name:         "Absolute order for " + req.GetSeriesProviderId(),
+		Kind:         "absolute",
+		SeasonCount:  1,
+		EpisodeCount: 366,
+	}}}, nil
+}
+
+func episodeOrdersManifest(declared bool) *pluginv1.PluginManifest {
+	metadata, err := structpb.NewStruct(map[string]any{"episode_orders": declared})
+	if err != nil {
+		panic(err)
+	}
+	return &pluginv1.PluginManifest{
+		PluginId: "silo.test",
+		Capabilities: []*pluginv1.CapabilityDescriptor{{
+			Type:     capability.MetadataProvider,
+			Id:       "series",
+			Metadata: metadata,
+		}},
+	}
+}
+
+func TestManifestServeConfigServesEpisodeOrders(t *testing.T) {
+	cfg, err := manifestServeConfig(episodeOrdersManifest(true), CapabilityServers{},
+		WithEpisodeOrders(episodeOrderLister{}))
+	if err != nil {
+		t.Fatalf("manifestServeConfig = %v", err)
+	}
+	resp, err := serveConfigClient(t, cfg).EpisodeOrders().ListEpisodeOrders(context.Background(),
+		&pluginv1.ListEpisodeOrdersRequest{SeriesProviderId: "74796"})
+	if err != nil {
+		t.Fatalf("ListEpisodeOrders = %v", err)
+	}
+	orders := resp.GetOrders()
+	if len(orders) != 1 || orders[0].GetName() != "Absolute order for 74796" || orders[0].GetEpisodeCount() != 366 {
+		t.Fatalf("ListEpisodeOrders = %v, want the plugin's absolute order for series 74796", orders)
+	}
+}
+
+func TestManifestServeConfigRejectsEpisodeOrdersWithoutServer(t *testing.T) {
+	_, err := manifestServeConfig(episodeOrdersManifest(true), CapabilityServers{},
+		WithEpisodeOrders((*episodeOrderLister)(nil)))
+	if err == nil || !strings.Contains(err.Error(), "WithEpisodeOrders") {
+		t.Fatalf("manifestServeConfig = %v, want an error naming WithEpisodeOrders", err)
+	}
+	if _, err := manifestServeConfig(episodeOrdersManifest(false), CapabilityServers{}); err != nil {
+		t.Fatalf("manifestServeConfig without the declaration = %v, want nil", err)
+	}
+}

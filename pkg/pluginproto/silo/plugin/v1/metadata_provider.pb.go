@@ -1384,8 +1384,12 @@ type GetSeasonsRequest struct {
 	SeriesProviderId string                 `protobuf:"bytes,1,opt,name=series_provider_id,json=seriesProviderId,proto3" json:"series_provider_id,omitempty"`
 	ProviderIds      *structpb.Struct       `protobuf:"bytes,2,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
 	Language         string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// An EpisodeOrder.id from ListEpisodeOrders. Empty means the default order.
+	// Hosts send it only to capabilities that declare "episode_orders": true.
+	// A plugin that does not recognize the id answers NOT_FOUND.
+	Ordering      string `protobuf:"bytes,4,opt,name=ordering,proto3" json:"ordering,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetSeasonsRequest) Reset() {
@@ -1435,6 +1439,13 @@ func (x *GetSeasonsRequest) GetProviderIds() *structpb.Struct {
 func (x *GetSeasonsRequest) GetLanguage() string {
 	if x != nil {
 		return x.Language
+	}
+	return ""
+}
+
+func (x *GetSeasonsRequest) GetOrdering() string {
+	if x != nil {
+		return x.Ordering
 	}
 	return ""
 }
@@ -1500,8 +1511,17 @@ type EpisodeRecord struct {
 	// overview_language semantics: empty means the requested language or unknown.
 	TitleLanguage    string `protobuf:"bytes,12,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
 	OverviewLanguage string `protobuf:"bytes,13,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// The episode's position counted through the whole series, specials
+	// excluded, when the provider knows it.
+	AbsoluteNumber *int32 `protobuf:"varint,14,opt,name=absolute_number,json=absoluteNumber,proto3,oneof" json:"absolute_number,omitempty"`
+	// The episode's season and number in the provider's default order. Set
+	// when the response was for another ordering, so a host can keep the
+	// coordinates that trackers and marker providers use. provider_id is the
+	// same in every ordering of one provider.
+	DefaultSeasonNumber  *int32 `protobuf:"varint,15,opt,name=default_season_number,json=defaultSeasonNumber,proto3,oneof" json:"default_season_number,omitempty"`
+	DefaultEpisodeNumber *int32 `protobuf:"varint,16,opt,name=default_episode_number,json=defaultEpisodeNumber,proto3,oneof" json:"default_episode_number,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *EpisodeRecord) Reset() {
@@ -1625,14 +1645,38 @@ func (x *EpisodeRecord) GetOverviewLanguage() string {
 	return ""
 }
 
+func (x *EpisodeRecord) GetAbsoluteNumber() int32 {
+	if x != nil && x.AbsoluteNumber != nil {
+		return *x.AbsoluteNumber
+	}
+	return 0
+}
+
+func (x *EpisodeRecord) GetDefaultSeasonNumber() int32 {
+	if x != nil && x.DefaultSeasonNumber != nil {
+		return *x.DefaultSeasonNumber
+	}
+	return 0
+}
+
+func (x *EpisodeRecord) GetDefaultEpisodeNumber() int32 {
+	if x != nil && x.DefaultEpisodeNumber != nil {
+		return *x.DefaultEpisodeNumber
+	}
+	return 0
+}
+
 type GetEpisodesRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	SeriesProviderId string                 `protobuf:"bytes,1,opt,name=series_provider_id,json=seriesProviderId,proto3" json:"series_provider_id,omitempty"`
-	SeasonNumber     int32                  `protobuf:"varint,2,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
-	ProviderIds      *structpb.Struct       `protobuf:"bytes,3,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
-	Language         string                 `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// A season of the requested ordering, numbered as GetSeasons returned it.
+	SeasonNumber int32            `protobuf:"varint,2,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	ProviderIds  *structpb.Struct `protobuf:"bytes,3,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
+	Language     string           `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
+	// Same meaning as GetSeasonsRequest.ordering.
+	Ordering      string `protobuf:"bytes,5,opt,name=ordering,proto3" json:"ordering,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetEpisodesRequest) Reset() {
@@ -1689,6 +1733,13 @@ func (x *GetEpisodesRequest) GetProviderIds() *structpb.Struct {
 func (x *GetEpisodesRequest) GetLanguage() string {
 	if x != nil {
 		return x.Language
+	}
+	return ""
+}
+
+func (x *GetEpisodesRequest) GetOrdering() string {
+	if x != nil {
+		return x.Ordering
 	}
 	return ""
 }
@@ -2162,6 +2213,210 @@ func (x *ResolveImageURLsResponse) GetUrls() map[string]string {
 	return nil
 }
 
+type ListEpisodeOrdersRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	SeriesProviderId string                 `protobuf:"bytes,1,opt,name=series_provider_id,json=seriesProviderId,proto3" json:"series_provider_id,omitempty"`
+	ProviderIds      *structpb.Struct       `protobuf:"bytes,2,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
+	Language         string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ListEpisodeOrdersRequest) Reset() {
+	*x = ListEpisodeOrdersRequest{}
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEpisodeOrdersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEpisodeOrdersRequest) ProtoMessage() {}
+
+func (x *ListEpisodeOrdersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEpisodeOrdersRequest.ProtoReflect.Descriptor instead.
+func (*ListEpisodeOrdersRequest) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListEpisodeOrdersRequest) GetSeriesProviderId() string {
+	if x != nil {
+		return x.SeriesProviderId
+	}
+	return ""
+}
+
+func (x *ListEpisodeOrdersRequest) GetProviderIds() *structpb.Struct {
+	if x != nil {
+		return x.ProviderIds
+	}
+	return nil
+}
+
+func (x *ListEpisodeOrdersRequest) GetLanguage() string {
+	if x != nil {
+		return x.Language
+	}
+	return ""
+}
+
+// EpisodeOrder is one way a provider arranges a series' episodes into
+// seasons.
+type EpisodeOrder struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable provider identifier, sent back as GetSeasonsRequest.ordering and
+	// GetEpisodesRequest.ordering. The default order may use any id.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Display name, in the requested language when the provider has one.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Open lowercase vocabulary: aired, dvd, absolute, digital, story_arc,
+	// production, tv, alternate. Hosts treat an unknown kind like "alternate".
+	Kind         string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	Description  string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	SeasonCount  int32  `protobuf:"varint,5,opt,name=season_count,json=seasonCount,proto3" json:"season_count,omitempty"`
+	EpisodeCount int32  `protobuf:"varint,6,opt,name=episode_count,json=episodeCount,proto3" json:"episode_count,omitempty"`
+	// True for the order GetSeasons and GetEpisodes serve when ordering is empty.
+	IsDefault     bool `protobuf:"varint,7,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EpisodeOrder) Reset() {
+	*x = EpisodeOrder{}
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EpisodeOrder) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EpisodeOrder) ProtoMessage() {}
+
+func (x *EpisodeOrder) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EpisodeOrder.ProtoReflect.Descriptor instead.
+func (*EpisodeOrder) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *EpisodeOrder) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EpisodeOrder) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *EpisodeOrder) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *EpisodeOrder) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *EpisodeOrder) GetSeasonCount() int32 {
+	if x != nil {
+		return x.SeasonCount
+	}
+	return 0
+}
+
+func (x *EpisodeOrder) GetEpisodeCount() int32 {
+	if x != nil {
+		return x.EpisodeCount
+	}
+	return 0
+}
+
+func (x *EpisodeOrder) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+type ListEpisodeOrdersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Orders        []*EpisodeOrder        `protobuf:"bytes,1,rep,name=orders,proto3" json:"orders,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEpisodeOrdersResponse) Reset() {
+	*x = ListEpisodeOrdersResponse{}
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEpisodeOrdersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEpisodeOrdersResponse) ProtoMessage() {}
+
+func (x *ListEpisodeOrdersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_silo_plugin_v1_metadata_provider_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEpisodeOrdersResponse.ProtoReflect.Descriptor instead.
+func (*ListEpisodeOrdersResponse) Descriptor() ([]byte, []int) {
+	return file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ListEpisodeOrdersResponse) GetOrders() []*EpisodeOrder {
+	if x != nil {
+		return x.Orders
+	}
+	return nil
+}
+
 var File_silo_plugin_v1_metadata_provider_proto protoreflect.FileDescriptor
 
 const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
@@ -2307,13 +2562,14 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\x0etitle_language\x18\t \x01(\tR\rtitleLanguage\x12+\n" +
 	"\x11overview_language\x18\n" +
 	" \x01(\tR\x10overviewLanguage\x12#\n" +
-	"\rbackdrop_path\x18\v \x01(\tR\fbackdropPath\"\x99\x01\n" +
+	"\rbackdrop_path\x18\v \x01(\tR\fbackdropPath\"\xb5\x01\n" +
 	"\x11GetSeasonsRequest\x12,\n" +
 	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12:\n" +
 	"\fprovider_ids\x18\x02 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
-	"\blanguage\x18\x03 \x01(\tR\blanguage\"L\n" +
+	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1a\n" +
+	"\bordering\x18\x04 \x01(\tR\bordering\"L\n" +
 	"\x12GetSeasonsResponse\x126\n" +
-	"\aseasons\x18\x01 \x03(\v2\x1c.silo.plugin.v1.SeasonRecordR\aseasons\"\xfa\x03\n" +
+	"\aseasons\x18\x01 \x03(\v2\x1c.silo.plugin.v1.SeasonRecordR\aseasons\"\xe5\x05\n" +
 	"\rEpisodeRecord\x12#\n" +
 	"\rseason_number\x18\x01 \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\x02 \x01(\x05R\repisodeNumber\x12\x14\n" +
@@ -2330,12 +2586,19 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\vprovider_id\x18\v \x01(\tR\n" +
 	"providerId\x12%\n" +
 	"\x0etitle_language\x18\f \x01(\tR\rtitleLanguage\x12+\n" +
-	"\x11overview_language\x18\r \x01(\tR\x10overviewLanguage\"\xbf\x01\n" +
+	"\x11overview_language\x18\r \x01(\tR\x10overviewLanguage\x12,\n" +
+	"\x0fabsolute_number\x18\x0e \x01(\x05H\x00R\x0eabsoluteNumber\x88\x01\x01\x127\n" +
+	"\x15default_season_number\x18\x0f \x01(\x05H\x01R\x13defaultSeasonNumber\x88\x01\x01\x129\n" +
+	"\x16default_episode_number\x18\x10 \x01(\x05H\x02R\x14defaultEpisodeNumber\x88\x01\x01B\x12\n" +
+	"\x10_absolute_numberB\x18\n" +
+	"\x16_default_season_numberB\x19\n" +
+	"\x17_default_episode_number\"\xdb\x01\n" +
 	"\x12GetEpisodesRequest\x12,\n" +
 	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12#\n" +
 	"\rseason_number\x18\x02 \x01(\x05R\fseasonNumber\x12:\n" +
 	"\fprovider_ids\x18\x03 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
-	"\blanguage\x18\x04 \x01(\tR\blanguage\"P\n" +
+	"\blanguage\x18\x04 \x01(\tR\blanguage\x12\x1a\n" +
+	"\bordering\x18\x05 \x01(\tR\bordering\"P\n" +
 	"\x13GetEpisodesResponse\x129\n" +
 	"\bepisodes\x18\x01 \x03(\v2\x1d.silo.plugin.v1.EpisodeRecordR\bepisodes\"\xee\x01\n" +
 	"\vImageRecord\x12\x12\n" +
@@ -2369,7 +2632,22 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\x04urls\x18\x01 \x03(\v22.silo.plugin.v1.ResolveImageURLsResponse.UrlsEntryR\x04urls\x1a7\n" +
 	"\tUrlsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xf1\x05\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa0\x01\n" +
+	"\x18ListEpisodeOrdersRequest\x12,\n" +
+	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12:\n" +
+	"\fprovider_ids\x18\x02 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
+	"\blanguage\x18\x03 \x01(\tR\blanguage\"\xcf\x01\n" +
+	"\fEpisodeOrder\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12!\n" +
+	"\fseason_count\x18\x05 \x01(\x05R\vseasonCount\x12#\n" +
+	"\repisode_count\x18\x06 \x01(\x05R\fepisodeCount\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\a \x01(\bR\tisDefault\"Q\n" +
+	"\x19ListEpisodeOrdersResponse\x124\n" +
+	"\x06orders\x18\x01 \x03(\v2\x1c.silo.plugin.v1.EpisodeOrderR\x06orders2\xf1\x05\n" +
 	"\x10MetadataProvider\x12W\n" +
 	"\x06Search\x12%.silo.plugin.v1.SearchMetadataRequest\x1a&.silo.plugin.v1.SearchMetadataResponse\x12V\n" +
 	"\vGetMetadata\x12\".silo.plugin.v1.GetMetadataRequest\x1a#.silo.plugin.v1.GetMetadataResponse\x12b\n" +
@@ -2379,7 +2657,9 @@ const file_silo_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\vGetEpisodes\x12\".silo.plugin.v1.GetEpisodesRequest\x1a#.silo.plugin.v1.GetEpisodesResponse\x12P\n" +
 	"\tGetImages\x12 .silo.plugin.v1.GetImagesRequest\x1a!.silo.plugin.v1.GetImagesResponse\x12b\n" +
 	"\x0fResolveImageURL\x12&.silo.plugin.v1.ResolveImageURLRequest\x1a'.silo.plugin.v1.ResolveImageURLResponse\x12e\n" +
-	"\x10ResolveImageURLs\x12'.silo.plugin.v1.ResolveImageURLsRequest\x1a(.silo.plugin.v1.ResolveImageURLsResponse2\xda\x01\n" +
+	"\x10ResolveImageURLs\x12'.silo.plugin.v1.ResolveImageURLsRequest\x1a(.silo.plugin.v1.ResolveImageURLsResponse2y\n" +
+	"\rEpisodeOrders\x12h\n" +
+	"\x11ListEpisodeOrders\x12(.silo.plugin.v1.ListEpisodeOrdersRequest\x1a).silo.plugin.v1.ListEpisodeOrdersResponse2\xda\x01\n" +
 	"\rImageResolver\x12b\n" +
 	"\x0fResolveImageURL\x12&.silo.plugin.v1.ResolveImageURLRequest\x1a'.silo.plugin.v1.ResolveImageURLResponse\x12e\n" +
 	"\x10ResolveImageURLs\x12'.silo.plugin.v1.ResolveImageURLsRequest\x1a(.silo.plugin.v1.ResolveImageURLsResponseBPZNgithub.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1;pluginv1b\x06proto3"
@@ -2396,91 +2676,98 @@ func file_silo_plugin_v1_metadata_provider_proto_rawDescGZIP() []byte {
 	return file_silo_plugin_v1_metadata_provider_proto_rawDescData
 }
 
-var file_silo_plugin_v1_metadata_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_silo_plugin_v1_metadata_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_silo_plugin_v1_metadata_provider_proto_goTypes = []any{
-	(*TitleAlias)(nil),               // 0: silo.plugin.v1.TitleAlias
-	(*ProviderSearchResult)(nil),     // 1: silo.plugin.v1.ProviderSearchResult
-	(*SearchMetadataRequest)(nil),    // 2: silo.plugin.v1.SearchMetadataRequest
-	(*SearchMetadataResponse)(nil),   // 3: silo.plugin.v1.SearchMetadataResponse
-	(*PersonRecord)(nil),             // 4: silo.plugin.v1.PersonRecord
-	(*VideoRecord)(nil),              // 5: silo.plugin.v1.VideoRecord
-	(*MetadataItem)(nil),             // 6: silo.plugin.v1.MetadataItem
-	(*GetMetadataRequest)(nil),       // 7: silo.plugin.v1.GetMetadataRequest
-	(*GetMetadataResponse)(nil),      // 8: silo.plugin.v1.GetMetadataResponse
-	(*GetPersonDetailRequest)(nil),   // 9: silo.plugin.v1.GetPersonDetailRequest
-	(*PersonDetailRecord)(nil),       // 10: silo.plugin.v1.PersonDetailRecord
-	(*GetPersonDetailResponse)(nil),  // 11: silo.plugin.v1.GetPersonDetailResponse
-	(*SeasonRecord)(nil),             // 12: silo.plugin.v1.SeasonRecord
-	(*GetSeasonsRequest)(nil),        // 13: silo.plugin.v1.GetSeasonsRequest
-	(*GetSeasonsResponse)(nil),       // 14: silo.plugin.v1.GetSeasonsResponse
-	(*EpisodeRecord)(nil),            // 15: silo.plugin.v1.EpisodeRecord
-	(*GetEpisodesRequest)(nil),       // 16: silo.plugin.v1.GetEpisodesRequest
-	(*GetEpisodesResponse)(nil),      // 17: silo.plugin.v1.GetEpisodesResponse
-	(*ImageRecord)(nil),              // 18: silo.plugin.v1.ImageRecord
-	(*GetImagesRequest)(nil),         // 19: silo.plugin.v1.GetImagesRequest
-	(*GetImagesResponse)(nil),        // 20: silo.plugin.v1.GetImagesResponse
-	(*ResolveImageURLRequest)(nil),   // 21: silo.plugin.v1.ResolveImageURLRequest
-	(*ResolveImageURLResponse)(nil),  // 22: silo.plugin.v1.ResolveImageURLResponse
-	(*ResolveImageURLsRequest)(nil),  // 23: silo.plugin.v1.ResolveImageURLsRequest
-	(*ResolveImageURLsResponse)(nil), // 24: silo.plugin.v1.ResolveImageURLsResponse
-	nil,                              // 25: silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
-	(*structpb.Struct)(nil),          // 26: google.protobuf.Struct
+	(*TitleAlias)(nil),                // 0: silo.plugin.v1.TitleAlias
+	(*ProviderSearchResult)(nil),      // 1: silo.plugin.v1.ProviderSearchResult
+	(*SearchMetadataRequest)(nil),     // 2: silo.plugin.v1.SearchMetadataRequest
+	(*SearchMetadataResponse)(nil),    // 3: silo.plugin.v1.SearchMetadataResponse
+	(*PersonRecord)(nil),              // 4: silo.plugin.v1.PersonRecord
+	(*VideoRecord)(nil),               // 5: silo.plugin.v1.VideoRecord
+	(*MetadataItem)(nil),              // 6: silo.plugin.v1.MetadataItem
+	(*GetMetadataRequest)(nil),        // 7: silo.plugin.v1.GetMetadataRequest
+	(*GetMetadataResponse)(nil),       // 8: silo.plugin.v1.GetMetadataResponse
+	(*GetPersonDetailRequest)(nil),    // 9: silo.plugin.v1.GetPersonDetailRequest
+	(*PersonDetailRecord)(nil),        // 10: silo.plugin.v1.PersonDetailRecord
+	(*GetPersonDetailResponse)(nil),   // 11: silo.plugin.v1.GetPersonDetailResponse
+	(*SeasonRecord)(nil),              // 12: silo.plugin.v1.SeasonRecord
+	(*GetSeasonsRequest)(nil),         // 13: silo.plugin.v1.GetSeasonsRequest
+	(*GetSeasonsResponse)(nil),        // 14: silo.plugin.v1.GetSeasonsResponse
+	(*EpisodeRecord)(nil),             // 15: silo.plugin.v1.EpisodeRecord
+	(*GetEpisodesRequest)(nil),        // 16: silo.plugin.v1.GetEpisodesRequest
+	(*GetEpisodesResponse)(nil),       // 17: silo.plugin.v1.GetEpisodesResponse
+	(*ImageRecord)(nil),               // 18: silo.plugin.v1.ImageRecord
+	(*GetImagesRequest)(nil),          // 19: silo.plugin.v1.GetImagesRequest
+	(*GetImagesResponse)(nil),         // 20: silo.plugin.v1.GetImagesResponse
+	(*ResolveImageURLRequest)(nil),    // 21: silo.plugin.v1.ResolveImageURLRequest
+	(*ResolveImageURLResponse)(nil),   // 22: silo.plugin.v1.ResolveImageURLResponse
+	(*ResolveImageURLsRequest)(nil),   // 23: silo.plugin.v1.ResolveImageURLsRequest
+	(*ResolveImageURLsResponse)(nil),  // 24: silo.plugin.v1.ResolveImageURLsResponse
+	(*ListEpisodeOrdersRequest)(nil),  // 25: silo.plugin.v1.ListEpisodeOrdersRequest
+	(*EpisodeOrder)(nil),              // 26: silo.plugin.v1.EpisodeOrder
+	(*ListEpisodeOrdersResponse)(nil), // 27: silo.plugin.v1.ListEpisodeOrdersResponse
+	nil,                               // 28: silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
+	(*structpb.Struct)(nil),           // 29: google.protobuf.Struct
 }
 var file_silo_plugin_v1_metadata_provider_proto_depIdxs = []int32{
-	26, // 0: silo.plugin.v1.ProviderSearchResult.provider_ids:type_name -> google.protobuf.Struct
+	29, // 0: silo.plugin.v1.ProviderSearchResult.provider_ids:type_name -> google.protobuf.Struct
 	0,  // 1: silo.plugin.v1.ProviderSearchResult.title_aliases:type_name -> silo.plugin.v1.TitleAlias
-	26, // 2: silo.plugin.v1.SearchMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
+	29, // 2: silo.plugin.v1.SearchMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
 	1,  // 3: silo.plugin.v1.SearchMetadataResponse.results:type_name -> silo.plugin.v1.ProviderSearchResult
-	26, // 4: silo.plugin.v1.MetadataItem.provider_ids:type_name -> google.protobuf.Struct
-	26, // 5: silo.plugin.v1.MetadataItem.ratings:type_name -> google.protobuf.Struct
-	26, // 6: silo.plugin.v1.MetadataItem.legacy_people:type_name -> google.protobuf.Struct
-	26, // 7: silo.plugin.v1.MetadataItem.metadata:type_name -> google.protobuf.Struct
+	29, // 4: silo.plugin.v1.MetadataItem.provider_ids:type_name -> google.protobuf.Struct
+	29, // 5: silo.plugin.v1.MetadataItem.ratings:type_name -> google.protobuf.Struct
+	29, // 6: silo.plugin.v1.MetadataItem.legacy_people:type_name -> google.protobuf.Struct
+	29, // 7: silo.plugin.v1.MetadataItem.metadata:type_name -> google.protobuf.Struct
 	4,  // 8: silo.plugin.v1.MetadataItem.people:type_name -> silo.plugin.v1.PersonRecord
 	5,  // 9: silo.plugin.v1.MetadataItem.videos:type_name -> silo.plugin.v1.VideoRecord
 	0,  // 10: silo.plugin.v1.MetadataItem.title_aliases:type_name -> silo.plugin.v1.TitleAlias
-	26, // 11: silo.plugin.v1.GetMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
+	29, // 11: silo.plugin.v1.GetMetadataRequest.provider_ids:type_name -> google.protobuf.Struct
 	6,  // 12: silo.plugin.v1.GetMetadataResponse.item:type_name -> silo.plugin.v1.MetadataItem
-	26, // 13: silo.plugin.v1.GetPersonDetailRequest.provider_ids:type_name -> google.protobuf.Struct
-	26, // 14: silo.plugin.v1.PersonDetailRecord.provider_ids:type_name -> google.protobuf.Struct
+	29, // 13: silo.plugin.v1.GetPersonDetailRequest.provider_ids:type_name -> google.protobuf.Struct
+	29, // 14: silo.plugin.v1.PersonDetailRecord.provider_ids:type_name -> google.protobuf.Struct
 	10, // 15: silo.plugin.v1.GetPersonDetailResponse.person:type_name -> silo.plugin.v1.PersonDetailRecord
-	26, // 16: silo.plugin.v1.SeasonRecord.metadata:type_name -> google.protobuf.Struct
-	26, // 17: silo.plugin.v1.SeasonRecord.provider_ids:type_name -> google.protobuf.Struct
-	26, // 18: silo.plugin.v1.GetSeasonsRequest.provider_ids:type_name -> google.protobuf.Struct
+	29, // 16: silo.plugin.v1.SeasonRecord.metadata:type_name -> google.protobuf.Struct
+	29, // 17: silo.plugin.v1.SeasonRecord.provider_ids:type_name -> google.protobuf.Struct
+	29, // 18: silo.plugin.v1.GetSeasonsRequest.provider_ids:type_name -> google.protobuf.Struct
 	12, // 19: silo.plugin.v1.GetSeasonsResponse.seasons:type_name -> silo.plugin.v1.SeasonRecord
-	26, // 20: silo.plugin.v1.EpisodeRecord.provider_ids:type_name -> google.protobuf.Struct
-	26, // 21: silo.plugin.v1.EpisodeRecord.ratings:type_name -> google.protobuf.Struct
-	26, // 22: silo.plugin.v1.EpisodeRecord.metadata:type_name -> google.protobuf.Struct
-	26, // 23: silo.plugin.v1.GetEpisodesRequest.provider_ids:type_name -> google.protobuf.Struct
+	29, // 20: silo.plugin.v1.EpisodeRecord.provider_ids:type_name -> google.protobuf.Struct
+	29, // 21: silo.plugin.v1.EpisodeRecord.ratings:type_name -> google.protobuf.Struct
+	29, // 22: silo.plugin.v1.EpisodeRecord.metadata:type_name -> google.protobuf.Struct
+	29, // 23: silo.plugin.v1.GetEpisodesRequest.provider_ids:type_name -> google.protobuf.Struct
 	15, // 24: silo.plugin.v1.GetEpisodesResponse.episodes:type_name -> silo.plugin.v1.EpisodeRecord
-	26, // 25: silo.plugin.v1.ImageRecord.metadata:type_name -> google.protobuf.Struct
-	26, // 26: silo.plugin.v1.GetImagesRequest.provider_ids:type_name -> google.protobuf.Struct
+	29, // 25: silo.plugin.v1.ImageRecord.metadata:type_name -> google.protobuf.Struct
+	29, // 26: silo.plugin.v1.GetImagesRequest.provider_ids:type_name -> google.protobuf.Struct
 	18, // 27: silo.plugin.v1.GetImagesResponse.images:type_name -> silo.plugin.v1.ImageRecord
-	25, // 28: silo.plugin.v1.ResolveImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
-	2,  // 29: silo.plugin.v1.MetadataProvider.Search:input_type -> silo.plugin.v1.SearchMetadataRequest
-	7,  // 30: silo.plugin.v1.MetadataProvider.GetMetadata:input_type -> silo.plugin.v1.GetMetadataRequest
-	9,  // 31: silo.plugin.v1.MetadataProvider.GetPersonDetail:input_type -> silo.plugin.v1.GetPersonDetailRequest
-	13, // 32: silo.plugin.v1.MetadataProvider.GetSeasons:input_type -> silo.plugin.v1.GetSeasonsRequest
-	16, // 33: silo.plugin.v1.MetadataProvider.GetEpisodes:input_type -> silo.plugin.v1.GetEpisodesRequest
-	19, // 34: silo.plugin.v1.MetadataProvider.GetImages:input_type -> silo.plugin.v1.GetImagesRequest
-	21, // 35: silo.plugin.v1.MetadataProvider.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
-	23, // 36: silo.plugin.v1.MetadataProvider.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
-	21, // 37: silo.plugin.v1.ImageResolver.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
-	23, // 38: silo.plugin.v1.ImageResolver.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
-	3,  // 39: silo.plugin.v1.MetadataProvider.Search:output_type -> silo.plugin.v1.SearchMetadataResponse
-	8,  // 40: silo.plugin.v1.MetadataProvider.GetMetadata:output_type -> silo.plugin.v1.GetMetadataResponse
-	11, // 41: silo.plugin.v1.MetadataProvider.GetPersonDetail:output_type -> silo.plugin.v1.GetPersonDetailResponse
-	14, // 42: silo.plugin.v1.MetadataProvider.GetSeasons:output_type -> silo.plugin.v1.GetSeasonsResponse
-	17, // 43: silo.plugin.v1.MetadataProvider.GetEpisodes:output_type -> silo.plugin.v1.GetEpisodesResponse
-	20, // 44: silo.plugin.v1.MetadataProvider.GetImages:output_type -> silo.plugin.v1.GetImagesResponse
-	22, // 45: silo.plugin.v1.MetadataProvider.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
-	24, // 46: silo.plugin.v1.MetadataProvider.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
-	22, // 47: silo.plugin.v1.ImageResolver.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
-	24, // 48: silo.plugin.v1.ImageResolver.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
-	39, // [39:49] is the sub-list for method output_type
-	29, // [29:39] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	28, // 28: silo.plugin.v1.ResolveImageURLsResponse.urls:type_name -> silo.plugin.v1.ResolveImageURLsResponse.UrlsEntry
+	29, // 29: silo.plugin.v1.ListEpisodeOrdersRequest.provider_ids:type_name -> google.protobuf.Struct
+	26, // 30: silo.plugin.v1.ListEpisodeOrdersResponse.orders:type_name -> silo.plugin.v1.EpisodeOrder
+	2,  // 31: silo.plugin.v1.MetadataProvider.Search:input_type -> silo.plugin.v1.SearchMetadataRequest
+	7,  // 32: silo.plugin.v1.MetadataProvider.GetMetadata:input_type -> silo.plugin.v1.GetMetadataRequest
+	9,  // 33: silo.plugin.v1.MetadataProvider.GetPersonDetail:input_type -> silo.plugin.v1.GetPersonDetailRequest
+	13, // 34: silo.plugin.v1.MetadataProvider.GetSeasons:input_type -> silo.plugin.v1.GetSeasonsRequest
+	16, // 35: silo.plugin.v1.MetadataProvider.GetEpisodes:input_type -> silo.plugin.v1.GetEpisodesRequest
+	19, // 36: silo.plugin.v1.MetadataProvider.GetImages:input_type -> silo.plugin.v1.GetImagesRequest
+	21, // 37: silo.plugin.v1.MetadataProvider.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
+	23, // 38: silo.plugin.v1.MetadataProvider.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
+	25, // 39: silo.plugin.v1.EpisodeOrders.ListEpisodeOrders:input_type -> silo.plugin.v1.ListEpisodeOrdersRequest
+	21, // 40: silo.plugin.v1.ImageResolver.ResolveImageURL:input_type -> silo.plugin.v1.ResolveImageURLRequest
+	23, // 41: silo.plugin.v1.ImageResolver.ResolveImageURLs:input_type -> silo.plugin.v1.ResolveImageURLsRequest
+	3,  // 42: silo.plugin.v1.MetadataProvider.Search:output_type -> silo.plugin.v1.SearchMetadataResponse
+	8,  // 43: silo.plugin.v1.MetadataProvider.GetMetadata:output_type -> silo.plugin.v1.GetMetadataResponse
+	11, // 44: silo.plugin.v1.MetadataProvider.GetPersonDetail:output_type -> silo.plugin.v1.GetPersonDetailResponse
+	14, // 45: silo.plugin.v1.MetadataProvider.GetSeasons:output_type -> silo.plugin.v1.GetSeasonsResponse
+	17, // 46: silo.plugin.v1.MetadataProvider.GetEpisodes:output_type -> silo.plugin.v1.GetEpisodesResponse
+	20, // 47: silo.plugin.v1.MetadataProvider.GetImages:output_type -> silo.plugin.v1.GetImagesResponse
+	22, // 48: silo.plugin.v1.MetadataProvider.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
+	24, // 49: silo.plugin.v1.MetadataProvider.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
+	27, // 50: silo.plugin.v1.EpisodeOrders.ListEpisodeOrders:output_type -> silo.plugin.v1.ListEpisodeOrdersResponse
+	22, // 51: silo.plugin.v1.ImageResolver.ResolveImageURL:output_type -> silo.plugin.v1.ResolveImageURLResponse
+	24, // 52: silo.plugin.v1.ImageResolver.ResolveImageURLs:output_type -> silo.plugin.v1.ResolveImageURLsResponse
+	42, // [42:53] is the sub-list for method output_type
+	31, // [31:42] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_silo_plugin_v1_metadata_provider_proto_init() }
@@ -2488,6 +2775,7 @@ func file_silo_plugin_v1_metadata_provider_proto_init() {
 	if File_silo_plugin_v1_metadata_provider_proto != nil {
 		return
 	}
+	file_silo_plugin_v1_metadata_provider_proto_msgTypes[15].OneofWrappers = []any{}
 	file_silo_plugin_v1_metadata_provider_proto_msgTypes[18].OneofWrappers = []any{}
 	file_silo_plugin_v1_metadata_provider_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
@@ -2496,9 +2784,9 @@ func file_silo_plugin_v1_metadata_provider_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_silo_plugin_v1_metadata_provider_proto_rawDesc), len(file_silo_plugin_v1_metadata_provider_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   26,
+			NumMessages:   29,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   3,
 		},
 		GoTypes:           file_silo_plugin_v1_metadata_provider_proto_goTypes,
 		DependencyIndexes: file_silo_plugin_v1_metadata_provider_proto_depIdxs,

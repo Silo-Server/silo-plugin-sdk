@@ -228,3 +228,27 @@ func TestPersonDetailRecordDescriptor_IncludesRefreshFields(t *testing.T) {
 		}
 	}
 }
+
+func TestEpisodeOrderingFields(t *testing.T) {
+	assertFieldNumber(t, &GetSeasonsRequest{}, "ordering", 4)
+	assertFieldNumber(t, &GetEpisodesRequest{}, "ordering", 5)
+	assertFieldNumber(t, &EpisodeRecord{}, "absolute_number", 14)
+	assertFieldNumber(t, &EpisodeRecord{}, "default_season_number", 15)
+	assertFieldNumber(t, &EpisodeRecord{}, "default_episode_number", 16)
+}
+
+// An episode's default-order coordinates can be season 0 (specials), which
+// must stay distinguishable from a plugin that did not send them.
+func TestEpisodeRecord_DefaultOrderNumbersPreservePresence(t *testing.T) {
+	zero := int32(0)
+	for name, get := range map[string]func(proto.Message) *int32{
+		"absolute_number":        func(m proto.Message) *int32 { return m.(*EpisodeRecord).AbsoluteNumber },
+		"default_season_number":  func(m proto.Message) *int32 { return m.(*EpisodeRecord).DefaultSeasonNumber },
+		"default_episode_number": func(m proto.Message) *int32 { return m.(*EpisodeRecord).DefaultEpisodeNumber },
+	} {
+		t.Run(name, func(t *testing.T) {
+			present := &EpisodeRecord{AbsoluteNumber: &zero, DefaultSeasonNumber: &zero, DefaultEpisodeNumber: &zero}
+			assertOptionalInt32Presence(t, present, &EpisodeRecord{}, get)
+		})
+	}
+}

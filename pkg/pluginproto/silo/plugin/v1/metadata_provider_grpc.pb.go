@@ -385,6 +385,120 @@ var MetadataProvider_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	EpisodeOrders_ListEpisodeOrders_FullMethodName = "/silo.plugin.v1.EpisodeOrders/ListEpisodeOrders"
+)
+
+// EpisodeOrdersClient is the client API for EpisodeOrders service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// EpisodeOrders lists the episode orders a metadata provider can serve for a
+// series, such as aired, DVD or absolute order. It is a separate service so
+// metadata plugins built before it keep compiling and loading. A metadata
+// capability declares it with the metadata key "episode_orders": true; hosts
+// call it, and send GetSeasonsRequest.ordering and GetEpisodesRequest.ordering,
+// only for capabilities that declare it.
+type EpisodeOrdersClient interface {
+	ListEpisodeOrders(ctx context.Context, in *ListEpisodeOrdersRequest, opts ...grpc.CallOption) (*ListEpisodeOrdersResponse, error)
+}
+
+type episodeOrdersClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewEpisodeOrdersClient(cc grpc.ClientConnInterface) EpisodeOrdersClient {
+	return &episodeOrdersClient{cc}
+}
+
+func (c *episodeOrdersClient) ListEpisodeOrders(ctx context.Context, in *ListEpisodeOrdersRequest, opts ...grpc.CallOption) (*ListEpisodeOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListEpisodeOrdersResponse)
+	err := c.cc.Invoke(ctx, EpisodeOrders_ListEpisodeOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// EpisodeOrdersServer is the server API for EpisodeOrders service.
+// All implementations should embed UnimplementedEpisodeOrdersServer
+// for forward compatibility.
+//
+// EpisodeOrders lists the episode orders a metadata provider can serve for a
+// series, such as aired, DVD or absolute order. It is a separate service so
+// metadata plugins built before it keep compiling and loading. A metadata
+// capability declares it with the metadata key "episode_orders": true; hosts
+// call it, and send GetSeasonsRequest.ordering and GetEpisodesRequest.ordering,
+// only for capabilities that declare it.
+type EpisodeOrdersServer interface {
+	ListEpisodeOrders(context.Context, *ListEpisodeOrdersRequest) (*ListEpisodeOrdersResponse, error)
+}
+
+// UnimplementedEpisodeOrdersServer should be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedEpisodeOrdersServer struct{}
+
+func (UnimplementedEpisodeOrdersServer) ListEpisodeOrders(context.Context, *ListEpisodeOrdersRequest) (*ListEpisodeOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListEpisodeOrders not implemented")
+}
+func (UnimplementedEpisodeOrdersServer) testEmbeddedByValue() {}
+
+// UnsafeEpisodeOrdersServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to EpisodeOrdersServer will
+// result in compilation errors.
+type UnsafeEpisodeOrdersServer interface {
+	mustEmbedUnimplementedEpisodeOrdersServer()
+}
+
+func RegisterEpisodeOrdersServer(s grpc.ServiceRegistrar, srv EpisodeOrdersServer) {
+	// If the following call panics, it indicates UnimplementedEpisodeOrdersServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&EpisodeOrders_ServiceDesc, srv)
+}
+
+func _EpisodeOrders_ListEpisodeOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEpisodeOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EpisodeOrdersServer).ListEpisodeOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EpisodeOrders_ListEpisodeOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EpisodeOrdersServer).ListEpisodeOrders(ctx, req.(*ListEpisodeOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// EpisodeOrders_ServiceDesc is the grpc.ServiceDesc for EpisodeOrders service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var EpisodeOrders_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "silo.plugin.v1.EpisodeOrders",
+	HandlerType: (*EpisodeOrdersServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListEpisodeOrders",
+			Handler:    _EpisodeOrders_ListEpisodeOrders_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "silo/plugin/v1/metadata_provider.proto",
+}
+
+const (
 	ImageResolver_ResolveImageURL_FullMethodName  = "/silo.plugin.v1.ImageResolver/ResolveImageURL"
 	ImageResolver_ResolveImageURLs_FullMethodName = "/silo.plugin.v1.ImageResolver/ResolveImageURLs"
 )

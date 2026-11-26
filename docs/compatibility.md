@@ -115,6 +115,19 @@ refuses to start a plugin that declares the `network` mode without it.
 key, so a host that predates the service ignores the key, and a plugin built
 before it keeps the host's built-in probes.
 
+`EpisodeOrders` is declared by the `metadata_provider.v1` capability metadata
+key `"episode_orders": true`. Hosts call `ListEpisodeOrders`, and set
+`GetSeasonsRequest.ordering` and `GetEpisodesRequest.ordering`, only for
+capabilities that declare it: an older plugin ignores `ordering` and would
+answer with its default order. `ServeManifestWithOptions` refuses to start a
+plugin that declares the key without `WithEpisodeOrders`. `EpisodeOrder.kind`
+is an open vocabulary (`aired`, `dvd`, `absolute`, `digital`, `story_arc`,
+`production`, `tv`, `alternate`); hosts treat a kind they do not recognize
+like `alternate`. A plugin answers `NOT_FOUND` for an `ordering` it does not
+recognize, so a host can fall back to the default order when a provider drops
+an order. `EpisodeRecord.absolute_number`, `default_season_number` and
+`default_episode_number` are `optional` because season 0 holds specials.
+
 ## Presence-Sensitive Optional Fields
 
 Some contract fields use proto3 `optional` because absence and zero have

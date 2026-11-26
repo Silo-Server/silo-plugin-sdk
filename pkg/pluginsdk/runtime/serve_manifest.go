@@ -48,6 +48,7 @@ type serveManifestOptions struct {
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configurationChecks          pluginv1.ConfigurationChecksServer
 	notificationChannel          pluginv1.NotificationChannelServer
+	episodeOrders                pluginv1.EpisodeOrdersServer
 	configure                    ConfigureFunc
 }
 
@@ -109,6 +110,16 @@ func WithNotificationChannel(server pluginv1.NotificationChannelServer) ServeMan
 	}
 }
 
+// WithEpisodeOrders registers the EpisodeOrders service, which lists the
+// episode orders a metadata provider can serve for a series. Declare it with
+// the metadata key "episode_orders": true on the metadata_provider.v1
+// capability; the host does not call the service otherwise.
+func WithEpisodeOrders(server pluginv1.EpisodeOrdersServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.episodeOrders = server
+	}
+}
+
 // WithConfigure delivers Runtime.Configure entries to fn, so a plugin served by
 // ServeManifestWithOptions can read its settings without writing its own
 // Runtime server. See ConfigureFunc for what fn may reject.
@@ -150,7 +161,9 @@ func ServeManifest(manifestBytes []byte, version string, servers CapabilityServe
 // declares "connection_test": true but no AuthProviderChecks server would be
 // registered, or declares the "network" auth mode but no NetworkIdentityAuth
 // or no AuthProviderChecks server would be registered, and when the manifest
-// declares "configuration_check": true without WithConfigurationChecks.
+// declares "configuration_check": true without WithConfigurationChecks, and
+// when a metadata_provider.v1 capability declares "episode_orders": true
+// without WithEpisodeOrders.
 func ServeManifestWithOptions(
 	manifestBytes []byte,
 	version string,
@@ -217,6 +230,17 @@ func manifestServeConfig(
 		return ServeConfig{}, fmt.Errorf("plugin manifest declares %q but no ConfigurationChecks server is registered; pass runtime.WithConfigurationChecks",
 			manifest.ConfigurationCheckKey)
 	}
+	if isNilServer(resolved.episodeOrders) {
+		resolved.episodeOrders = nil
+	}
+	if resolved.episodeOrders == nil {
+		for _, descriptor := range m.GetCapabilities() {
+			if manifest.MetadataProviderSupportsEpisodeOrders(descriptor) {
+				return ServeConfig{}, fmt.Errorf("plugin capability %q declares %q but no EpisodeOrders server is registered; pass runtime.WithEpisodeOrders",
+					descriptor.GetId(), manifest.EpisodeOrdersKey)
+			}
+		}
+	}
 	if isNilServer(resolved.notificationChannel) {
 		resolved.notificationChannel = nil
 	}
@@ -237,6 +261,7 @@ func manifestServeConfig(
 			networkIdentityAuth:          resolved.networkIdentityAuth,
 			configurationChecks:          resolved.configurationChecks,
 			notificationChannel:          resolved.notificationChannel,
+			episodeOrders:                resolved.episodeOrders,
 		}),
 	}, nil
 }
