@@ -343,6 +343,9 @@ message EpisodeOrder {
   // production, tv, alternate. Hosts treat an unknown kind like "alternate".
   string kind = 3;
   string description = 4;
+  // Regular seasons and their episodes, without Specials, where the provider
+  // can tell them apart (an episode group's own count may include its Specials
+  // group). 0 means unknown.
   int32 season_count = 5;
   int32 episode_count = 6;
   // True for the order GetSeasons and GetEpisodes serve when ordering is empty.

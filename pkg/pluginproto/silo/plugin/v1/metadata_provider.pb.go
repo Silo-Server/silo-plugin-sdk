@@ -2284,10 +2284,13 @@ type EpisodeOrder struct {
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// Open lowercase vocabulary: aired, dvd, absolute, digital, story_arc,
 	// production, tv, alternate. Hosts treat an unknown kind like "alternate".
-	Kind         string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
-	Description  string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	SeasonCount  int32  `protobuf:"varint,5,opt,name=season_count,json=seasonCount,proto3" json:"season_count,omitempty"`
-	EpisodeCount int32  `protobuf:"varint,6,opt,name=episode_count,json=episodeCount,proto3" json:"episode_count,omitempty"`
+	Kind        string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	// Regular seasons and their episodes, without Specials, where the provider
+	// can tell them apart (an episode group's own count may include its Specials
+	// group). 0 means unknown.
+	SeasonCount  int32 `protobuf:"varint,5,opt,name=season_count,json=seasonCount,proto3" json:"season_count,omitempty"`
+	EpisodeCount int32 `protobuf:"varint,6,opt,name=episode_count,json=episodeCount,proto3" json:"episode_count,omitempty"`
 	// True for the order GetSeasons and GetEpisodes serve when ordering is empty.
 	IsDefault     bool `protobuf:"varint,7,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
 	unknownFields protoimpl.UnknownFields
