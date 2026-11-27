@@ -119,7 +119,12 @@ before it keeps the host's built-in probes.
 key `"episode_orders": true`. Hosts call `ListEpisodeOrders`, and set
 `GetSeasonsRequest.ordering` and `GetEpisodesRequest.ordering`, only for
 capabilities that declare it: an older plugin ignores `ordering` and would
-answer with its default order. `ServeManifestWithOptions` refuses to start a
+answer with its default order. The key lives in the capability's free-form
+`metadata`, which `convert.CapabilityRecordsFromManifest` and
+`convert.DecodeCapability` have carried whole since v0.4.0, so a host that
+predates `EpisodeOrders` keeps it unchanged wherever it reads a manifest (a
+binary's, an archive's, the startup comparison and stored capabilities) and
+never acts on it. `ServeManifestWithOptions` refuses to start a
 plugin that declares the key without `WithEpisodeOrders`. `EpisodeOrder.kind`
 is an open vocabulary (`aired`, `dvd`, `absolute`, `digital`, `story_arc`,
 `production`, `tv`, `alternate`); hosts treat a kind they do not recognize

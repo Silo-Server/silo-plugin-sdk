@@ -229,12 +229,29 @@ func TestPersonDetailRecordDescriptor_IncludesRefreshFields(t *testing.T) {
 	}
 }
 
+// The episode order fields' wire contract: number, kind, and for the episode
+// numbers explicit presence (proto3 optional).
 func TestEpisodeOrderingFields(t *testing.T) {
-	assertFieldNumber(t, &GetSeasonsRequest{}, "ordering", 4)
-	assertFieldNumber(t, &GetEpisodesRequest{}, "ordering", 5)
-	assertFieldNumber(t, &EpisodeRecord{}, "absolute_number", 14)
-	assertFieldNumber(t, &EpisodeRecord{}, "default_season_number", 15)
-	assertFieldNumber(t, &EpisodeRecord{}, "default_episode_number", 16)
+	for _, tc := range []struct {
+		message  protoreflect.ProtoMessage
+		field    string
+		number   protoreflect.FieldNumber
+		kind     protoreflect.Kind
+		presence bool
+	}{
+		{&GetSeasonsRequest{}, "ordering", 4, protoreflect.StringKind, false},
+		{&GetEpisodesRequest{}, "ordering", 5, protoreflect.StringKind, false},
+		{&EpisodeRecord{}, "absolute_number", 14, protoreflect.Int32Kind, true},
+		{&EpisodeRecord{}, "default_season_number", 15, protoreflect.Int32Kind, true},
+		{&EpisodeRecord{}, "default_episode_number", 16, protoreflect.Int32Kind, true},
+	} {
+		assertFieldNumber(t, tc.message, tc.field, tc.number)
+		field := tc.message.ProtoReflect().Descriptor().Fields().ByName(protoreflect.Name(tc.field))
+		if field.Kind() != tc.kind || field.HasPresence() != tc.presence || field.IsList() {
+			t.Errorf("%T.%s = %v (presence %v, list %v), want %v (presence %v)",
+				tc.message, tc.field, field.Kind(), field.HasPresence(), field.IsList(), tc.kind, tc.presence)
+		}
+	}
 }
 
 // An episode's default-order coordinates can be season 0 (specials), which
@@ -249,6 +266,19 @@ func TestEpisodeRecord_DefaultOrderNumbersPreservePresence(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			present := &EpisodeRecord{AbsoluteNumber: &zero, DefaultSeasonNumber: &zero, DefaultEpisodeNumber: &zero}
 			assertOptionalInt32Presence(t, present, &EpisodeRecord{}, get)
+
+			seven := int32(7)
+			data, err := proto.Marshal(&EpisodeRecord{AbsoluteNumber: &seven, DefaultSeasonNumber: &seven, DefaultEpisodeNumber: &seven})
+			if err != nil {
+				t.Fatal(err)
+			}
+			decoded := &EpisodeRecord{}
+			if err := proto.Unmarshal(data, decoded); err != nil {
+				t.Fatal(err)
+			}
+			if value := get(decoded); value == nil || *value != 7 {
+				t.Fatalf("%s after a round trip = %v, want 7", name, value)
+			}
 		})
 	}
 }
