@@ -115,7 +115,7 @@ refuses to start a plugin that declares the `network` mode without it.
 key, so a host that predates the service ignores the key, and a plugin built
 before it keeps the host's built-in probes.
 
-`EpisodeOrders` is declared by the `metadata_provider.v1` capability metadata
+`EpisodeOrders` (v0.36.0) is declared by the `metadata_provider.v1` capability metadata
 key `"episode_orders": true`. Hosts call `ListEpisodeOrders`, and set
 `GetSeasonsRequest.ordering` and `GetEpisodesRequest.ordering`, only for
 capabilities that declare it: an older plugin ignores `ordering` and would

@@ -110,8 +110,8 @@ func WithNotificationChannel(server pluginv1.NotificationChannelServer) ServeMan
 	}
 }
 
-// WithEpisodeOrders registers the EpisodeOrders service, which lists the
-// episode orders a metadata provider can serve for a series. Declare it with
+// WithEpisodeOrders registers the EpisodeOrders service (v0.36.0), which lists
+// the episode orders a metadata provider can serve for a series. Declare it with
 // the metadata key "episode_orders": true on the metadata_provider.v1
 // capability; the host does not call the service otherwise.
 func WithEpisodeOrders(server pluginv1.EpisodeOrdersServer) ServeManifestOption {

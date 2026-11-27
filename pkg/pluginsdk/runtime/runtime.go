@@ -185,8 +185,8 @@ func (c *Client) NetworkIdentityAuth() pluginv1.NetworkIdentityAuthClient {
 }
 
 // EpisodeOrders returns the client for the episode orders a metadata
-// provider lists. Call it only for capabilities whose manifest declares
-// "episode_orders": true.
+// provider lists, added in v0.36.0. Call it only for capabilities whose
+// manifest declares "episode_orders": true.
 func (c *Client) EpisodeOrders() pluginv1.EpisodeOrdersClient {
 	return pluginv1.NewEpisodeOrdersClient(c.conn)
 }
