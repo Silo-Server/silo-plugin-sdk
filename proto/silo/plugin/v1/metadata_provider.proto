@@ -17,6 +17,16 @@ service MetadataProvider {
   rpc ResolveImageURLs(ResolveImageURLsRequest) returns (ResolveImageURLsResponse);
 }
 
+// EpisodeOrders lists the episode orders a metadata provider can serve for a
+// series, such as aired, DVD or absolute order. It is a separate service so
+// metadata plugins built before it keep compiling and loading. A metadata
+// capability declares it with the metadata key "episode_orders": true; hosts
+// call it, and send GetSeasonsRequest.ordering and GetEpisodesRequest.ordering,
+// only for capabilities that declare it.
+service EpisodeOrders {
+  rpc ListEpisodeOrders(ListEpisodeOrdersRequest) returns (ListEpisodeOrdersResponse);
+}
+
 service ImageResolver {
   rpc ResolveImageURL(ResolveImageURLRequest) returns (ResolveImageURLResponse);
   rpc ResolveImageURLs(ResolveImageURLsRequest) returns (ResolveImageURLsResponse);
@@ -203,6 +213,10 @@ message GetSeasonsRequest {
   string series_provider_id = 1;
   google.protobuf.Struct provider_ids = 2;
   string language = 3;
+  // An EpisodeOrder.id from ListEpisodeOrders. Empty means the default order.
+  // Hosts send it only to capabilities that declare "episode_orders": true.
+  // A plugin that does not recognize the id answers NOT_FOUND.
+  string ordering = 4;
 }
 
 message GetSeasonsResponse {
@@ -225,13 +239,25 @@ message EpisodeRecord {
   // overview_language semantics: empty means the requested language or unknown.
   string title_language = 12;
   string overview_language = 13;
+  // The episode's position counted through the whole series, specials
+  // excluded, when the provider knows it.
+  optional int32 absolute_number = 14;
+  // The episode's season and number in the provider's default order. Set
+  // when the response was for another ordering, so a host can keep the
+  // coordinates that trackers and marker providers use. provider_id is the
+  // same in every ordering of one provider.
+  optional int32 default_season_number = 15;
+  optional int32 default_episode_number = 16;
 }
 
 message GetEpisodesRequest {
   string series_provider_id = 1;
+  // A season of the requested ordering, numbered as GetSeasons returned it.
   int32 season_number = 2;
   google.protobuf.Struct provider_ids = 3;
   string language = 4;
+  // Same meaning as GetSeasonsRequest.ordering.
+  string ordering = 5;
 }
 
 message GetEpisodesResponse {
@@ -297,4 +323,35 @@ message ResolveImageURLsRequest {
 
 message ResolveImageURLsResponse {
   map<string, string> urls = 1;
+}
+
+message ListEpisodeOrdersRequest {
+  string series_provider_id = 1;
+  google.protobuf.Struct provider_ids = 2;
+  string language = 3;
+}
+
+// EpisodeOrder is one way a provider arranges a series' episodes into
+// seasons.
+message EpisodeOrder {
+  // Stable provider identifier, sent back as GetSeasonsRequest.ordering and
+  // GetEpisodesRequest.ordering. The default order may use any id.
+  string id = 1;
+  // Display name, in the requested language when the provider has one.
+  string name = 2;
+  // Open lowercase vocabulary: aired, dvd, absolute, digital, story_arc,
+  // production, tv, alternate. Hosts treat an unknown kind like "alternate".
+  string kind = 3;
+  string description = 4;
+  // Regular seasons and their episodes, without Specials, where the provider
+  // can tell them apart (an episode group's own count may include its Specials
+  // group). 0 means unknown.
+  int32 season_count = 5;
+  int32 episode_count = 6;
+  // True for the order GetSeasons and GetEpisodes serve when ordering is empty.
+  bool is_default = 7;
+}
+
+message ListEpisodeOrdersResponse {
+  repeated EpisodeOrder orders = 1;
 }

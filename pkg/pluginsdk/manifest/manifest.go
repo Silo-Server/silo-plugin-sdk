@@ -57,6 +57,11 @@ const (
 // must be a boolean.
 const AuthProviderConnectionTestKey = "connection_test"
 
+// EpisodeOrdersKey is the metadata_provider.v1 capability metadata key that
+// declares support for the EpisodeOrders service and for the ordering field
+// of GetSeasonsRequest and GetEpisodesRequest. Its value must be a boolean.
+const EpisodeOrdersKey = "episode_orders"
+
 // ConfigurationCheckKey is the manifest-level metadata key that declares
 // support for ConfigurationChecks.TestConfiguration. Its value must be a
 // boolean.
@@ -126,10 +131,8 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 	if err := validatePresentation(manifest.GetPresentation()); err != nil {
 		return err
 	}
-	if value, ok := manifest.GetMetadata().GetFields()[ConfigurationCheckKey]; ok {
-		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
-			return fmt.Errorf("plugin manifest metadata %q must be a boolean", ConfigurationCheckKey)
-		}
+	if !optionalBool(manifest.GetMetadata(), ConfigurationCheckKey) {
+		return fmt.Errorf("plugin manifest metadata %q must be a boolean", ConfigurationCheckKey)
 	}
 	for _, capability := range manifest.Capabilities {
 		if capability.Type == "" {
@@ -151,6 +154,9 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 			return err
 		}
 		if err := validateAuthProviderCapability(capability); err != nil {
+			return err
+		}
+		if err := validateMetadataProviderCapability(capability); err != nil {
 			return err
 		}
 		if err := validateNotificationChannelCapability(capability); err != nil {
@@ -400,6 +406,29 @@ func validateWordingValue(name, value string, limit int) error {
 	return nil
 }
 
+// validateMetadataProviderCapability checks the metadata_provider.v1 metadata
+// keys the host reads. A non-boolean "episode_orders" is refused so a typo
+// fails at load instead of silently turning the feature off.
+func validateMetadataProviderCapability(descriptor *pluginv1.CapabilityDescriptor) error {
+	if descriptor.GetType() != capability.MetadataProvider {
+		return nil
+	}
+	if !optionalBool(descriptor.GetMetadata(), EpisodeOrdersKey) {
+		return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), EpisodeOrdersKey)
+	}
+	return nil
+}
+
+// optionalBool reports whether metadata's key is absent or a boolean.
+func optionalBool(metadata *structpb.Struct, key string) bool {
+	value, ok := metadata.GetFields()[key]
+	if !ok {
+		return true
+	}
+	_, isBool := value.GetKind().(*structpb.Value_BoolValue)
+	return isBool
+}
+
 // validateAuthProviderCapability checks the auth_provider.v1 fields the host
 // acts on. Other capability types keep their free-form metadata.
 func validateAuthProviderCapability(descriptor *pluginv1.CapabilityDescriptor) error {
@@ -433,10 +462,8 @@ func validateAuthProviderCapability(descriptor *pluginv1.CapabilityDescriptor) e
 			}
 		}
 	}
-	if value, ok := descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey]; ok {
-		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
-			return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), AuthProviderConnectionTestKey)
-		}
+	if !optionalBool(descriptor.GetMetadata(), AuthProviderConnectionTestKey) {
+		return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), AuthProviderConnectionTestKey)
 	}
 	return nil
 }
@@ -481,6 +508,18 @@ func AuthProviderSupportsConnectionTest(descriptor *pluginv1.CapabilityDescripto
 		return false
 	}
 	return descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey].GetBoolValue()
+}
+
+// MetadataProviderSupportsEpisodeOrders reports whether a metadata_provider.v1
+// capability declares EpisodeOrders support through its "episode_orders"
+// metadata. Hosts should call ListEpisodeOrders and send an ordering only
+// when this is true; an older plugin ignores the ordering field and would
+// answer with its default order.
+func MetadataProviderSupportsEpisodeOrders(descriptor *pluginv1.CapabilityDescriptor) bool {
+	if descriptor.GetType() != capability.MetadataProvider {
+		return false
+	}
+	return descriptor.GetMetadata().GetFields()[EpisodeOrdersKey].GetBoolValue()
 }
 
 // SupportsConfigurationCheck reports whether a manifest declares

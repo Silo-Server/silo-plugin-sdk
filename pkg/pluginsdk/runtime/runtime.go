@@ -96,6 +96,7 @@ type optionalServices struct {
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configurationChecks          pluginv1.ConfigurationChecksServer
 	notificationChannel          pluginv1.NotificationChannelServer
+	episodeOrders                pluginv1.EpisodeOrdersServer
 }
 
 func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalServices) plugin.PluginSet {
@@ -103,7 +104,7 @@ func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalS
 	// whose dynamic type is not comparable.
 	if optional.watchSyncDeviceAuthorization == nil && optional.authProviderChecks == nil &&
 		optional.networkIdentityAuth == nil && optional.configurationChecks == nil &&
-		optional.notificationChannel == nil {
+		optional.notificationChannel == nil && optional.episodeOrders == nil {
 		return DefaultPluginSet(servers)
 	}
 	return plugin.PluginSet{
@@ -183,6 +184,13 @@ func (c *Client) NetworkIdentityAuth() pluginv1.NetworkIdentityAuthClient {
 	return pluginv1.NewNetworkIdentityAuthClient(c.conn)
 }
 
+// EpisodeOrders returns the client for the episode orders a metadata
+// provider lists, added in v0.36.0. Call it only for capabilities whose
+// manifest declares "episode_orders": true.
+func (c *Client) EpisodeOrders() pluginv1.EpisodeOrdersClient {
+	return pluginv1.NewEpisodeOrdersClient(c.conn)
+}
+
 // ConfigurationChecks returns the client for the plugin-defined settings
 // check added in v0.32.0. Plugins that do not serve it answer Unimplemented.
 func (c *Client) ConfigurationChecks() pluginv1.ConfigurationChecksClient {
@@ -236,6 +244,9 @@ func (p *grpcPluginWithOptionalServices) GRPCServer(
 	}
 	if p.optional.notificationChannel != nil {
 		pluginv1.RegisterNotificationChannelServer(server, p.optional.notificationChannel)
+	}
+	if p.optional.episodeOrders != nil {
+		pluginv1.RegisterEpisodeOrdersServer(server, p.optional.episodeOrders)
 	}
 	return nil
 }
