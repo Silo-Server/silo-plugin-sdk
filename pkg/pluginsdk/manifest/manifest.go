@@ -131,10 +131,8 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 	if err := validatePresentation(manifest.GetPresentation()); err != nil {
 		return err
 	}
-	if value, ok := manifest.GetMetadata().GetFields()[ConfigurationCheckKey]; ok {
-		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
-			return fmt.Errorf("plugin manifest metadata %q must be a boolean", ConfigurationCheckKey)
-		}
+	if !optionalBool(manifest.GetMetadata(), ConfigurationCheckKey) {
+		return fmt.Errorf("plugin manifest metadata %q must be a boolean", ConfigurationCheckKey)
 	}
 	for _, capability := range manifest.Capabilities {
 		if capability.Type == "" {
@@ -415,12 +413,20 @@ func validateMetadataProviderCapability(descriptor *pluginv1.CapabilityDescripto
 	if descriptor.GetType() != capability.MetadataProvider {
 		return nil
 	}
-	if value, ok := descriptor.GetMetadata().GetFields()[EpisodeOrdersKey]; ok {
-		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
-			return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), EpisodeOrdersKey)
-		}
+	if !optionalBool(descriptor.GetMetadata(), EpisodeOrdersKey) {
+		return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), EpisodeOrdersKey)
 	}
 	return nil
+}
+
+// optionalBool reports whether metadata's key is absent or a boolean.
+func optionalBool(metadata *structpb.Struct, key string) bool {
+	value, ok := metadata.GetFields()[key]
+	if !ok {
+		return true
+	}
+	_, isBool := value.GetKind().(*structpb.Value_BoolValue)
+	return isBool
 }
 
 // validateAuthProviderCapability checks the auth_provider.v1 fields the host
@@ -456,10 +462,8 @@ func validateAuthProviderCapability(descriptor *pluginv1.CapabilityDescriptor) e
 			}
 		}
 	}
-	if value, ok := descriptor.GetMetadata().GetFields()[AuthProviderConnectionTestKey]; ok {
-		if _, isBool := value.GetKind().(*structpb.Value_BoolValue); !isBool {
-			return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), AuthProviderConnectionTestKey)
-		}
+	if !optionalBool(descriptor.GetMetadata(), AuthProviderConnectionTestKey) {
+		return fmt.Errorf("plugin capability %q: metadata %q must be a boolean", descriptor.GetId(), AuthProviderConnectionTestKey)
 	}
 	return nil
 }
