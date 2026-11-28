@@ -48,6 +48,7 @@ type serveManifestOptions struct {
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configurationChecks          pluginv1.ConfigurationChecksServer
 	notificationChannel          pluginv1.NotificationChannelServer
+	watchSyncCustomLists         pluginv1.WatchSyncCustomListServiceServer
 	configure                    ConfigureFunc
 }
 
@@ -63,6 +64,16 @@ func WithWatchSyncDeviceAuthorization(
 ) ServeManifestOption {
 	return func(options *serveManifestOptions) {
 		options.watchSyncDeviceAuthorization = server
+	}
+}
+
+// WithWatchSyncCustomLists registers the separate WatchSyncCustomListService
+// for a watch-sync provider whose descriptor sets provides_custom_lists. One
+// server answers for every such capability; each request names its
+// capability_id in its context.
+func WithWatchSyncCustomLists(server pluginv1.WatchSyncCustomListServiceServer) ServeManifestOption {
+	return func(options *serveManifestOptions) {
+		options.watchSyncCustomLists = server
 	}
 }
 
@@ -150,7 +161,10 @@ func ServeManifest(manifestBytes []byte, version string, servers CapabilityServe
 // declares "connection_test": true but no AuthProviderChecks server would be
 // registered, or declares the "network" auth mode but no NetworkIdentityAuth
 // or no AuthProviderChecks server would be registered, and when the manifest
-// declares "configuration_check": true without WithConfigurationChecks.
+// declares "configuration_check": true without WithConfigurationChecks. It
+// also panics when a watch_sync_provider.v1 capability sets
+// provides_custom_lists without WithWatchSyncCustomLists, or when
+// WithWatchSyncCustomLists passes a server but no capability sets the flag.
 func ServeManifestWithOptions(
 	manifestBytes []byte,
 	version string,
@@ -228,6 +242,12 @@ func manifestServeConfig(
 			}
 		}
 	}
+	if isNilServer(resolved.watchSyncCustomLists) {
+		resolved.watchSyncCustomLists = nil
+	}
+	if err := checkWatchSyncCustomLists(m, resolved.watchSyncCustomLists != nil); err != nil {
+		return ServeConfig{}, err
+	}
 	servers.Runtime = &manifestRuntime{manifest: m, configure: resolved.configure}
 	return ServeConfig{
 		Servers: servers,
@@ -237,6 +257,30 @@ func manifestServeConfig(
 			networkIdentityAuth:          resolved.networkIdentityAuth,
 			configurationChecks:          resolved.configurationChecks,
 			notificationChannel:          resolved.notificationChannel,
+			watchSyncCustomLists:         resolved.watchSyncCustomLists,
 		}),
 	}, nil
+}
+
+// checkWatchSyncCustomLists requires the custom-list server and the
+// descriptor flag to come together. Hosts call the service only for a
+// capability that sets the flag, so a flag without the server fails every
+// call, and a server without the flag is never called.
+func checkWatchSyncCustomLists(m *pluginv1.PluginManifest, registered bool) error {
+	declared := false
+	for _, descriptor := range m.GetCapabilities() {
+		if descriptor.GetType() != capability.WatchSyncProvider || !descriptor.GetWatchSyncProvider().GetProvidesCustomLists() {
+			continue
+		}
+		if !registered {
+			return fmt.Errorf("plugin capability %q sets provides_custom_lists but no WatchSyncCustomListService server is registered; pass runtime.WithWatchSyncCustomLists",
+				descriptor.GetId())
+		}
+		declared = true
+	}
+	if registered && !declared {
+		return fmt.Errorf("runtime.WithWatchSyncCustomLists registers WatchSyncCustomListService but no %s capability sets provides_custom_lists",
+			capability.WatchSyncProvider)
+	}
+	return nil
 }

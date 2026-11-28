@@ -110,6 +110,20 @@ as "not supported". A network provider cannot fall back that way: without
 signed in until the session's absolute age limit, so `ServeManifestWithOptions`
 refuses to start a plugin that declares the `network` mode without it.
 
+`WatchSyncCustomListService` (v0.36.0) is declared by
+`WatchSyncProviderDescriptor.provides_custom_lists`, a plain `bool`, so absent
+and `false` both mean the plugin has no lists to offer. Hosts call the service
+only for a capability that sets the flag, and `ServeManifestWithOptions`
+refuses to start a plugin whose flag and server do not come together. A host
+built on an older SDK installs and starts a plugin that sets the flag, drops
+the field, and never calls the service, as long as it includes
+Silo-Server/silo-server#2502; an older host refuses to install such a plugin
+as a bare binary. Hosts read the flag from the capability metadata stored when
+the plugin was installed or updated, so it takes effect after the plugin is
+next updated on a host that reads it. A host on an SDK older than v0.13.1
+decodes that stored metadata strictly, so it could reject metadata a newer
+host stored with the flag; such a host must upgrade before plugins set it.
+
 `ConfigurationChecks` (v0.32.0) is declared by the manifest metadata key
 `"configuration_check": true`. Hosts call it only for plugins that declare the
 key, so a host that predates the service ignores the key, and a plugin built

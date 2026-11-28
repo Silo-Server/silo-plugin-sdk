@@ -3,6 +3,7 @@ package convert_test
 import (
 	"testing"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
@@ -25,7 +26,8 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 				pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE,
 				pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES,
 			},
-			MaxBatchSize: 25,
+			MaxBatchSize:        25,
+			ProvidesCustomLists: true,
 			ConnectionSettings: []*pluginv1.WatchSyncConnectionSetting{{
 				Key:          "track_rewatches",
 				Label:        "Log rewatches",
@@ -43,8 +45,11 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := decoded.GetWatchSyncProvider()
+	if want := manifest.GetCapabilities()[0].GetWatchSyncProvider(); !proto.Equal(got, want) {
+		t.Fatalf("decoded descriptor = %v\nwant %v", got, want)
+	}
 	if got == nil || !got.GetExportWatched() || !got.GetImportWatchlist() || !got.GetScrobblePlayback() || got.GetMaxBatchSize() != 25 ||
-		!got.GetImportRatings() || !got.GetExportRatings() ||
+		!got.GetImportRatings() || !got.GetExportRatings() || !got.GetProvidesCustomLists() ||
 		len(got.GetAuthMethods()) != 1 || got.GetAuthMethods()[0] != pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_DEVICE_CODE ||
 		len(got.GetSupportedMediaTypes()) != 3 ||
 		got.GetSupportedMediaTypes()[1] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE ||

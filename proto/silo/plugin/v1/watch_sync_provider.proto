@@ -30,6 +30,18 @@ service WatchSyncDeviceAuthorizationService {
   rpc Poll(WatchSyncDeviceAuthorizationServicePollRequest) returns (WatchSyncDeviceAuthorizationServicePollResponse);
 }
 
+// WatchSyncCustomListService reads the lists a provider account keeps: its own
+// and the ones it follows or liked, private lists included, and their items.
+// It is separate from WatchSyncProvider for the same reason as
+// WatchSyncDeviceAuthorizationService. A plugin registers it when, and only
+// when, its descriptor sets provides_custom_lists. Both RPCs receive the
+// connection's credentials in WatchSyncAuthenticatedContext, like the other
+// authenticated RPCs, so a private list is read with the profile's account.
+service WatchSyncCustomListService {
+  rpc ListCustomLists(WatchSyncCustomListServiceListCustomListsRequest) returns (WatchSyncCustomListServiceListCustomListsResponse);
+  rpc ListCustomListItems(WatchSyncCustomListServiceListCustomListItemsRequest) returns (WatchSyncCustomListServiceListCustomListItemsResponse);
+}
+
 enum WatchSyncAuthMethod {
   WATCH_SYNC_AUTH_METHOD_UNSPECIFIED = 0;
   WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE = 1;
@@ -164,6 +176,14 @@ message WatchSyncProviderDescriptor {
   // capability's config_schema, which is collected once when an API-key
   // connection is made. Keys are unique lowercase slugs.
   repeated WatchSyncConnectionSetting connection_settings = 21;
+  // When set, the plugin registers WatchSyncCustomListService, so the host can
+  // list the account's lists and read a list's items through the profile's
+  // connection. Hosts call the service only for plugins that set this flag.
+  // A host that predates the flag drops it when it loads a manifest from an
+  // archive, and from SDK v0.13.1 also when it decodes stored capability
+  // metadata; docs/compatibility.md lists the minimum host for each path,
+  // including a bare binary install.
+  bool provides_custom_lists = 22;
 }
 
 // Hosts skip a setting whose type they do not know, including UNSPECIFIED,
@@ -525,4 +545,95 @@ message WatchSyncListRemoteStateResponse {
   // the provider returned them without usable identity. The host shows them
   // with the sync run. They follow the WatchSyncFault.safe_message rules.
   repeated string warnings = 7;
+}
+
+message WatchSyncCustomListServiceListCustomListsRequest {
+  WatchSyncAuthenticatedContext context = 1;
+}
+
+// One list the account keeps. A provider that stores one list as several
+// (MDBList keeps a list with movie and show filters as two "twin" lists under
+// one address) returns it once, with the twins' media types, item counts, and
+// flags combined.
+message WatchSyncCustomList {
+  // The provider's web address for the list. A host collection stores it and
+  // passes it back as WatchSyncCustomListServiceListCustomListItemsRequest.list_url.
+  string url = 1;
+  string name = 2;
+  // MOVIE, SERIES, or both: the kinds of title the list holds.
+  repeated WatchSyncMediaType media_types = 3;
+  // The number of items the provider reports for the list, which may lag
+  // behind its contents.
+  int32 item_count = 4;
+  // Only the account, and whoever it shares the list with, can read it.
+  bool private = 5;
+  // The provider fills the list from filters, so its items change without
+  // anyone editing it.
+  bool dynamic = 6;
+  // True for a list the account created; false for one it follows or liked.
+  bool owned = 7;
+}
+
+message WatchSyncCustomListServiceListCustomListsResponse {
+  repeated WatchSyncCustomList lists = 1;
+  // Complete authoritative replacement. The host persists it before consuming
+  // lists or fault; a persistence failure discards the lists.
+  WatchSyncCredentials updated_credentials = 2;
+  // Request-level failure. After successfully persisting updated_credentials,
+  // the host ignores lists. INVALID_CREDENTIAL means the provider rejected the
+  // credentials; RATE_LIMITED, with an optional retry_after, defers the whole
+  // connection; TEMPORARY covers every other failure worth retrying.
+  WatchSyncFault fault = 3;
+}
+
+message WatchSyncCustomListServiceListCustomListItemsRequest {
+  WatchSyncAuthenticatedContext context = 1;
+  // The list's address as the host stored it, usually a WatchSyncCustomList
+  // url. It may be another form of the same address, such as the provider's
+  // feed URL for the list, which the plugin accepts when it can tell the list
+  // from it.
+  string list_url = 2;
+  // Opaque continuation from the previous page's next_page_token; empty on the
+  // first call. It is valid only for the same list_url and max_items, and only
+  // for the immediately following page. The host never persists it.
+  string page_token = 3;
+  // The most items the host uses from each provider list behind list_url, or
+  // 0 for no limit. A plugin may stop reading a provider list once it has
+  // returned this many of its items.
+  int32 max_items = 4;
+}
+
+message WatchSyncCustomListItem {
+  // A MOVIE or SERIES item: external_ids, title, and year identify the title.
+  // external_ids uses the descriptor's external_id_namespaces keys, such as
+  // "imdb", "tmdb", and "tvdb".
+  WatchSyncMedia media = 1;
+  // The item's position in its provider list; lower ranks come first. Items
+  // from several provider lists behind one address can share a rank. The host
+  // stable-sorts the items of every page by rank, so items with equal ranks
+  // keep the order the plugin returned them in, and the plugin need not sort
+  // across pages.
+  int32 rank = 2;
+}
+
+message WatchSyncCustomListServiceListCustomListItemsResponse {
+  repeated WatchSyncCustomListItem items = 1;
+  // Non-empty when more pages remain. The host requests the next page with
+  // the same list_url and max_items and this token.
+  string next_page_token = 2;
+  // Complete authoritative replacement. The host persists it before consuming
+  // this page or fault; a persistence failure discards the page.
+  WatchSyncCredentials updated_credentials = 3;
+  // Traversal-level failure. After successfully persisting
+  // updated_credentials, the host discards this page and the traversal.
+  //
+  // INVALID_CREDENTIAL: the provider rejected the credentials.
+  // RATE_LIMITED: the provider limited the account; retry_after, when set,
+  //   says how long to wait, and the host defers the whole connection.
+  // PERMISSION_DENIED: the account cannot read the list, or the provider has
+  //   no list at the address and cannot say which. safe_message says why.
+  // INVALID_REQUEST: list_url is not a list this provider can read, or
+  //   page_token is invalid.
+  // TEMPORARY: any other failure worth retrying.
+  WatchSyncFault fault = 4;
 }
