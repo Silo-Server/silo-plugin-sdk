@@ -426,6 +426,39 @@ Those updates remain part of the same user challenge, so the original user code
 and verification URL must stay valid until expiry. An explicitly empty
 `provider_state` clears the prior state; omitting it retains the prior state.
 
+A provider that can read the account's lists sets `provides_custom_lists` in
+its descriptor and registers the separate `WatchSyncCustomListService` (added
+in v0.36.0), for the same source-compatibility reason:
+
+```go
+runtime.ServeManifestWithOptions(manifestJSON, version, servers,
+    runtime.WithWatchSyncCustomLists(listServer))
+```
+
+- `ListCustomLists` returns the lists the account keeps: its own and the ones
+  it follows or liked, private ones included. Each carries the provider's web
+  address for the list, which a host collection stores, plus its name, media
+  types (`MOVIE`, `SERIES`, or both), item count, and `private`, `dynamic`, and
+  `owned` flags. A provider that stores one list as several, such as MDBList's
+  movie and show twins, returns it once with their values combined.
+- `ListCustomListItems` reads one list by that address, one page per call.
+  Each item is a `MOVIE` or `SERIES` `WatchSyncMedia` and its `rank` in its
+  provider list. The host follows `next_page_token` and stable-sorts every
+  item by rank, so the plugin does not sort across pages. When `max_items` is
+  above 0, the plugin may stop reading each provider list behind the address
+  once it has returned that many of its items.
+- Faults follow the other RPCs: `INVALID_CREDENTIAL`, `RATE_LIMITED` with an
+  optional `retry_after`, and `TEMPORARY`. Reading items adds
+  `PERMISSION_DENIED`, when the account cannot read the list, with a
+  `safe_message` that says why, and `INVALID_REQUEST`, when the address is not
+  a list the provider can read or the page token is invalid.
+
+Both RPCs receive the connection's credentials in
+`WatchSyncAuthenticatedContext`, like the other authenticated RPCs, so a
+private list is read with the profile's own account. `ServeManifestWithOptions` refuses to
+start a plugin that sets the flag without the server, or passes the server
+without setting the flag. Hosts that predate the flag never call the service.
+
 `WatchSyncProviderConfig` is keyed by manifest config key and field, for example
 `provider.client_id`. Scalar values are sent as strings and structured values
 as JSON. Fields marked secret in the manifest are sent through `secret_values`;

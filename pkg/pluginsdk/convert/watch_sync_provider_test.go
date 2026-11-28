@@ -25,7 +25,8 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 				pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE,
 				pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES,
 			},
-			MaxBatchSize: 25,
+			MaxBatchSize:        25,
+			ProvidesCustomLists: true,
 			ConnectionSettings: []*pluginv1.WatchSyncConnectionSetting{{
 				Key:          "track_rewatches",
 				Label:        "Log rewatches",
@@ -44,7 +45,7 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 	}
 	got := decoded.GetWatchSyncProvider()
 	if got == nil || !got.GetExportWatched() || !got.GetImportWatchlist() || !got.GetScrobblePlayback() || got.GetMaxBatchSize() != 25 ||
-		!got.GetImportRatings() || !got.GetExportRatings() ||
+		!got.GetImportRatings() || !got.GetExportRatings() || !got.GetProvidesCustomLists() ||
 		len(got.GetAuthMethods()) != 1 || got.GetAuthMethods()[0] != pluginv1.WatchSyncAuthMethod_WATCH_SYNC_AUTH_METHOD_DEVICE_CODE ||
 		len(got.GetSupportedMediaTypes()) != 3 ||
 		got.GetSupportedMediaTypes()[1] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE ||

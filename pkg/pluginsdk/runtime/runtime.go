@@ -96,6 +96,7 @@ type optionalServices struct {
 	networkIdentityAuth          pluginv1.NetworkIdentityAuthServer
 	configurationChecks          pluginv1.ConfigurationChecksServer
 	notificationChannel          pluginv1.NotificationChannelServer
+	watchSyncCustomLists         pluginv1.WatchSyncCustomListServiceServer
 }
 
 func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalServices) plugin.PluginSet {
@@ -103,7 +104,7 @@ func pluginSetWithOptionalServices(servers CapabilityServers, optional optionalS
 	// whose dynamic type is not comparable.
 	if optional.watchSyncDeviceAuthorization == nil && optional.authProviderChecks == nil &&
 		optional.networkIdentityAuth == nil && optional.configurationChecks == nil &&
-		optional.notificationChannel == nil {
+		optional.notificationChannel == nil && optional.watchSyncCustomLists == nil {
 		return DefaultPluginSet(servers)
 	}
 	return plugin.PluginSet{
@@ -207,6 +208,13 @@ func (c *Client) WatchSyncDeviceAuthorization() pluginv1.WatchSyncDeviceAuthoriz
 	return pluginv1.NewWatchSyncDeviceAuthorizationServiceClient(c.conn)
 }
 
+// WatchSyncCustomLists returns the client for a watch-sync provider's custom
+// lists, added in v0.36.0. Call it only for a capability whose descriptor sets
+// provides_custom_lists; other plugins answer Unimplemented.
+func (c *Client) WatchSyncCustomLists() pluginv1.WatchSyncCustomListServiceClient {
+	return pluginv1.NewWatchSyncCustomListServiceClient(c.conn)
+}
+
 func (c *Client) NetworkAccessProvider() pluginv1.NetworkAccessProviderClient {
 	return pluginv1.NewNetworkAccessProviderClient(c.conn)
 }
@@ -236,6 +244,9 @@ func (p *grpcPluginWithOptionalServices) GRPCServer(
 	}
 	if p.optional.notificationChannel != nil {
 		pluginv1.RegisterNotificationChannelServer(server, p.optional.notificationChannel)
+	}
+	if p.optional.watchSyncCustomLists != nil {
+		pluginv1.RegisterWatchSyncCustomListServiceServer(server, p.optional.watchSyncCustomLists)
 	}
 	return nil
 }

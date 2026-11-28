@@ -501,3 +501,157 @@ var WatchSyncDeviceAuthorizationService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "silo/plugin/v1/watch_sync_provider.proto",
 }
+
+const (
+	WatchSyncCustomListService_ListCustomLists_FullMethodName     = "/silo.plugin.v1.WatchSyncCustomListService/ListCustomLists"
+	WatchSyncCustomListService_ListCustomListItems_FullMethodName = "/silo.plugin.v1.WatchSyncCustomListService/ListCustomListItems"
+)
+
+// WatchSyncCustomListServiceClient is the client API for WatchSyncCustomListService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// WatchSyncCustomListService reads the lists a provider account keeps: its own
+// and the ones it follows or liked, private lists included, and their items.
+// It is separate from WatchSyncProvider for the same reason as
+// WatchSyncDeviceAuthorizationService. A plugin registers it when, and only
+// when, its descriptor sets provides_custom_lists. Both RPCs receive the
+// connection's credentials in WatchSyncAuthenticatedContext, like the other
+// authenticated RPCs, so a private list is read with the profile's account.
+type WatchSyncCustomListServiceClient interface {
+	ListCustomLists(ctx context.Context, in *WatchSyncListCustomListsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListsResponse, error)
+	ListCustomListItems(ctx context.Context, in *WatchSyncListCustomListItemsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListItemsResponse, error)
+}
+
+type watchSyncCustomListServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewWatchSyncCustomListServiceClient(cc grpc.ClientConnInterface) WatchSyncCustomListServiceClient {
+	return &watchSyncCustomListServiceClient{cc}
+}
+
+func (c *watchSyncCustomListServiceClient) ListCustomLists(ctx context.Context, in *WatchSyncListCustomListsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WatchSyncListCustomListsResponse)
+	err := c.cc.Invoke(ctx, WatchSyncCustomListService_ListCustomLists_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *watchSyncCustomListServiceClient) ListCustomListItems(ctx context.Context, in *WatchSyncListCustomListItemsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListItemsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WatchSyncListCustomListItemsResponse)
+	err := c.cc.Invoke(ctx, WatchSyncCustomListService_ListCustomListItems_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// WatchSyncCustomListServiceServer is the server API for WatchSyncCustomListService service.
+// All implementations should embed UnimplementedWatchSyncCustomListServiceServer
+// for forward compatibility.
+//
+// WatchSyncCustomListService reads the lists a provider account keeps: its own
+// and the ones it follows or liked, private lists included, and their items.
+// It is separate from WatchSyncProvider for the same reason as
+// WatchSyncDeviceAuthorizationService. A plugin registers it when, and only
+// when, its descriptor sets provides_custom_lists. Both RPCs receive the
+// connection's credentials in WatchSyncAuthenticatedContext, like the other
+// authenticated RPCs, so a private list is read with the profile's account.
+type WatchSyncCustomListServiceServer interface {
+	ListCustomLists(context.Context, *WatchSyncListCustomListsRequest) (*WatchSyncListCustomListsResponse, error)
+	ListCustomListItems(context.Context, *WatchSyncListCustomListItemsRequest) (*WatchSyncListCustomListItemsResponse, error)
+}
+
+// UnimplementedWatchSyncCustomListServiceServer should be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedWatchSyncCustomListServiceServer struct{}
+
+func (UnimplementedWatchSyncCustomListServiceServer) ListCustomLists(context.Context, *WatchSyncListCustomListsRequest) (*WatchSyncListCustomListsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCustomLists not implemented")
+}
+func (UnimplementedWatchSyncCustomListServiceServer) ListCustomListItems(context.Context, *WatchSyncListCustomListItemsRequest) (*WatchSyncListCustomListItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCustomListItems not implemented")
+}
+func (UnimplementedWatchSyncCustomListServiceServer) testEmbeddedByValue() {}
+
+// UnsafeWatchSyncCustomListServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WatchSyncCustomListServiceServer will
+// result in compilation errors.
+type UnsafeWatchSyncCustomListServiceServer interface {
+	mustEmbedUnimplementedWatchSyncCustomListServiceServer()
+}
+
+func RegisterWatchSyncCustomListServiceServer(s grpc.ServiceRegistrar, srv WatchSyncCustomListServiceServer) {
+	// If the following call panics, it indicates UnimplementedWatchSyncCustomListServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&WatchSyncCustomListService_ServiceDesc, srv)
+}
+
+func _WatchSyncCustomListService_ListCustomLists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WatchSyncListCustomListsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WatchSyncCustomListServiceServer).ListCustomLists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WatchSyncCustomListService_ListCustomLists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WatchSyncCustomListServiceServer).ListCustomLists(ctx, req.(*WatchSyncListCustomListsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WatchSyncCustomListService_ListCustomListItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WatchSyncListCustomListItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WatchSyncCustomListServiceServer).ListCustomListItems(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WatchSyncCustomListService_ListCustomListItems_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WatchSyncCustomListServiceServer).ListCustomListItems(ctx, req.(*WatchSyncListCustomListItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// WatchSyncCustomListService_ServiceDesc is the grpc.ServiceDesc for WatchSyncCustomListService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var WatchSyncCustomListService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "silo.plugin.v1.WatchSyncCustomListService",
+	HandlerType: (*WatchSyncCustomListServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListCustomLists",
+			Handler:    _WatchSyncCustomListService_ListCustomLists_Handler,
+		},
+		{
+			MethodName: "ListCustomListItems",
+			Handler:    _WatchSyncCustomListService_ListCustomListItems_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "silo/plugin/v1/watch_sync_provider.proto",
+}
