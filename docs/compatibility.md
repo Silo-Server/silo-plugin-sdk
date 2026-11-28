@@ -120,7 +120,9 @@ the field, and never calls the service, as long as it includes
 Silo-Server/silo-server#2502; an older host refuses to install such a plugin
 as a bare binary. Hosts read the flag from the capability metadata stored when
 the plugin was installed or updated, so it takes effect after the plugin is
-next updated on a host that reads it.
+next updated on a host that reads it. A host on an SDK older than v0.13.1
+decodes that stored metadata strictly, so it could reject metadata a newer
+host stored with the flag; such a host must upgrade before plugins set it.
 
 `ConfigurationChecks` (v0.32.0) is declared by the manifest metadata key
 `"configuration_check": true`. Hosts call it only for plugins that declare the

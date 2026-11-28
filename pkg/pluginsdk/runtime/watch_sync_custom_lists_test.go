@@ -15,8 +15,8 @@ type customLists struct {
 	pluginv1.UnimplementedWatchSyncCustomListServiceServer
 }
 
-func (customLists) ListCustomLists(_ context.Context, req *pluginv1.WatchSyncListCustomListsRequest) (*pluginv1.WatchSyncListCustomListsResponse, error) {
-	return &pluginv1.WatchSyncListCustomListsResponse{Lists: []*pluginv1.WatchSyncCustomList{{
+func (customLists) ListCustomLists(_ context.Context, req *pluginv1.WatchSyncCustomListServiceListCustomListsRequest) (*pluginv1.WatchSyncCustomListServiceListCustomListsResponse, error) {
+	return &pluginv1.WatchSyncCustomListServiceListCustomListsResponse{Lists: []*pluginv1.WatchSyncCustomList{{
 		Url: "https://lists.example/" + req.GetContext().GetCapabilityId(),
 	}}}, nil
 }
@@ -38,7 +38,7 @@ func TestManifestServeConfigServesWatchSyncCustomLists(t *testing.T) {
 		t.Fatalf("manifestServeConfig = %v", err)
 	}
 	resp, err := serveConfigClient(t, cfg).WatchSyncCustomLists().ListCustomLists(context.Background(),
-		&pluginv1.WatchSyncListCustomListsRequest{Context: &pluginv1.WatchSyncAuthenticatedContext{CapabilityId: "lists"}})
+		&pluginv1.WatchSyncCustomListServiceListCustomListsRequest{Context: &pluginv1.WatchSyncAuthenticatedContext{CapabilityId: "lists"}})
 	if err != nil || len(resp.GetLists()) != 1 || resp.GetLists()[0].GetUrl() != "https://lists.example/lists" {
 		t.Fatalf("ListCustomLists = %v, %v", resp, err)
 	}

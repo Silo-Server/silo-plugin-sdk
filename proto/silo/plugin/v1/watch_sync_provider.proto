@@ -38,8 +38,8 @@ service WatchSyncDeviceAuthorizationService {
 // connection's credentials in WatchSyncAuthenticatedContext, like the other
 // authenticated RPCs, so a private list is read with the profile's account.
 service WatchSyncCustomListService {
-  rpc ListCustomLists(WatchSyncListCustomListsRequest) returns (WatchSyncListCustomListsResponse);
-  rpc ListCustomListItems(WatchSyncListCustomListItemsRequest) returns (WatchSyncListCustomListItemsResponse);
+  rpc ListCustomLists(WatchSyncCustomListServiceListCustomListsRequest) returns (WatchSyncCustomListServiceListCustomListsResponse);
+  rpc ListCustomListItems(WatchSyncCustomListServiceListCustomListItemsRequest) returns (WatchSyncCustomListServiceListCustomListItemsResponse);
 }
 
 enum WatchSyncAuthMethod {
@@ -178,8 +178,11 @@ message WatchSyncProviderDescriptor {
   repeated WatchSyncConnectionSetting connection_settings = 21;
   // When set, the plugin registers WatchSyncCustomListService, so the host can
   // list the account's lists and read a list's items through the profile's
-  // connection. Hosts call the service only for plugins that set this flag;
-  // hosts that predate it ignore it.
+  // connection. Hosts call the service only for plugins that set this flag.
+  // A host that predates the flag drops it when it loads a manifest from an
+  // archive, and from SDK v0.13.1 also when it decodes stored capability
+  // metadata; docs/compatibility.md lists the minimum host for each path,
+  // including a bare binary install.
   bool provides_custom_lists = 22;
 }
 
@@ -544,7 +547,7 @@ message WatchSyncListRemoteStateResponse {
   repeated string warnings = 7;
 }
 
-message WatchSyncListCustomListsRequest {
+message WatchSyncCustomListServiceListCustomListsRequest {
   WatchSyncAuthenticatedContext context = 1;
 }
 
@@ -554,7 +557,7 @@ message WatchSyncListCustomListsRequest {
 // flags combined.
 message WatchSyncCustomList {
   // The provider's web address for the list. A host collection stores it and
-  // passes it back as WatchSyncListCustomListItemsRequest.list_url.
+  // passes it back as WatchSyncCustomListServiceListCustomListItemsRequest.list_url.
   string url = 1;
   string name = 2;
   // MOVIE, SERIES, or both: the kinds of title the list holds.
@@ -571,7 +574,7 @@ message WatchSyncCustomList {
   bool owned = 7;
 }
 
-message WatchSyncListCustomListsResponse {
+message WatchSyncCustomListServiceListCustomListsResponse {
   repeated WatchSyncCustomList lists = 1;
   // Complete authoritative replacement. The host persists it before consuming
   // lists or fault; a persistence failure discards the lists.
@@ -583,7 +586,7 @@ message WatchSyncListCustomListsResponse {
   WatchSyncFault fault = 3;
 }
 
-message WatchSyncListCustomListItemsRequest {
+message WatchSyncCustomListServiceListCustomListItemsRequest {
   WatchSyncAuthenticatedContext context = 1;
   // The list's address as the host stored it, usually a WatchSyncCustomList
   // url. It may be another form of the same address, such as the provider's
@@ -613,7 +616,7 @@ message WatchSyncCustomListItem {
   int32 rank = 2;
 }
 
-message WatchSyncListCustomListItemsResponse {
+message WatchSyncCustomListServiceListCustomListItemsResponse {
   repeated WatchSyncCustomListItem items = 1;
   // Non-empty when more pages remain. The host requests the next page with
   // the same list_url and max_items and this token.

@@ -519,8 +519,8 @@ const (
 // connection's credentials in WatchSyncAuthenticatedContext, like the other
 // authenticated RPCs, so a private list is read with the profile's account.
 type WatchSyncCustomListServiceClient interface {
-	ListCustomLists(ctx context.Context, in *WatchSyncListCustomListsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListsResponse, error)
-	ListCustomListItems(ctx context.Context, in *WatchSyncListCustomListItemsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListItemsResponse, error)
+	ListCustomLists(ctx context.Context, in *WatchSyncCustomListServiceListCustomListsRequest, opts ...grpc.CallOption) (*WatchSyncCustomListServiceListCustomListsResponse, error)
+	ListCustomListItems(ctx context.Context, in *WatchSyncCustomListServiceListCustomListItemsRequest, opts ...grpc.CallOption) (*WatchSyncCustomListServiceListCustomListItemsResponse, error)
 }
 
 type watchSyncCustomListServiceClient struct {
@@ -531,9 +531,9 @@ func NewWatchSyncCustomListServiceClient(cc grpc.ClientConnInterface) WatchSyncC
 	return &watchSyncCustomListServiceClient{cc}
 }
 
-func (c *watchSyncCustomListServiceClient) ListCustomLists(ctx context.Context, in *WatchSyncListCustomListsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListsResponse, error) {
+func (c *watchSyncCustomListServiceClient) ListCustomLists(ctx context.Context, in *WatchSyncCustomListServiceListCustomListsRequest, opts ...grpc.CallOption) (*WatchSyncCustomListServiceListCustomListsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WatchSyncListCustomListsResponse)
+	out := new(WatchSyncCustomListServiceListCustomListsResponse)
 	err := c.cc.Invoke(ctx, WatchSyncCustomListService_ListCustomLists_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -541,9 +541,9 @@ func (c *watchSyncCustomListServiceClient) ListCustomLists(ctx context.Context, 
 	return out, nil
 }
 
-func (c *watchSyncCustomListServiceClient) ListCustomListItems(ctx context.Context, in *WatchSyncListCustomListItemsRequest, opts ...grpc.CallOption) (*WatchSyncListCustomListItemsResponse, error) {
+func (c *watchSyncCustomListServiceClient) ListCustomListItems(ctx context.Context, in *WatchSyncCustomListServiceListCustomListItemsRequest, opts ...grpc.CallOption) (*WatchSyncCustomListServiceListCustomListItemsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WatchSyncListCustomListItemsResponse)
+	out := new(WatchSyncCustomListServiceListCustomListItemsResponse)
 	err := c.cc.Invoke(ctx, WatchSyncCustomListService_ListCustomListItems_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -563,8 +563,8 @@ func (c *watchSyncCustomListServiceClient) ListCustomListItems(ctx context.Conte
 // connection's credentials in WatchSyncAuthenticatedContext, like the other
 // authenticated RPCs, so a private list is read with the profile's account.
 type WatchSyncCustomListServiceServer interface {
-	ListCustomLists(context.Context, *WatchSyncListCustomListsRequest) (*WatchSyncListCustomListsResponse, error)
-	ListCustomListItems(context.Context, *WatchSyncListCustomListItemsRequest) (*WatchSyncListCustomListItemsResponse, error)
+	ListCustomLists(context.Context, *WatchSyncCustomListServiceListCustomListsRequest) (*WatchSyncCustomListServiceListCustomListsResponse, error)
+	ListCustomListItems(context.Context, *WatchSyncCustomListServiceListCustomListItemsRequest) (*WatchSyncCustomListServiceListCustomListItemsResponse, error)
 }
 
 // UnimplementedWatchSyncCustomListServiceServer should be embedded to have
@@ -574,10 +574,10 @@ type WatchSyncCustomListServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedWatchSyncCustomListServiceServer struct{}
 
-func (UnimplementedWatchSyncCustomListServiceServer) ListCustomLists(context.Context, *WatchSyncListCustomListsRequest) (*WatchSyncListCustomListsResponse, error) {
+func (UnimplementedWatchSyncCustomListServiceServer) ListCustomLists(context.Context, *WatchSyncCustomListServiceListCustomListsRequest) (*WatchSyncCustomListServiceListCustomListsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCustomLists not implemented")
 }
-func (UnimplementedWatchSyncCustomListServiceServer) ListCustomListItems(context.Context, *WatchSyncListCustomListItemsRequest) (*WatchSyncListCustomListItemsResponse, error) {
+func (UnimplementedWatchSyncCustomListServiceServer) ListCustomListItems(context.Context, *WatchSyncCustomListServiceListCustomListItemsRequest) (*WatchSyncCustomListServiceListCustomListItemsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCustomListItems not implemented")
 }
 func (UnimplementedWatchSyncCustomListServiceServer) testEmbeddedByValue() {}
@@ -601,7 +601,7 @@ func RegisterWatchSyncCustomListServiceServer(s grpc.ServiceRegistrar, srv Watch
 }
 
 func _WatchSyncCustomListService_ListCustomLists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WatchSyncListCustomListsRequest)
+	in := new(WatchSyncCustomListServiceListCustomListsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -613,13 +613,13 @@ func _WatchSyncCustomListService_ListCustomLists_Handler(srv interface{}, ctx co
 		FullMethod: WatchSyncCustomListService_ListCustomLists_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WatchSyncCustomListServiceServer).ListCustomLists(ctx, req.(*WatchSyncListCustomListsRequest))
+		return srv.(WatchSyncCustomListServiceServer).ListCustomLists(ctx, req.(*WatchSyncCustomListServiceListCustomListsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _WatchSyncCustomListService_ListCustomListItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WatchSyncListCustomListItemsRequest)
+	in := new(WatchSyncCustomListServiceListCustomListItemsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -631,7 +631,7 @@ func _WatchSyncCustomListService_ListCustomListItems_Handler(srv interface{}, ct
 		FullMethod: WatchSyncCustomListService_ListCustomListItems_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WatchSyncCustomListServiceServer).ListCustomListItems(ctx, req.(*WatchSyncListCustomListItemsRequest))
+		return srv.(WatchSyncCustomListServiceServer).ListCustomListItems(ctx, req.(*WatchSyncCustomListServiceListCustomListItemsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
